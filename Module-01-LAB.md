@@ -42,8 +42,17 @@
               Gi0/0  │  3.3.3.3   │  Gi0/1
                      └────────────┘
 
-  Tất cả interface + loopback đều nằm trong OSPF area 0
+  Định tuyến: CHỈ DÙNG STATIC ROUTE — cố ý không dùng OSPF
 ```
+
+> **Vì sao lab này dùng static chứ không phải OSPF?**
+> Module-01 nói về **cách gói được chuyển đi**, không phải về giao thức định tuyến.
+> Static route cho đủ mọi thứ lab cần (route để so RIB/FIB, ECMP, traffic transit)
+> mà **không thêm một thứ có thể hỏng**. Nếu OSPF neighbor không lên, bạn sẽ mất
+> hàng giờ debug OSPF và không học được gì về CEF.
+>
+> *(Nếu bạn vẫn còn LAB P0-5 chạy OSPF thì dùng lại cũng được — kết quả tương đương,
+> chỉ khác ký hiệu `O` thay vì `S` trong bảng route.)*
 
 | Node | Image | RAM | Interface |
 |---|---|:---:|---|
@@ -85,9 +94,13 @@ interface GigabitEthernet0/1
  ip address 10.0.13.1 255.255.255.252
  no shutdown
 !
-router ospf 1
- router-id 1.1.1.1
- network 0.0.0.0 255.255.255.255 area 0
+ip route 2.2.2.2 255.255.255.255 10.0.12.2
+ip route 3.3.3.3 255.255.255.255 10.0.13.2
+!
+! Hai dong sau CO Y tro cung mot dich qua hai next-hop khac nhau
+!   -> tao ra ECMP de dung o Buoc 6
+ip route 10.0.23.0 255.255.255.252 10.0.12.2
+ip route 10.0.23.0 255.255.255.252 10.0.13.2
 !
 line con 0
  exec-timeout 0 0
@@ -120,9 +133,12 @@ interface GigabitEthernet0/1
  ip address 10.0.23.1 255.255.255.252
  no shutdown
 !
-router ospf 1
- router-id 2.2.2.2
- network 0.0.0.0 255.255.255.255 area 0
+ip route 1.1.1.1 255.255.255.255 10.0.12.1
+ip route 10.0.13.0 255.255.255.252 10.0.12.1
+!
+! CO Y di vong qua R1 (thay vi qua link truc tiep R2-R3)
+!   -> tao traffic TRANSIT qua R1 de dung o Buoc 5
+ip route 3.3.3.3 255.255.255.255 10.0.12.1
 !
 line con 0
  exec-timeout 0 0
@@ -155,9 +171,11 @@ interface GigabitEthernet0/1
  ip address 10.0.23.2 255.255.255.252
  no shutdown
 !
-router ospf 1
- router-id 3.3.3.3
- network 0.0.0.0 255.255.255.255 area 0
+ip route 1.1.1.1 255.255.255.255 10.0.13.1
+ip route 10.0.12.0 255.255.255.252 10.0.13.1
+!
+! CO Y di vong qua R1 — chieu ve cua traffic transit o Buoc 5
+ip route 2.2.2.2 255.255.255.255 10.0.13.1
 !
 line con 0
  exec-timeout 0 0
@@ -170,20 +188,37 @@ write memory
 
 ### ✅ Kiểm tra trước khi bắt đầu
 
-```
-R1# show ip ospf neighbor
-```
-Phải thấy **2 neighbor** ở trạng thái `FULL`. Chưa được thì dừng lại sửa, đừng làm tiếp.
-
+**① Ba loopback phải ping được từ R1:**
 ```
 R1# ping 2.2.2.2 source 1.1.1.1
 R1# ping 3.3.3.3 source 1.1.1.1
 ```
-Cả hai phải `!!!!!`.
+Cả hai phải `!!!!!`. Chưa được thì dừng lại sửa, đừng làm tiếp.
 
-> ⚠️ **Lưu ý về con số trong output mẫu:** metric OSPF, số entry, thời gian uptime của bạn
-> sẽ **khác** với output mẫu dưới đây tùy image và thời điểm. Hãy đối chiếu **cấu trúc và từ khóa**,
-> đừng so từng con số.
+**② Phải có ECMP (hai đường tới `10.0.23.0/30`) — cần cho Bước 6:**
+```
+R1# show ip route 10.0.23.0
+```
+Phải thấy **hai dòng `via`**:
+```
+  Routing entry for 10.0.23.0/30
+    Known via "static", distance 1, metric 0
+    Routing Descriptor Blocks:
+    * 10.0.13.2
+        ...
+      10.0.12.2
+        ...
+```
+
+**③ Traffic R2 → R3 phải đi VÒNG QUA R1 — cần cho Bước 5:**
+```
+R2# show ip route 3.3.3.3
+```
+Phải thấy `via 10.0.12.1` (tức là qua R1), **không phải** `via 10.0.23.2`.
+
+> ⚠️ **Lưu ý về con số trong output mẫu:** số entry, địa chỉ MAC, thời gian của bạn sẽ **khác**
+> với output mẫu dưới đây tùy image và thời điểm. Hãy đối chiếu **cấu trúc và từ khóa**
+> (`receive`, `attached`, `drop`, `Encap length`…), đừng so từng con số.
 
 ---
 
@@ -240,17 +275,20 @@ R1# show ip route
       1.0.0.0/32 is subnetted, 1 subnets
 C        1.1.1.1 is directly connected, Loopback0
       2.0.0.0/32 is subnetted, 1 subnets
-O        2.2.2.2 [110/11] via 10.0.12.2, 00:12:03, GigabitEthernet0/0
+S        2.2.2.2 [1/0] via 10.0.12.2
       3.0.0.0/32 is subnetted, 1 subnets
-O        3.3.3.3 [110/11] via 10.0.13.2, 00:12:03, GigabitEthernet0/1
+S        3.3.3.3 [1/0] via 10.0.13.2
       10.0.0.0/8 is variably subnetted, 6 subnets, 2 masks
 C        10.0.12.0/30 is directly connected, GigabitEthernet0/0
 L        10.0.12.1/32 is directly connected, GigabitEthernet0/0
 C        10.0.13.0/30 is directly connected, GigabitEthernet0/1
 L        10.0.13.1/32 is directly connected, GigabitEthernet0/1
-O        10.0.23.0/30 [110/20] via 10.0.13.2, 00:12:03, GigabitEthernet0/1
-                              [110/20] via 10.0.12.2, 00:12:03, GigabitEthernet0/0
+S        10.0.23.0/30 [1/0] via 10.0.13.2
+                      [1/0] via 10.0.12.2
 ```
+
+> `S` = static · `[1/0]` = **AD 1 / metric 0**. Nếu bạn dùng lại LAB P0-5 (OSPF) thì
+> chỗ này là `O` và `[110/11]` — **không sao, phần so sánh bên dưới vẫn đúng y hệt.**
 
 ### b) FIB — bảng "của máy"
 
@@ -283,9 +321,9 @@ Mở hai cửa sổ terminal, chạy `show ip route` ở một bên và `show ip
 
 | Câu hỏi | RIB | FIB |
 |---|:---:|:---:|
-| Có `[110/11]` (AD/metric) không? | ☐ | ☐ |
-| Có `00:12:03` (uptime) không? | ☐ | ☐ |
-| Có ký hiệu `O`, `C`, `L` không? | ☐ | ☐ |
+| Có `[1/0]` (AD/metric) không? | ☐ | ☐ |
+| Có ghi **nguồn route** (static hay OSPF) không? | ☐ | ☐ |
+| Có ký hiệu `S`, `C`, `L` không? | ☐ | ☐ |
 | Có entry `receive` không? | ☐ | ☐ |
 | Có entry `drop` không? | ☐ | ☐ |
 | `10.0.23.0/30` có mấy next-hop? | ☐ | ☐ |
@@ -295,12 +333,16 @@ Mở hai cửa sổ terminal, chạy `show ip route` ở một bên và `show ip
 
 | Câu hỏi | RIB | FIB |
 |---|:---:|:---:|
-| AD/metric | ✅ có | ❌ **không** |
-| Uptime | ✅ có | ❌ không |
-| Ký hiệu protocol | ✅ có | ❌ không |
+| AD/metric `[1/0]` | ✅ có | ❌ **không** |
+| Nguồn route (static/OSPF) | ✅ có | ❌ **không** |
+| Ký hiệu `S` `C` `L` | ✅ có | ❌ không |
 | `receive` | ❌ không | ✅ **có** |
 | `drop` | ❌ không | ✅ **có** |
 | Số next-hop của `10.0.23.0/30` | 2 dòng `via` | 2 next-hop |
+
+**Rút ra:** FIB **vứt bỏ** mọi thứ dùng để *so sánh và chọn đường* (AD, metric, nguồn),
+vì việc chọn đã xong rồi. Đổi lại nó **thêm** những entry mà ASIC cần để hành động ngay
+(`receive`, `drop`, `attached`).
 
 </details>
 
@@ -440,19 +482,19 @@ bằng từ **glean** và **punt**.
 
 **🎯 Mục tiêu:** thấy rằng traffic đi qua router **không hiện** trong debug — và hiểu vì sao.
 
-### a) Ép traffic R2→R3 phải đi vòng qua R1
+### a) Xác nhận traffic R2→R3 đi vòng qua R1
 
-```
-R2(config)# interface GigabitEthernet0/1
-R2(config-if)# shutdown
-R2(config-if)# end
-```
+Config ở phần chuẩn bị đã **cố ý** trỏ R2 và R3 đi vòng qua R1 (thay vì dùng link trực tiếp
+R2–R3). Chỉ cần kiểm tra lại:
 
-Chờ OSPF hội tụ (~30 giây), rồi xác nhận:
 ```
 R2# show ip route 3.3.3.3
 ```
-Phải thấy `via 10.0.12.1` — tức là **đi qua R1**.
+Phải thấy `via 10.0.12.1` — tức là **đi qua R1**, không phải `via 10.0.23.2`.
+
+> Nếu bạn dùng lại LAB P0-5 (OSPF), OSPF sẽ chọn link trực tiếp R2–R3 nên **không có transit**.
+> Khi đó phải tạm `shutdown` cổng `Gi0/1` của R2 rồi chờ OSPF hội tụ (~30 giây).
+> Dùng static như hướng dẫn này thì **không cần bước đó**.
 
 ### b) Bật debug trên R1
 
@@ -523,12 +565,8 @@ R1(config-if)# end
 R1# show ip cef summary
 ```
 
-```
-R2# configure terminal
-R2(config)# interface GigabitEthernet0/1
-R2(config-if)# no shutdown
-R2(config-if)# end
-```
+> Dùng static thì **không có gì khác phải dọn** — bạn không hề shutdown cổng nào.
+> *(Nếu bạn đi theo nhánh OSPF ở mục (a) thì nhớ `no shutdown` cổng `Gi0/1` của R2.)*
 
 ✅ **Checkpoint 5 — tự điền:**
 
@@ -644,8 +682,12 @@ R1# show processes cpu sorted | exclude 0.00
 CPU utilization for five seconds: 3%/0%; one minute: 4%; five minutes: 4%
  PID Runtime(ms)     Invoked      uSecs   5Sec   1Min   5Min TTY Process
  108       12345        4567       2703  1.20%  1.10%  1.05%   0 IP RIB Update
-  95        8765        3210       2730  0.80%  0.90%  0.85%   0 OSPF-1 Router
+  67        8765        3210       2730  0.80%  0.90%  0.85%   0 IP Input
+  22        4321        9876        437  0.30%  0.25%  0.20%   0 Per-Second Jobs
 ```
+
+> Danh sách tiến trình của bạn sẽ khác. Nếu chạy OSPF thì có thêm `OSPF-1 Router`;
+> lab static này thì không. **Điều cần nhìn là dòng ĐẦU TIÊN**, không phải danh sách bên dưới.
 
 **Đọc dòng đầu tiên — đây là phần quan trọng:**
 
@@ -724,7 +766,7 @@ không đổi nóng được.
 
 | # | Làm được | ✅ |
 |:---:|---|:---:|
-| 1 | Dựng xong topology, 2 OSPF neighbor `FULL` | ☐ |
+| 1 | Dựng xong topology, ping được `2.2.2.2` và `3.3.3.3` từ R1, và có **ECMP** tới `10.0.23.0/30` | ☐ |
 | 2 | Chỉ ra **3 thứ RIB có mà FIB không**, **2 thứ FIB có mà RIB không** | ☐ |
 | 3 | Giải thích `receive` / `attached` / `drop` trong FIB | ☐ |
 | 4 | Tìm được `Encap length 14` và đối chiếu MAC với `show arp` | ☐ |
@@ -733,7 +775,7 @@ không đổi nóng được.
 | 7 | Tắt CEF → thấy `routed via RIB` → bật lại | ☐ |
 | 8 | Điền bảng `exact-route` 4 dòng, xác nhận tính nhất quán | ☐ |
 | 9 | Đọc được `3%/0%` và nói được interrupt cao nghĩa là gì | ☐ |
-| 10 | Đã **dọn dẹp**: CEF bật lại, debug tắt, link R2–R3 `no shutdown` | ☐ |
+| 10 | Đã **dọn dẹp**: CEF bật lại (`show ip cef summary`), debug đã tắt (`show debugging` trống) | ☐ |
 
 > **Chưa tick được mục 2, 5, 6 thì chưa nên sang Module-02** — ba mục đó là toàn bộ
 > giá trị của Module-01.
