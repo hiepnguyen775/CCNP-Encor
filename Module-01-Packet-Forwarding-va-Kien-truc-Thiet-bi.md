@@ -67,16 +67,26 @@ vì sao ACL không apply được khi TCAM đầy · vì sao switch L3 nhanh hơ
 | `show processes cpu sorted \| exclude 0.00` | CPU bận vì control plane hay data plane |
 | `show sdm prefer` | TCAM đang chia phần thế nào (switch thật) |
 
-## 🗺️ Lộ trình đọc — không cần đọc tuần tự hết
+## 🗺️ Bố cục module — đọc theo đúng thứ tự này
 
-| Mức | Đọc gì | Thời gian | Ai cần |
-|---|---|:---:|---|
-| 🔴 **BẮT BUỘC** | §2.1 (3 plane) · §2.2 (3 phương pháp) · §2.3 (RIB/FIB/Adjacency)<br>+ **[LAB](Module-01-LAB.md) bước 2, 4, 5** | ~2 giờ | **Mọi người.** Thiếu phần này là không qua được module |
-| 🟡 **NÊN ĐỌC** | §2.4 (load-balancing) · §2.6 (CAM/TCAM) · §3 (mô hình tư duy)<br>+ **[LAB](Module-01-LAB.md) bước 6, 7** | ~2 giờ | Người muốn thi chắc · người đi làm |
-| ⚪ **TRA CỨU** | §2.5 (dCEF) · §2.7 (kiến trúc phần cứng) · §2.8 (multilayer switch) | Khi cần | Đọc lướt, quay lại khi gặp thực tế |
+| Phần | Tên | Trả lời câu hỏi | Đọc thế nào | Thời gian |
+|:---:|---|---|---|:---:|
+| **1** | 🧠 **CÁI ĐÓ LÀ GÌ** | *"À, ra nó là thế"* | Đọc **một mạch**. Toàn ví von, không lệnh | 45 phút |
+| **2** | ⚙️ **NÓ CHẠY THẾ NÀO** | Cơ chế thật + tên gọi kỹ thuật | Đọc kỹ, đối chiếu sơ đồ | 1.5 giờ |
+| **3** | 🧪 **NHÌN THẤY NÓ** | [LAB](Module-01-LAB.md) — gõ tay | Vừa đọc vừa gõ | 3 giờ |
+| **4** | 🏗️ **TOPO & KIẾN TRÚC** | *"Nó nằm ở đâu trong mạng thật?"* | Đọc + **vẽ lại trên giấy** | 45 phút |
+| **📎** | **PHỤ LỤC** | Bảng, bẫy đề, quiz, thuật ngữ | 🔴 **KHÔNG đọc lần đầu** — chỉ Ctrl+F | — |
 
-> **Nếu bạn chỉ có 1 buổi:** đọc §2.1 → §2.3, rồi làm thẳng **LAB bước 2, 4, 5**.
-> Ba bước đó chứa toàn bộ giá trị của module.
+**Ba mức ưu tiên nếu thiếu thời gian:**
+
+| Mức | Làm gì |
+|---|---|
+| 🔴 **Tối thiểu** | Phần 1 (toàn bộ) → Phần 2 mục **3.1, 3.2, 3.3** → [LAB](Module-01-LAB.md) **bước 2, 4, 5** |
+| 🟡 **Nên có** | Thêm Phần 2 mục **3.4, 3.6** → LAB **bước 6, 7** → **Phần 4** |
+| ⚪ **Khi rảnh** | §3.5 (dCEF) · §4.1 (phần cứng) · §4.2 (multilayer switch) |
+
+> **Nếu bạn chỉ có 1 buổi:** đọc trọn **Phần 1**, rồi làm thẳng **LAB bước 2, 4, 5**.
+> Phần 1 cho bạn hình dung, ba bước lab đó cho bạn bằng chứng. Đủ để không quên.
 
 ---
 
@@ -96,9 +106,107 @@ vì sao ACL không apply được khi TCAM đầy · vì sao switch L3 nhanh hơ
 
 ---
 
-## 📘 2. LÝ THUYẾT — dạng bảng
+## 🧠 PHẦN 1 — CÁI ĐÓ LÀ GÌ
 
-### 2.1 Ba mặt phẳng (plane) của thiết bị mạng
+> **Đọc phần này TRƯỚC, và đọc một mạch.** Ở đây không có bảng tra cứu, không có lệnh —
+> chỉ có ví von đời thường để bạn bật ra được *"à, ra nó là thế"*.
+>
+> **Cách tự kiểm tra:** đọc xong mỗi mục, gấp tài liệu lại và **giải thích cho đồng nghiệp trong 3 câu**.
+> Nói được thì sang mục sau. Không nói được thì đọc lại mục đó — đừng đi tiếp.
+
+### 2.1 Ba plane như một nhà hàng
+
+| Plane | Trong nhà hàng | Đặc điểm |
+|---|---|---|
+| **Data plane** | **Bồi bàn** — chỉ việc mang đồ từ bếp ra bàn, cực nhanh, không suy nghĩ | Làm 1 việc duy nhất, làm cực nhanh |
+| **Control plane** | **Quản lý** — quyết định bàn nào ngồi đâu, viết sơ đồ bàn cho bồi bàn | Suy nghĩ chậm, nhưng bồi bàn phải theo |
+| **Management plane** | **Chủ nhà hàng** gọi điện hỏi tình hình | Không tham gia phục vụ |
+
+**Punt** = bồi bàn gặp khách hỏi câu khó ("cho tôi món không có trong menu") → phải **gọi quản lý ra**.
+Nếu 100 khách cùng hỏi câu khó → quản lý quá tải → **cả nhà hàng đứng**.
+
+🧠 **Một câu để nhớ:** *Punt nhiều = CPU cao = thiết bị chậm. Đó là lý do CoPP tồn tại.*
+
+### 2.2 Process switching vs CEF như đi giao hàng
+
+**Process switching** — người giao hàng mỗi lần giao đều **mở Google Maps tra lại từ đầu**:
+- Gói 1: tra đường (2 phút) → giao
+- Gói 2 cùng địa chỉ: **tra lại từ đầu** (2 phút) → giao
+- 1000 gói = 2000 phút tra đường
+
+**Fast switching** — tra 1 lần rồi **ghi vào sổ tay**:
+- Gói 1: tra đường (2 phút) → **ghi vào sổ** → giao
+- Gói 2–1000: xem sổ (2 giây) → giao
+- ⚠️ Nhưng gói 1 vẫn phải "hy sinh" 2 phút. Và địa chỉ mới nào cũng phải hy sinh 1 gói.
+
+**CEF** — **in sẵn cả bản đồ khu vực trước khi đi làm**:
+- Sáng ra: nhận bản đồ (FIB) đã in sẵn từ phòng kế hoạch (RIB)
+- Gói 1 đến gói 1000: nhìn bản đồ (2 giây) → giao
+- ⭐ **Không có gói nào bị hy sinh**
+
+🧠 **Một câu để nhớ:** *Fast switching học **từ traffic** (traffic-driven). CEF học **từ bảng route**
+(topology-driven). Vì thế CEF không cần gói đầu tiên làm vật thí nghiệm.*
+
+### 2.3 FIB và Adjacency Table như tra bưu phẩm
+
+Bạn cần gửi thư tới `10.1.1.5`:
+
+| Bảng | Câu hỏi nó trả lời | Kết quả |
+|---|---|---|
+| **FIB** | *"Thư này đi hướng nào?"* | "Đưa cho anh `10.0.0.2`" |
+| **Adjacency table** | *"Anh `10.0.0.2` mặt mũi thế nào (MAC gì), tôi đưa qua cửa nào?"* | "MAC `aa:bb:cc:00:00:02`, cửa `Gi0/0`" |
+
+⭐ Điểm hay của CEF: **hai bảng này được nối sẵn bằng con trỏ**. Tra FIB một lần là ra luôn cả
+next-hop **và** thông tin L2. Không phải tra 2 lần rời rạc.
+
+🧠 **Một câu để nhớ:** *FIB nói "đi đâu", Adjacency nói "dán nhãn gì và ra cửa nào". Một lần tra, đủ cả hai.*
+
+### 2.4 TCAM: vì sao cần "don't care"
+
+Bạn là bảo vệ, có danh sách được vào:
+
+**CAM (chỉ khớp chính xác)** — danh sách phải liệt kê **từng người**:
+```
+Nguyễn Văn A  → cho vào
+Nguyễn Văn B  → cho vào
+...  (phải ghi 254 dòng cho 1 subnet /24!)
+```
+
+**TCAM (có "don't care")** — ghi **một dòng có mask**:
+```
+Value:  "Ai làm ở phòng 192.168.1.*"
+Mask:   phần * = don't care
+Result: cho vào
+→ 1 dòng thay 254 dòng
+```
+
+🧠 **Một câu để nhớ:** *TCAM = CAM + khả năng nói "phần này tôi không quan tâm".
+Đó là lý do ACL và bảng route phải dùng TCAM, còn MAC table thì CAM là đủ.*
+
+### 2.5 Vì sao TCAM luôn thiếu
+
+TCAM khớp **song song toàn bộ bảng trong 1 chu kỳ clock** — nghĩa là mỗi entry có mạch so sánh riêng.
+Điều đó khiến TCAM:
+- **đắt** (nhiều transistor/bit)
+- **tốn điện & nóng**
+- → nhà sản xuất chỉ cho một lượng có hạn
+
+🧠 **Một câu để nhớ:** *TCAM nhanh vì so sánh song song, nhưng chính vì song song nên nó đắt và ít.
+Vì ít nên phải chia phần (SDM template), và vì chia phần nên có thể hết chỗ.*
+
+---
+
+## ⚙️ PHẦN 2 — NÓ CHẠY THẾ NÀO
+
+> Giờ bạn đã có **hình dung** rồi. Phần này lắp **tên gọi kỹ thuật và cơ chế thật** vào hình dung đó.
+>
+> Mỗi mục ở đây nối thẳng với một mục ở Phần 1:
+> **2.1 nhà hàng → 3.1 ba plane** · **2.2 giao hàng → 3.2 ba phương pháp** ·
+> **2.3 bưu phẩm → 3.3 RIB/FIB** · **2.4–2.5 bảo vệ → 3.6 CAM/TCAM**
+>
+> Bảng trong phần này là **để tra cứu về sau**, không phải để học thuộc ngay.
+
+### 3.1 Ba mặt phẳng (plane) của thiết bị mạng
 
 Đây là mô hình tư duy quan trọng nhất của module này. Mọi thứ trong 17 tuần tới đều xếp vào 1 trong 3 ô này.
 
@@ -139,7 +247,7 @@ vì sao ACL không apply được khi TCAM đầy · vì sao switch L3 nhanh hơ
 
 ---
 
-### 2.2 Ba phương pháp chuyển mạch (switching method)
+### 3.2 Ba phương pháp chuyển mạch (switching method)
 
 Đây là phần đề ENCOR hỏi trực tiếp.
 
@@ -178,7 +286,7 @@ vì sao ACL không apply được khi TCAM đầy · vì sao switch L3 nhanh hơ
 
 ---
 
-### 2.3 ⭐ CEF — RIB, FIB và Adjacency Table
+### 3.3 CEF — RIB, FIB và Adjacency Table
 
 Đây là phần quan trọng nhất module này. **Nhớ 3 bảng và quan hệ giữa chúng.**
 
@@ -237,7 +345,7 @@ FIB là **tờ giấy nhắc việc dán trên tường** (chỉ có kết quả
 
 ---
 
-### 2.4 CEF load-balancing & Polarization
+### 3.4 CEF load-balancing & Polarization
 
 Khi có **nhiều đường cùng cost** (ECMP — bạn đã thấy ở LAB P0-5), CEF phải chọn đường cho từng flow.
 
@@ -285,7 +393,7 @@ ip cef load-sharing algorithm universal 5678EF00     ! tầng distribution — I
 
 ---
 
-### 2.5 dCEF — Distributed CEF
+### 3.5 dCEF — Distributed CEF
 
 | | **CEF tập trung** | **dCEF (distributed)** |
 |---|---|---|
@@ -300,7 +408,7 @@ ip cef load-sharing algorithm universal 5678EF00     ! tầng distribution — I
 
 ---
 
-### 2.6 ⭐ CAM vs TCAM — bảng đề hỏi trực tiếp
+### 3.6 CAM vs TCAM — bit "don't care"
 
 | | **CAM** (Content Addressable Memory) | **TCAM** (Ternary CAM) |
 |---|---|---|
@@ -394,7 +502,92 @@ reload                               ! ⚠️ PHẢI RELOAD mới có tác dụn
 
 ---
 
-### 2.7 Kiến trúc phần cứng thiết bị
+## 🧪 PHẦN 3 — NHÌN THẤY NÓ
+
+> ### 👉 **[Mở LAB 01 — Nhìn thấy CEF hoạt động](Module-01-LAB.md)**
+>
+> File LAB có **config đầy đủ dán là chạy**, 7 bước theo nhịp cố định
+> *Mục tiêu → Gõ gì → Thấy gì → Vì sao → Checkpoint*.
+
+**LAB trả lời 5 câu hỏi mà lý thuyết ở trên chỉ mô tả bằng chữ:**
+
+| # | Câu hỏi | Ví von ở Phần 1 | Cơ chế ở Phần 2 |
+|:---:|---|---|---|
+| 1 | RIB và FIB khác nhau chỗ nào? | §2.3 bưu phẩm | §3.3 |
+| 2 | Vì sao ping lần đầu mất đúng 1 gói (`.!!!!`)? | §2.3 bưu phẩm | §3.3 (glean) |
+| 3 | Vì sao `debug ip packet` không thấy traffic người dùng? | §2.2 giao hàng | §3.2 + §3.3 |
+| 4 | Hai đường bằng nhau, flow của tôi đi đường nào? | — | §3.4 |
+| 5 | CPU cao — lỗi ở data plane hay control plane? | §2.1 nhà hàng | §3.1 (punt) |
+
+> ⚠️ **Đọc lý thuyết mà không làm LAB thì coi như chưa học module này.**
+> Ba bước quan trọng nhất là **Bước 2** (RIB vs FIB), **Bước 4** (glean) và **Bước 5**
+> (`debug ip packet` im lặng) — chúng biến ba khái niệm trừu tượng thành thứ nhìn thấy được.
+
+---
+
+## 🏗️ PHẦN 4 — TOPO & KIẾN TRÚC
+
+> Bạn đã biết **nó là gì** (Phần 1), **chạy thế nào** (Phần 2), và **nhìn thấy nó** (Phần 3).
+> Phần này trả lời câu cuối: ⭐ **"Nó nằm ở đâu trong mạng thật, và thiết kế sai thì hỏng ra sao?"**
+
+### 4.1 Bản đồ: CEF và TCAM nằm ở đâu trong một campus thật
+
+```
+                          ┌──────────────┐
+                 INTERNET │   Firewall   │
+                     ▲    └──────┬───────┘
+                     │           │
+              ┌──────┴───────────┴──────┐
+     CORE     │   Core SW (L3)          │   ⭐ TCAM: bảng FIB LỚN (nhiều route)
+              │   Cat9500 / 9600        │   ⭐ ACL: gần như KHÔNG có (giữ cho nhanh)
+              └────┬───────────────┬────┘   ⭐ CEF: bắt buộc, ECMP nhiều đường
+                   │               │
+        ┌──────────┴───┐     ┌─────┴────────┐
+DISTRO  │ Dist SW (L3) │     │ Dist SW (L3) │  ⭐ TCAM: CHIA ĐÔI gánh nặng —
+        │  Cat9400     │     │  Cat9400     │     vừa FIB (route) vừa ACL (policy)
+        └──┬────────┬──┘     └──────────────┘  🔴 ĐÂY LÀ CHỖ TCAM HAY HẾT NHẤT
+           │        │
+     ┌─────┴──┐  ┌──┴─────┐
+ACCESS│Acc SW │  │ Acc SW │    ⭐ CAM: bảng MAC lớn (nhiều máy cắm vào)
+     │Cat9200│  │Cat9200 │    ⭐ TCAM: ít route, nhưng nhiều ACL 802.1X/dACL
+     └───┬───┘  └────┬───┘    ⭐ SDM template: ưu tiên MAC, không ưu tiên route
+         │           │
+       PC/IP Phone/AP
+```
+
+### 4.2 Ba quyết định thiết kế xuất phát từ Module này
+
+| Quyết định | Vì sao liên quan tới Module-01 | Sai thì hỏng thế nào |
+|---|---|---|
+| **Chọn SDM template cho từng lớp** | TCAM có hạn và **phải chia phần trước** *(§3.6)* | Access switch dùng template "routing" → hết chỗ MAC → **flood toàn mạng** |
+| **Đặt ACL ở lớp nào** | ACL ăn TCAM. Core cần TCAM cho **FIB**, không phải ACL | Nhồi ACL vào core → **hết TCAM** → ACL rơi xuống xử lý bằng CPU → **CPU 100%** |
+| **Số đường ECMP ở core** | Mỗi đường ECMP nhân thêm entry adjacency *(§3.4)* | Quá nhiều đường + hash giống nhau mọi tầng → **CEF polarization**, một nhánh nghẽn, nhánh kia rỗng |
+
+> ⭐ **Đây là lý do Module-01 "ít điểm nhưng mở khóa nhiều thứ":** ba quyết định trên bạn sẽ
+> gặp lại ở **Module-09 (thiết kế campus)** và **Module-10 (đặt ACL/CoPP ở đâu)**.
+
+### 4.3 Vẽ lại để nhớ
+
+> **Bài tập 10 phút, làm trên giấy — đừng bỏ qua.**
+>
+> 1. Vẽ lại sơ đồ 3 lớp ở trên **không nhìn tài liệu**
+> 2. Với mỗi lớp, ghi: **CAM dùng cho gì · TCAM dùng cho gì · SDM nên ưu tiên gì**
+> 3. Khoanh tròn lớp mà **TCAM dễ hết nhất** và viết một câu vì sao
+
+<details>
+<summary>Đáp án</summary>
+
+**Lớp Distribution** dễ hết TCAM nhất — vì nó là lớp **duy nhất phải gánh cả hai**:
+vừa giữ bảng **FIB** (nó là ranh giới L3, có nhiều route), vừa chứa **ACL/policy**
+(nó là nơi đặt chính sách — xem Module-09 §2.1).
+
+Core chỉ cần FIB (không ACL). Access chỉ cần CAM lớn (ít route).
+
+</details>
+
+---
+
+### 4.4 Kiến trúc phần cứng thiết bị
 
 | Thành phần | Vai trò | Thuộc plane |
 |---|---|---|
@@ -412,7 +605,7 @@ reload                               ! ⚠️ PHẢI RELOAD mới có tác dụn
 
 ---
 
-### 2.8 Multilayer Switch — vì sao switch L3 nhanh hơn router
+### 4.5 Multilayer Switch — vì sao switch L3 nhanh hơn router
 
 | | **Router truyền thống** | **Multilayer Switch (L3 switch)** |
 |---|---|---|
@@ -451,114 +644,7 @@ end
 
 ---
 
-## 📖 3. HIỂU RÕ HƠN — mô hình tư duy
-
-### 3.1 Ba plane như một nhà hàng
-
-| Plane | Trong nhà hàng | Đặc điểm |
-|---|---|---|
-| **Data plane** | **Bồi bàn** — chỉ việc mang đồ từ bếp ra bàn, cực nhanh, không suy nghĩ | Làm 1 việc duy nhất, làm cực nhanh |
-| **Control plane** | **Quản lý** — quyết định bàn nào ngồi đâu, viết sơ đồ bàn cho bồi bàn | Suy nghĩ chậm, nhưng bồi bàn phải theo |
-| **Management plane** | **Chủ nhà hàng** gọi điện hỏi tình hình | Không tham gia phục vụ |
-
-**Punt** = bồi bàn gặp khách hỏi câu khó ("cho tôi món không có trong menu") → phải **gọi quản lý ra**.
-Nếu 100 khách cùng hỏi câu khó → quản lý quá tải → **cả nhà hàng đứng**.
-
-🧠 **Một câu để nhớ:** *Punt nhiều = CPU cao = thiết bị chậm. Đó là lý do CoPP tồn tại.*
-
-### 3.2 Process switching vs CEF như đi giao hàng
-
-**Process switching** — người giao hàng mỗi lần giao đều **mở Google Maps tra lại từ đầu**:
-- Gói 1: tra đường (2 phút) → giao
-- Gói 2 cùng địa chỉ: **tra lại từ đầu** (2 phút) → giao
-- 1000 gói = 2000 phút tra đường
-
-**Fast switching** — tra 1 lần rồi **ghi vào sổ tay**:
-- Gói 1: tra đường (2 phút) → **ghi vào sổ** → giao
-- Gói 2–1000: xem sổ (2 giây) → giao
-- ⚠️ Nhưng gói 1 vẫn phải "hy sinh" 2 phút. Và địa chỉ mới nào cũng phải hy sinh 1 gói.
-
-**CEF** — **in sẵn cả bản đồ khu vực trước khi đi làm**:
-- Sáng ra: nhận bản đồ (FIB) đã in sẵn từ phòng kế hoạch (RIB)
-- Gói 1 đến gói 1000: nhìn bản đồ (2 giây) → giao
-- ⭐ **Không có gói nào bị hy sinh**
-
-🧠 **Một câu để nhớ:** *Fast switching học **từ traffic** (traffic-driven). CEF học **từ bảng route**
-(topology-driven). Vì thế CEF không cần gói đầu tiên làm vật thí nghiệm.*
-
-### 3.3 FIB và Adjacency Table như tra bưu phẩm
-
-Bạn cần gửi thư tới `10.1.1.5`:
-
-| Bảng | Câu hỏi nó trả lời | Kết quả |
-|---|---|---|
-| **FIB** | *"Thư này đi hướng nào?"* | "Đưa cho anh `10.0.0.2`" |
-| **Adjacency table** | *"Anh `10.0.0.2` mặt mũi thế nào (MAC gì), tôi đưa qua cửa nào?"* | "MAC `aa:bb:cc:00:00:02`, cửa `Gi0/0`" |
-
-⭐ Điểm hay của CEF: **hai bảng này được nối sẵn bằng con trỏ**. Tra FIB một lần là ra luôn cả
-next-hop **và** thông tin L2. Không phải tra 2 lần rời rạc.
-
-🧠 **Một câu để nhớ:** *FIB nói "đi đâu", Adjacency nói "dán nhãn gì và ra cửa nào". Một lần tra, đủ cả hai.*
-
-### 3.4 TCAM: vì sao cần "don't care"
-
-Bạn là bảo vệ, có danh sách được vào:
-
-**CAM (chỉ khớp chính xác)** — danh sách phải liệt kê **từng người**:
-```
-Nguyễn Văn A  → cho vào
-Nguyễn Văn B  → cho vào
-...  (phải ghi 254 dòng cho 1 subnet /24!)
-```
-
-**TCAM (có "don't care")** — ghi **một dòng có mask**:
-```
-Value:  "Ai làm ở phòng 192.168.1.*"
-Mask:   phần * = don't care
-Result: cho vào
-→ 1 dòng thay 254 dòng
-```
-
-🧠 **Một câu để nhớ:** *TCAM = CAM + khả năng nói "phần này tôi không quan tâm".
-Đó là lý do ACL và bảng route phải dùng TCAM, còn MAC table thì CAM là đủ.*
-
-### 3.5 Vì sao TCAM luôn thiếu
-
-TCAM khớp **song song toàn bộ bảng trong 1 chu kỳ clock** — nghĩa là mỗi entry có mạch so sánh riêng.
-Điều đó khiến TCAM:
-- **đắt** (nhiều transistor/bit)
-- **tốn điện & nóng**
-- → nhà sản xuất chỉ cho một lượng có hạn
-
-🧠 **Một câu để nhớ:** *TCAM nhanh vì so sánh song song, nhưng chính vì song song nên nó đắt và ít.
-Vì ít nên phải chia phần (SDM template), và vì chia phần nên có thể hết chỗ.*
-
----
-
-## 🧪 4. LAB — đã tách ra file riêng
-
-> ### 👉 **[Mở LAB 01 — Nhìn thấy CEF hoạt động](Module-01-LAB.md)**
->
-> File LAB có **config đầy đủ dán là chạy**, 7 bước theo nhịp cố định
-> *Mục tiêu → Gõ gì → Thấy gì → Vì sao → Checkpoint*.
-
-**LAB trả lời 5 câu hỏi mà lý thuyết ở trên chỉ mô tả bằng chữ:**
-
-| # | Câu hỏi | Liên quan mục nào ở trên |
-|:---:|---|---|
-| 1 | RIB và FIB khác nhau chỗ nào? | §2.3 |
-| 2 | Vì sao ping lần đầu mất đúng 1 gói (`.!!!!`)? | §2.3 (glean) |
-| 3 | Vì sao `debug ip packet` không thấy traffic người dùng? | §2.2 + §2.3 |
-| 4 | Hai đường bằng nhau, flow của tôi đi đường nào? | §2.4 |
-| 5 | CPU cao — lỗi ở data plane hay control plane? | §2.1 (punt) |
-
-> ⚠️ **Đọc lý thuyết mà không làm LAB thì coi như chưa học module này.**
-> Ba bước quan trọng nhất là **Bước 2** (RIB vs FIB), **Bước 4** (glean) và **Bước 5**
-> (`debug ip packet` im lặng) — chúng biến ba khái niệm trừu tượng thành thứ nhìn thấy được.
-
----
-
-## 💡 5. THỰC CHIẾN ĐI LÀM
+### 4.6 Thực chiến đi làm
 
 | Chủ đề | Thi dạy | Thực tế đi làm |
 |---|---|---|
@@ -573,6 +659,24 @@ Vì ít nên phải chia phần (SDM template), và vì chia phần nên có th�
 | **`ip routing`** trên switch L3 | Có lệnh | ⚠️ Lỗi hay gặp nhất khi lên switch L3 mới: cấu hình SVI đủ hết nhưng **quên `ip routing`** → không route được, tìm cả tiếng |
 | **Punt** | Không dạy sâu | ⭐ Cat9k có `show platform software fed switch active punt cause summary` — xem gói bị punt vì lý do gì. Cực hữu ích khi CPU cao |
 | **Số port vs backplane** | Không dạy | Switch 48 port 1G = 48 Gbps nhưng backplane có thể chỉ 20 Gbps → **oversubscription**. Đọc datasheet trước khi mua, đừng tin số port |
+
+---
+
+# 📎 PHỤ LỤC — TRA CỨU
+
+> 🔴 **KHÔNG đọc phần này ở lần học đầu tiên.**
+>
+> Đây là tài liệu **tra cứu**, không phải tài liệu học. Cách dùng đúng:
+>
+> | Khi nào | Mở mục nào |
+> |---|---|
+> | Đang lab mà lỗi | **Gỡ lỗi nhanh** (§7) |
+> | Quên một lệnh | **Hộp lệnh** (§7.1) |
+> | Tuần 20, đang ôn thi | **Bẫy đề** (§6) + **Quiz** (§8) |
+> | Gặp từ tiếng Anh lạ | **Thuật ngữ** (§9) |
+> | Học xong, muốn tự chấm | **Đúc kết + Tự chấm** (§10) |
+>
+> Đọc tuần tự phụ lục ở lần đầu là **cách nhanh nhất để kiệt sức và bỏ cuộc**.
 
 ---
 

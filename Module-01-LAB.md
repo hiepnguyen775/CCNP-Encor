@@ -1,6 +1,8 @@
 # LAB 01 — Nhìn thấy CEF hoạt động
 
-> 📘 **Lý thuyết:** [Module-01](Module-01-Packet-Forwarding-va-Kien-truc-Thiet-bi.md) — đọc §2.1 → §2.3 trước khi làm lab này.
+> 📘 **Lý thuyết:** [Module-01](Module-01-Packet-Forwarding-va-Kien-truc-Thiet-bi.md) —
+> đọc trọn **Phần 1 (Cái đó là gì)** và **Phần 2 mục §3.1–3.3** trước khi làm lab này.
+> Chưa đọc mà lab thì bạn chỉ gõ lệnh chứ không hiểu mình đang nhìn cái gì.
 >
 > ⏱️ **Thời gian:** 3–4 giờ · 💾 **RAM:** 1.5 GB · 🧰 **Cần:** EVE-NG + 3× vIOS
 
