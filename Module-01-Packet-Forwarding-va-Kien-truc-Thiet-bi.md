@@ -9,12 +9,83 @@
 
 ---
 
+# 📌 TÓM TẮT — đọc 10 phút là nắm khung
+
+## Module này trả lời một câu hỏi duy nhất
+
+> **"Gói tin đi qua router/switch bằng đường nào — và vì sao đường đó nhanh?"**
+
+Trả lời được câu đó thì bạn hiểu luôn 4 thứ tưởng như không liên quan:
+vì sao `debug ip packet` im lặng · vì sao ping lần đầu mất 1 gói ·
+vì sao ACL không apply được khi TCAM đầy · vì sao switch L3 nhanh hơn router.
+
+## Bức tranh toàn module trong một hình
+
+```
+   ┌──────────────────────────────────────────────────────────────┐
+   │  CONTROL PLANE  —  chạy trên CPU  —  "người lập kế hoạch"     │
+   │                                                              │
+   │   OSPF · BGP · Static ──▶  RIB  (bảng route, có AD/metric)   │
+   │   ARP ─────────────────▶  ARP table                          │
+   └──────────────┬────────────────────────┬──────────────────────┘
+                  │ dịch sang              │ dịch sang
+                  ▼                        ▼
+   ┌──────────────────────────────────────────────────────────────┐
+   │  DATA PLANE  —  chạy trên ASIC  —  "người thi hành"           │
+   │                                                              │
+   │      FIB              +        Adjacency Table               │
+   │  "đi ra cửa nào"           "dán 14 byte L2 nào vào đầu gói"  │
+   │                                                              │
+   │   Gói vào ──▶ tra FIB ──▶ dán header ──▶ Gói ra   (rất nhanh)│
+   └──────────────────────────────────────────────────────────────┘
+                  │
+                  │  ⚠️ Gói ASIC không xử lý nổi thì bị "PUNT" ngược lên CPU
+                  ▼        (gói gửi tới chính router, cần ARP, cần fragment…)
+             CPU xử lý  —  chậm  —  punt nhiều = CPU 100% = sự cố
+```
+
+## 7 ý phải nhớ
+
+| # | Ý | Một câu |
+|:---:|---|---|
+| 1 | **3 plane** | Data = ASIC (chuyển gói) · Control = CPU (xây bảng) · Management = quản lý (SSH/SNMP) |
+| 2 | **PUNT** | ASIC gặp gói khó → đẩy lên CPU. **Punt nhiều = CPU 100%** = nguyên nhân số 1 của "thiết bị chậm bất thường" |
+| 3 | **CEF vs Fast switching** | CEF = **topology-driven** (bảng dựng sẵn từ RIB) · Fast switching = **traffic-driven** (gói đầu tạo cache, đã bị bỏ) |
+| 4 | **RIB → FIB** | RIB là **biên bản họp** (có AD, metric, uptime) · FIB là **quyết định đã ký** (chỉ còn "đi ra đâu") |
+| 5 | **Adjacency Table** | Chứa sẵn **14 byte header L2** (MAC đích + MAC nguồn + EtherType) để ASIC dán vào gói |
+| 6 | **CAM vs TCAM** | CAM: tra **MAC**, khớp chính xác · TCAM: tra **ACL/QoS**, có bit *"don't care"* nên khớp được dải |
+| 7 | **`debug ip packet`** | Chỉ thấy gói **process-switched**. CEF bật → **không thấy traffic người dùng** ← bẫy đề kinh điển |
+
+## Bảng lệnh cốt lõi
+
+| Lệnh | Cho biết gì |
+|---|---|
+| `show ip cef summary` | CEF có bật không |
+| `show ip route` vs `show ip cef` | **So sánh RIB và FIB** — bài học chính |
+| `show adjacency detail` | 14 byte header L2 đã chuẩn bị sẵn |
+| `show ip cef exact-route <src> <dst>` | Flow cụ thể này đi ra interface nào |
+| `show processes cpu sorted \| exclude 0.00` | CPU bận vì control plane hay data plane |
+| `show sdm prefer` | TCAM đang chia phần thế nào (switch thật) |
+
+## 🗺️ Lộ trình đọc — không cần đọc tuần tự hết
+
+| Mức | Đọc gì | Thời gian | Ai cần |
+|---|---|:---:|---|
+| 🔴 **BẮT BUỘC** | §2.1 (3 plane) · §2.2 (3 phương pháp) · §2.3 (RIB/FIB/Adjacency)<br>+ **[LAB](Module-01-LAB.md) bước 2, 4, 5** | ~2 giờ | **Mọi người.** Thiếu phần này là không qua được module |
+| 🟡 **NÊN ĐỌC** | §2.4 (load-balancing) · §2.6 (CAM/TCAM) · §3 (mô hình tư duy)<br>+ **[LAB](Module-01-LAB.md) bước 6, 7** | ~2 giờ | Người muốn thi chắc · người đi làm |
+| ⚪ **TRA CỨU** | §2.5 (dCEF) · §2.7 (kiến trúc phần cứng) · §2.8 (multilayer switch) | Khi cần | Đọc lướt, quay lại khi gặp thực tế |
+
+> **Nếu bạn chỉ có 1 buổi:** đọc §2.1 → §2.3, rồi làm thẳng **LAB bước 2, 4, 5**.
+> Ba bước đó chứa toàn bộ giá trị của module.
+
+---
+
 ## ✅ 1. Chuẩn bị trước khi học
 
 | Cần có | Chi tiết |
 |---|---|
 | **Kiến thức trước** | Module-P0 §2.5 (router chọn đường thế nào) và §2.6 (OSPF cơ bản). Bạn phải đọc được `show ip route` |
-| **Lab** | ⭐ **Dùng lại LAB P0-5** (3 router OSPF area 0). Không cần dựng lab mới |
+| **Lab** | 👉 **[Module-01-LAB.md](Module-01-LAB.md)** — 3 router OSPF area 0. **Config đầy đủ nằm ngay trong file LAB**, dán là chạy (dùng lại được LAB P0-5 nếu còn) |
 | **RAM** | 3× vIOS = **1.5 GB** ✅ nhẹ |
 | **Thời lượng** | 10 giờ: 3h lý thuyết · 4h lab · 3h ôn + quiz |
 
@@ -240,22 +311,48 @@ ip cef load-sharing algorithm universal 5678EF00     ! tầng distribution — I
 | Số lần tra | **1 chu kỳ** (song song toàn bảng) | 1 chu kỳ |
 | Giá / điện | Đắt | **Rất đắt, tốn điện** → nên dung lượng có hạn |
 
-**Vì sao MAC table dùng CAM được:** MAC address là **khớp chính xác** — MAC `aa:bb:cc:11:22:33`
-thì phải đúng từng bit, không có chuyện "MAC gần giống".
-
-**Vì sao ACL/route phải dùng TCAM:** cần khớp **một phần**:
+#### Nhìn hai loại bộ nhớ cạnh nhau
 
 ```
-ACL:  permit 192.168.1.0/24
-      ┌──────────────────────────────────────────────┐
-      │ Value : 192.168.1.0                          │
-      │ Mask  : 255.255.255.0  → 8 bit cuối = "X"    │  ← đây là "ternary"
-      │ Result: PERMIT                               │
-      └──────────────────────────────────────────────┘
-      → khớp 192.168.1.1, 192.168.1.99, 192.168.1.254 …
+ ══════════ CAM — chỉ trả lời "CÓ / KHÔNG" ══════════
+
+   Hỏi:  "MAC aabb.cc11.2233 ở cổng nào?"
+                    │
+                    ▼
+        ┌───────────────────────────┐
+        │ aabb.cc11.2233  →  Gi1/0/5│ ◀── khớp ĐÚNG TỪNG BIT
+        │ aabb.cc11.2299  →  Gi1/0/7│
+        │ 0050.56aa.0001  →  Gi1/0/9│
+        └───────────────────────────┘
+                    │
+                    ▼   Gi1/0/5
+   ✅ Hợp với MAC: không có chuyện "MAC gần giống"
+
+
+ ══════════ TCAM — trả lời được "MỘT DẢI" ══════════
+
+   Hỏi:  "Gói đi tới 192.168.1.99 — permit hay deny?"
+                    │
+                    ▼
+        ┌──────────────────────────────────────────────┐
+        │ Value  : 1100 0000 . 1010 1000 . 0000 0001 . 0000 0000 │
+        │ Mask   : 1111 1111 . 1111 1111 . 1111 1111 . X X X X X │
+        │                                              └────┬────┘
+        │                                    8 bit cuối = "KHÔNG QUAN TÂM"
+        │ Result : PERMIT                                   │
+        └──────────────────────────────────────────────┘
+                    │
+                    ▼
+   ✅ Khớp CẢ 192.168.1.1, .99, .254 … chỉ bằng MỘT entry
+
+        Nếu dùng CAM thì phải tạo 254 entry riêng cho 254 host!
 ```
 
-⭐ **Cấu trúc TCAM entry gọi là VMR: Value – Mask – Result.**
+> **Đó chính là chữ "Ternary" (tam phân):** mỗi bit có **3** trạng thái `0` / `1` / `X`,
+> thay vì 2 như bộ nhớ thường. Cái giá phải trả: ⭐ **TCAM rất đắt và tốn điện**,
+> nên dung lượng luôn có hạn — dẫn thẳng tới vấn đề "hết TCAM" ở mục dưới.
+
+⭐ **Cấu trúc một entry TCAM gọi là VMR: Value – Mask – Result.**
 
 #### Hết TCAM thì sao? (chuyện xảy ra thật ở production)
 
@@ -438,542 +535,26 @@ Vì ít nên phải chia phần (SDM template), và vì chia phần nên có th�
 
 ---
 
-## 🧪 4. LAB 01 — Quan sát CEF hoạt động
+## 🧪 4. LAB — đã tách ra file riêng
 
-### 4.1 Chuẩn bị
-
-⭐ **Dùng lại LAB P0-5** (3 router OSPF area 0). Nếu chưa còn, dựng lại:
-
-```
-              10.0.12.0/30
-      R1 ─────────────────── R2
-       │  Gi0/0        Gi0/0  │
-       │                      │
-Gi0/1  │  10.0.13.0/30        │ Gi0/1
-       └────── R3 ────────────┘
-            10.0.23.0/30
-
-Loopback: R1=1.1.1.1/32 · R2=2.2.2.2/32 · R3=3.3.3.3/32
-Tất cả interface + loopback trong OSPF area 0
-```
-
-**RAM: 1.5 GB** ✅ · Config đầy đủ có ở Module-P0 §5 (LAB P0-4 + LAB P0-5).
-
-Xác nhận trước khi bắt đầu:
-```
-R1# show ip ospf neighbor
-```
-Phải thấy 2 neighbor ở `FULL`.
-
----
-
-### 4.2 Bước 1 — CEF có đang bật không?
-
-```
-R1# show ip cef summary
-```
-**Output mẫu:**
-```
-IPv4 CEF is enabled for distributed and running
-VRF Default:
- 10 prefixes (10/0 fwd/non-fwd)
- Table id 0x0
- Database epoch: 0 (10 entries at this epoch)
-```
-✅ **Checkpoint:** `IPv4 CEF is enabled`.
-
-```
-R1# show ip interface GigabitEthernet0/0 | include CEF|switching
-```
-**Output mẫu:**
-```
-  IP CEF switching is enabled
-  IP CEF switching turbo vector
-  IP Null turbo vector
-```
-✅ CEF bật ở cả mức global và mức interface.
-
----
-
-### 4.3 Bước 2 — ⭐ So sánh RIB và FIB (bài học chính của module)
-
-**a) RIB — bảng "của người":**
-```
-R1# show ip route
-```
-**Output mẫu (phần liên quan):**
-```
-      1.0.0.0/32 is subnetted, 1 subnets
-C        1.1.1.1 is directly connected, Loopback0
-      2.0.0.0/32 is subnetted, 1 subnets
-O        2.2.2.2 [110/11] via 10.0.12.2, 00:12:03, GigabitEthernet0/0
-      3.0.0.0/32 is subnetted, 1 subnets
-O        3.3.3.3 [110/11] via 10.0.13.2, 00:12:03, GigabitEthernet0/1
-      10.0.0.0/8 is variably subnetted, 6 subnets, 2 masks
-C        10.0.12.0/30 is directly connected, GigabitEthernet0/0
-L        10.0.12.1/32 is directly connected, GigabitEthernet0/0
-C        10.0.13.0/30 is directly connected, GigabitEthernet0/1
-L        10.0.13.1/32 is directly connected, GigabitEthernet0/1
-O        10.0.23.0/30 [110/20] via 10.0.13.2, 00:12:03, GigabitEthernet0/1
-                              [110/20] via 10.0.12.2, 00:12:03, GigabitEthernet0/0
-```
-
-**b) FIB — bảng "của máy":**
-```
-R1# show ip cef
-```
-**Output mẫu:**
-```
-Prefix               Next Hop             Interface
-0.0.0.0/0            no route
-0.0.0.0/8            drop
-0.0.0.0/32           receive
-1.1.1.1/32           receive              Loopback0
-2.2.2.2/32           10.0.12.2            GigabitEthernet0/0
-3.3.3.3/32           10.0.13.2            GigabitEthernet0/1
-10.0.12.0/30         attached             GigabitEthernet0/0
-10.0.12.0/32         receive              GigabitEthernet0/0
-10.0.12.1/32         receive              GigabitEthernet0/0
-10.0.12.3/32         receive              GigabitEthernet0/0
-10.0.13.0/30         attached             GigabitEthernet0/1
-10.0.23.0/30         10.0.13.2            GigabitEthernet0/1
-                     10.0.12.2            GigabitEthernet0/0
-224.0.0.0/4          drop
-255.255.255.255/32   receive
-```
-
-⭐ **BẢNG ĐỐI CHIẾU — điền vào để tự thấy khác biệt:**
-
-| Điểm so sánh | RIB (`show ip route`) | FIB (`show ip cef`) |
-|---|---|---|
-| Có cột **AD/metric** `[110/11]`? | ✅ Có | ❌ **Không** |
-| Có **uptime** `00:12:03`? | ✅ Có | ❌ Không |
-| Có ký hiệu protocol `O`, `C`, `L`? | ✅ Có | ❌ Không |
-| Có entry `receive` (gói gửi tới chính router)? | ❌ Không | ✅ **Có** |
-| Có entry `drop` cho `0.0.0.0/8`, `224.0.0.0/4`? | ❌ Không | ✅ **Có** |
-| Có `attached` cho subnet connected? | Ghi là `C` | ✅ `attached` |
-| Route ECMP `10.0.23.0/30` | 2 dòng `via` | ✅ 2 next-hop |
-
-> ⭐ **Bài học:** FIB **bỏ hết thông tin không cần cho việc forward** (AD, metric, uptime, protocol)
-> và **thêm** những entry mà ASIC cần (`receive`, `drop`, `attached`).
-> Nó không phải bản sao y — nó là **bản dịch cho máy đọc**.
-
-**c) Ý nghĩa các từ khóa trong FIB:**
-
-| Từ khóa | Nghĩa |
-|---|---|
-| `receive` | Gói tới địa chỉ này thì **punt lên CPU** (là IP của chính router) |
-| `attached` | Subnet cắm trực tiếp → cần **ARP** để biết MAC host |
-| `drop` | Bỏ gói (địa chỉ không hợp lệ, multicast không dùng) |
-| `no route` | Không có đường → bỏ gói |
-| IP cụ thể | Next-hop để forward tới |
-
-**d) Xem chi tiết 1 prefix:**
-```
-R1# show ip cef 2.2.2.2 detail
-```
-**Output mẫu:**
-```
-2.2.2.2/32, epoch 0, flags [attached]
-  nexthop 10.0.12.2 GigabitEthernet0/0
-```
-
-✅ **Checkpoint bước 2:**
-
-| Kiểm tra | Mong đợi |
-|---|---|
-| `show ip cef` không có cột AD/metric | ✅ |
-| `show ip cef` có entry `receive` cho `1.1.1.1/32` | ✅ |
-| `show ip cef` có `attached` cho `10.0.12.0/30` | ✅ |
-| Route ECMP `10.0.23.0/30` có 2 next-hop trong FIB | ✅ |
-
----
-
-### 4.4 Bước 3 — Adjacency Table
-
-```
-R1# show adjacency detail
-```
-**Output mẫu:**
-```
-Protocol Interface                 Address
-IP       GigabitEthernet0/0        10.0.12.2(7)
-                                   0 packets, 0 bytes
-                                   epoch 0
-                                   sourced in sev-epoch 0
-                                   Encap length 14
-                                   0C1A2B000200 0C1A2B000100 0800
-                                   ARP
-IP       GigabitEthernet0/1        10.0.13.2(7)
-                                   Encap length 14
-                                   0C1A2B000300 0C1A2B000100 0800
-                                   ARP
-```
-
-⭐ **Đọc dòng `Encap length 14` và chuỗi hex — đây là header L2 sẽ được dán vào gói:**
-
-```
-0C1A2B000200   0C1A2B000100   0800
-└─ MAC ĐÍCH ─┘ └─ MAC NGUỒN ─┘ └ EtherType (0x0800 = IPv4)
-   (của R2)      (của R1)
-   6 byte        6 byte         2 byte    = 14 byte ✅
-```
-
-> 💡 **Đây chính là "L2 rewrite information".** CEF chuẩn bị sẵn 14 byte này để ASIC chỉ việc
-> **dán vào đầu gói rồi bắn ra**. Không cần tra ARP table nữa.
-
-```
-R1# show adjacency GigabitEthernet0/0 detail
-```
-
-✅ **Checkpoint:** thấy `Encap length 14` và chuỗi hex chứa MAC của neighbor.
-Đối chiếu với `show arp` — MAC phải giống nhau.
-
----
-
-### 4.5 Bước 4 — ⭐ Glean adjacency (giải thích "ping đầu mất 1 gói")
-
-**a) Xóa ARP để tạo lại tình huống ban đầu:**
-```
-R1# clear arp-cache
-R1# show arp
-```
-Bảng ARP trống (hoặc chỉ còn entry của chính R1).
-
-**b) Xem FIB entry của subnet connected:**
-```
-R1# show ip cef 10.0.12.0/30 detail
-```
-**Output mẫu:**
-```
-10.0.12.0/30, epoch 0, flags [attached, connected, cover dependents]
-  attached to GigabitEthernet0/0
-```
-⭐ `attached` = đây là **glean adjacency**. Nghĩa là: "tôi biết subnet này ở cửa Gi0/0,
-nhưng chưa biết MAC của host cụ thể → phải ARP".
-
-**c) Ping và quan sát:**
-```
-R1# ping 10.0.12.2
-```
-**Output mẫu:**
-```
-Type escape sequence to abort.
-Sending 5, 100-byte ICMP Echos to 10.0.12.2, timeout is 2 seconds:
-.!!!!
-Success rate is 80 percent (4/5), round-trip min/avg/max = 1/2/5 ms
-```
-
-**d) Xem adjacency đã complete:**
-```
-R1# show adjacency 10.0.12.2 detail
-```
-Giờ đã có `Encap length 14` với MAC đầy đủ.
-
-> ⭐ **Giải thích hoàn chỉnh hiện tượng `.!!!!` ở mức CCNP:**
+> ### 👉 **[Mở LAB 01 — Nhìn thấy CEF hoạt động](Module-01-LAB.md)**
 >
-> | Gói | Chuyện gì xảy ra | Kết quả |
-> |:---:|---|:---:|
-> | 1 | FIB tra ra `attached` (glean) → **punt lên CPU** → CPU gửi ARP request → chờ ARP reply → **gói ICMP bị drop** | `.` |
-> | 2–5 | ARP đã có → adjacency complete → forward hardware | `!!!!` |
->
-> Đây là câu trả lời "cấp CCNP" cho một hiện tượng bạn thấy từ CCNA. Ghi vào `SO-TAY-LOI.md`.
+> File LAB có **config đầy đủ dán là chạy**, 7 bước theo nhịp cố định
+> *Mục tiêu → Gõ gì → Thấy gì → Vì sao → Checkpoint*.
 
-✅ **Checkpoint:** sau `clear arp-cache`, ping lần đầu mất 1 gói · `show ip cef <subnet connected>`
-báo `attached` · sau khi ping, `show adjacency` có Encap length 14.
+**LAB trả lời 5 câu hỏi mà lý thuyết ở trên chỉ mô tả bằng chữ:**
 
----
+| # | Câu hỏi | Liên quan mục nào ở trên |
+|:---:|---|---|
+| 1 | RIB và FIB khác nhau chỗ nào? | §2.3 |
+| 2 | Vì sao ping lần đầu mất đúng 1 gói (`.!!!!`)? | §2.3 (glean) |
+| 3 | Vì sao `debug ip packet` không thấy traffic người dùng? | §2.2 + §2.3 |
+| 4 | Hai đường bằng nhau, flow của tôi đi đường nào? | §2.4 |
+| 5 | CPU cao — lỗi ở data plane hay control plane? | §2.1 (punt) |
 
-### 4.6 Bước 5 — ⭐⭐ `debug ip packet` không thấy gì (bẫy đề kinh điển)
-
-Đây là bài lab **giá trị nhất** của module này. Nó chứng minh bằng tay một điều đề ENCOR hay hỏi.
-
-**a) Bật debug trên R1 và tạo traffic ĐI QUA R1:**
-
-Cách tạo traffic transit: từ R2 ping tới R3 (đường đi có thể qua R1 hoặc trực tiếp).
-Để chắc chắn traffic qua R1, dùng cách đơn giản hơn — ping từ R2 tới loopback R1 thì **không phải transit**.
-
-Cách chính xác nhất: shutdown link R2↔R3 để buộc traffic R2→R3 phải đi qua R1.
-
-```
-! Trên R2
-R2(config)# interface GigabitEthernet0/1
-R2(config-if)# shutdown
-```
-Chờ OSPF hội tụ, xác nhận:
-```
-R2# show ip route 3.3.3.3
-! Phải thấy: via 10.0.12.1  (qua R1)
-```
-
-**b) Bật debug trên R1 (router trung chuyển):**
-```
-R1# debug ip packet
-IP packet debugging is on
-```
-
-**c) Từ R2 ping R3:**
-```
-R2# ping 3.3.3.3 source 2.2.2.2 repeat 20
-```
-
-**d) Xem output debug trên R1:**
-```
-R1#
-! ... TRỐNG. Không có gì cả. ...
-```
-
-⭐ **KHÔNG CÓ OUTPUT — và đây là ĐÚNG, không phải lỗi.**
-
-**Vì sao:** `debug ip packet` là công cụ của **control plane** (CPU). Nó chỉ thấy gói nào
-**được CPU xử lý**. Traffic transit đi qua **CEF ở data plane (ASIC)** → **CPU không hề nhìn thấy**.
-
-**e) Chứng minh: tắt CEF trên interface rồi thử lại**
-
-> ⚠️ **CHỈ LÀM TRONG LAB.** Tắt CEF trên production = CPU 100% = sự cố ngay lập tức.
-
-```
-R1(config)# interface GigabitEthernet0/0
-R1(config-if)# no ip route-cache cef
-R1(config-if)# exit
-R1(config)# interface GigabitEthernet0/1
-R1(config-if)# no ip route-cache cef
-```
-
-Ping lại từ R2:
-```
-R2# ping 3.3.3.3 source 2.2.2.2 repeat 5
-```
-
-**Giờ output debug trên R1 hiện ra:**
-```
-R1#
-IP: tableid=0, s=2.2.2.2 (GigabitEthernet0/0), d=3.3.3.3 (GigabitEthernet0/1),
-    routed via RIB
-IP: s=2.2.2.2 (GigabitEthernet0/0), d=3.3.3.3 (GigabitEthernet0/1), g=10.0.13.2,
-    len 100, forward
-IP: tableid=0, s=3.3.3.3 (GigabitEthernet0/1), d=2.2.2.2 (GigabitEthernet0/0),
-    routed via RIB
-IP: s=3.3.3.3 (GigabitEthernet0/1), d=2.2.2.2 (GigabitEthernet0/0), g=10.0.12.2,
-    len 100, forward
-```
-
-⭐ Chú ý dòng **`routed via RIB`** — không còn dùng FIB nữa, giờ CPU tra thẳng RIB cho từng gói.
-**Đó chính là process switching.**
-
-**f) DỌN DẸP — bắt buộc làm:**
-```
-R1# undebug all
-R1(config)# interface GigabitEthernet0/0
-R1(config-if)#  ip route-cache cef
-R1(config-if)# exit
-R1(config)# interface GigabitEthernet0/1
-R1(config-if)#  ip route-cache cef
-R1(config-if)# end
-R1# show ip cef summary          ! xác nhận CEF đã bật lại
-```
-Và bật lại link R2↔R3:
-```
-R2(config)# interface GigabitEthernet0/1
-R2(config-if)# no shutdown
-```
-
-✅ **Checkpoint bước 5 — bảng kết quả bạn tự điền:**
-
-| Trạng thái CEF | `debug ip packet` có output cho traffic transit? | Ghi chú |
-|---|:---:|---|
-| CEF **bật** (mặc định) | ❌ Không | Gói đi hardware, CPU không thấy |
-| CEF **tắt** | ✅ Có, thấy `routed via RIB` | Gói đi CPU = process switching |
-
-> 🎓 **Đây là bẫy đề ENCOR:** *"Kỹ sư gõ `debug ip packet` trên router để xem traffic của user
-> nhưng không thấy gì. Vì sao?"* → **Vì CEF forward ở data plane, debug chỉ thấy gói process-switched.**
-
----
-
-### 4.7 Bước 6 — ⭐ CEF load-balancing với ECMP
-
-Ở LAB P0-5 bạn đã thấy `10.0.23.0/30` có 2 đường cùng cost. Giờ xem CEF chia tải thế nào.
-
-**a) Xác nhận ECMP trong FIB:**
-```
-R1# show ip cef 10.0.23.0/30
-```
-**Output mẫu:**
-```
-Prefix               Next Hop             Interface
-10.0.23.0/30         10.0.13.2            GigabitEthernet0/1
-                     10.0.12.2            GigabitEthernet0/0
-```
-✅ 2 next-hop = ECMP.
-
-**b) ⭐ Lệnh hay nhất của module này — xem 1 flow cụ thể đi đường nào:**
-```
-R1# show ip cef exact-route 1.1.1.1 10.0.23.1
-```
-**Output mẫu:**
-```
-1.1.1.1 -> 10.0.23.1 => IP adj out of GigabitEthernet0/0, addr 10.0.12.2
-```
-
-**Thử các cặp src/dst khác:**
-```
-R1# show ip cef exact-route 1.1.1.1 10.0.23.2
-R1# show ip cef exact-route 10.0.12.1 10.0.23.1
-R1# show ip cef exact-route 10.0.13.1 10.0.23.2
-```
-
-⭐ **Điền bảng này — bạn sẽ tự thấy hash hoạt động:**
-
-| Source | Destination | Đi ra interface nào |
-|---|---|---|
-| 1.1.1.1 | 10.0.23.1 | |
-| 1.1.1.1 | 10.0.23.2 | |
-| 10.0.12.1 | 10.0.23.1 | |
-| 10.0.13.1 | 10.0.23.2 | |
-
-**Bài học:** cùng cặp (src, dst) → **luôn ra cùng 1 interface** (deterministic).
-Đổi src hoặc dst → có thể đổi interface. Đây chính là **per-destination load-balancing**:
-hash theo cặp src+dst, nên **mỗi flow gắn cố định vào 1 đường** → không bao giờ out-of-order.
-
-**c) Xem chế độ load-sharing:**
-```
-R1# show cef interface GigabitEthernet0/0 | include load|Load
-```
-**Output mẫu:**
-```
-  IP unicast RPF check is disabled
-  Load sharing: per-destination
-```
-
-**d) Thử per-packet (chỉ để quan sát, đừng dùng ở production):**
-```
-R1(config)# interface GigabitEthernet0/0
-R1(config-if)# ip load-sharing per-packet
-R1(config-if)# end
-R1# show cef interface GigabitEthernet0/0 | include Load
-```
-
-**Trả về mặc định:**
-```
-R1(config)# interface GigabitEthernet0/0
-R1(config-if)# ip load-sharing per-destination
-```
-
-**e) Xem thuật toán hash toàn cục:**
-```
-R1# show ip cef | begin algorithm
-! hoặc
-R1# show running-config | include cef load-sharing
-```
-
-Thử đổi ID để chống polarization:
-```
-R1(config)# ip cef load-sharing algorithm universal 1A2B3C4D
-```
-Rồi chạy lại `show ip cef exact-route` với **cùng cặp src/dst như trước** → có thể ra interface khác.
-
-> ⭐ **Đây là bằng chứng thực nghiệm cho khái niệm polarization:** cùng flow, cùng topology,
-> nhưng **đổi ID hash thì đổi đường đi**. Ở mạng nhiều tầng, nếu mọi tầng dùng cùng ID thì
-> mọi tầng chọn cùng nhánh → dồn tải. Đổi ID mỗi tầng thì phân tán đều.
-
-✅ **Checkpoint bước 6:**
-
-| Kiểm tra | Mong đợi |
-|---|---|
-| `show ip cef 10.0.23.0/30` có 2 next-hop | ✅ |
-| `show ip cef exact-route` cho kết quả **nhất quán** khi chạy lại cùng cặp src/dst | ✅ |
-| Đổi src hoặc dst → có thể đổi interface | ✅ |
-| Load sharing = `per-destination` | ✅ |
-| Đổi `load-sharing algorithm universal <ID>` → exact-route có thể đổi | ✅ |
-
----
-
-### 4.8 Bước 7 — CPU và punt
-
-**a) Xem CPU đang làm gì:**
-```
-R1# show processes cpu sorted | exclude 0.00
-```
-**Output mẫu:**
-```
-CPU utilization for five seconds: 3%/0%; one minute: 4%; five minutes: 4%
- PID Runtime(ms)     Invoked      uSecs   5Sec   1Min   5Min TTY Process
- 108       12345        4567       2703  1.20%  1.10%  1.05%   0 IP RIB Update
-  95        8765        3210       2730  0.80%  0.90%  0.85%   0 OSPF-1 Router
-```
-
-**Đọc dòng đầu — quan trọng:**
-```
-CPU utilization for five seconds: 3%/0%
-                                  │  └─ % dành cho INTERRUPT = xử lý gói ở fast path
-                                  └──── % TỔNG
-```
-
-| Con số | Nghĩa | Khi nào đáng lo |
-|---|---|---|
-| Tổng % cao, interrupt % **thấp** | CPU busy vì **control plane** (OSPF/BGP tính toán) | Bình thường lúc hội tụ |
-| ⚠️ Tổng % cao, interrupt % **cao** | CPU đang **forward gói** — nghĩa là gói bị **punt** nhiều | ⭐ Dấu hiệu xấu: CEF bị tắt, TCAM đầy, hoặc bị tấn công |
-
-**b) Thử tạo CPU cao bằng cách tắt CEF (chỉ trong lab):**
-```
-R1(config)# no ip cef                     ! ⚠️ TẮT CEF TOÀN CỤC — chỉ lab!
-```
-Rồi từ R2 ping flood:
-```
-R2# ping 3.3.3.3 source 2.2.2.2 repeat 1000 size 1500
-```
-Trên R1 quan sát:
-```
-R1# show processes cpu | include utilization
-```
-→ Thấy **interrupt % tăng vọt**.
-
-**Bật lại ngay:**
-```
-R1(config)# ip cef
-R1# show ip cef summary
-```
-
-✅ **Checkpoint:** hiểu được ý nghĩa `3%/0%` · quan sát được interrupt % tăng khi tắt CEF.
-
-> ⭐ **Bài học production:** khi gặp switch/router CPU cao, lệnh đầu tiên là
-> `show processes cpu sorted | exclude 0.00` và **đọc con số interrupt**.
-> Interrupt cao = vấn đề data plane (punt/CEF/TCAM). Interrupt thấp = vấn đề control plane (protocol).
-
----
-
-### 4.9 🚀 LAB nâng cao — TCAM & SDM (nếu image hỗ trợ)
-
-> ℹ️ vIOS là router ảo, **không có TCAM thật** → phần này chỉ chạy được trên switch thật hoặc
-> **DevNet Sandbox** (Catalyst 9000 always-on).
-
-**Trên DevNet Sandbox (Cat9k):**
-```
-! Xem template TCAM đang dùng
-show sdm prefer
-
-! Xem TCAM còn bao nhiêu
-show platform hardware fed switch active fwd-asic resource tcam utilization
-
-! MAC address table (dùng CAM)
-show mac address-table count
-show mac address-table dynamic
-```
-
-**Trên vIOS-L2 (nếu có):**
-```
-show sdm prefer
-show mac address-table
-show mac address-table count
-```
-
-**Câu hỏi tự trả lời sau khi xem output:**
-
-| Câu hỏi | Trả lời của bạn |
-|---|---|
-| Template SDM đang dùng là gì? | |
-| MAC table đang chứa bao nhiêu entry? Tối đa bao nhiêu? | |
-| Nếu muốn switch này chứa nhiều route hơn, đổi template nào? Cần làm gì sau đó? | |
+> ⚠️ **Đọc lý thuyết mà không làm LAB thì coi như chưa học module này.**
+> Ba bước quan trọng nhất là **Bước 2** (RIB vs FIB), **Bước 4** (glean) và **Bước 5**
+> (`debug ip packet` im lặng) — chúng biến ba khái niệm trừu tượng thành thứ nhìn thấy được.
 
 ---
 
@@ -1397,7 +978,10 @@ vẽ bản đồ trong lúc đi (traffic-driven). Đó là toàn bộ khác bi�
 | 14 | SVI vs routed port khác nhau gì? Điều kiện để SVI route được? | ☐ |
 | 15 | CEF inconsistency là gì, vì sao đáng sợ? | ☐ |
 
-**Phần B — Lab (tự làm lại không xem hướng dẫn):**
+**Phần B — Lab (tự làm lại KHÔNG xem hướng dẫn):**
+
+> Đây là bản kiểm tra **sau khi** đã làm xong [Module-01-LAB.md](Module-01-LAB.md).
+> Checklist từng bước có sẵn ở cuối file LAB — phần này để bạn tự đánh giá **đã thuộc chưa**.
 
 | # | Yêu cầu | ✅ |
 |:---:|---|:---:|

@@ -27,7 +27,7 @@
 | **14** | **Module-08** | Hypervisor/vSwitch · **VRF-lite** · **GRE** · **IPsec / GRE over IPsec** · LISP · VXLAN | Virtualization **10%** | 2 VRF **trùng IP** · GRE + OSPF · ⭐ tái hiện **recursive routing** · GRE over IPsec (`QM_IDLE`, encaps/decaps) | **2 GB**<br>*(7 GB nếu cần CSR1000v cho crypto)* | ☐ |
 | **15** | **Module-09** | 2-tier/3-tier · Spine-Leaf · HA (SSO/NSF/GR) · WLAN design · cloud · **SD-WAN** · **SD-Access** · **QoS** | Architecture **15%** | ⭐ Lab-trên-giấy (chọn design + điền bảng thành phần) · MQC/LLQ trên 2 router · DevNet DNAC & vManage | **1 GB** | ☐ |
 | **16** | **Module-10** | Hardening & password type · **AAA TACACS+/RADIUS** · **ACL nâng cao** · **CoPP** · 802.1X/MAB/WebAuth · wireless security · TrustSec/MACsec · NGFW · REST API security | Security **20%** | ⭐ AAA fallback (server chết → `local`) · bẫy IPv6 ACL giết NDP · CoPP "đo trước siết sau" · 802.1X + Critical VLAN. ⭐ **Không cần RADIUS thật** | **1.8 GB** | ☐ |
-| **17** | Module-11 | Syslog · SNMPv3 · NetFlow/Flexible NetFlow · SPAN/RSPAN/ERSPAN · IPSLA · DNAC Assurance | Assurance 10% | Flexible NetFlow → collector + ERSPAN + IPSLA + syslog server | 4 GB | ☐ |
+| **17** | **Module-11** | Syslog · SNMPv2c/v3 · **Flexible NetFlow** · SPAN/RSPAN/ERSPAN · **IP SLA** · **debug an toàn** · DNAC Assurance | Assurance **10%**<br>⚠️ *(trừ 4.7 → M12)* | ⭐ **Không cần collector**: `show flow monitor cache` xem flow ngay trên router · bẫy "cổng SPAN câm" · IP SLA udp-jitter + Responder | **1.8 GB** | ☐ |
 | **18** | Module-12 | JSON/XML/YAML · REST API · Python netmiko/requests · EEM | Automation 15% | Script Python đọc/đổi config qua RESTCONF trên DevNet Sandbox | 2 GB | ☐ |
 | **19** | Module-12 | NETCONF/RESTCONF/YANG · Ansible network · DNAC & vManage API · CI/CD ý tưởng | Automation 15% | Ansible playbook backup config 4 router + NETCONF get-config | 3 GB | ☐ |
 | **20** | Module-13 | LAB tổng hợp · mock exam · bẫy đề · chiến thuật phòng thi | Toàn bộ | LAB capstone: 6 node, nhiều domain cùng lúc | 6 GB | ☐ |
@@ -242,13 +242,22 @@ Nếu không trả lời được bằng lời của mình (không cần nhìn t
 
 | Phải nắm | Tự hỏi |
 |---|---|
-| Syslog | 8 severity 0–7 (Emergency…Debug). Level 4 gửi lên server thì gửi những level nào? |
+| **NTP là nền tảng** | Vì sao sai giờ làm HỎNG cả syslog, NetFlow lẫn IP SLA one-way delay? |
+| Syslog | 8 severity 0–7 (Emergency…Debug). **Số nhỏ hay lớn nghiêm trọng hơn?** Level 4 gửi lên server thì gửi những level nào? |
+| **Bẫy %LINK vs %LINEPROTO** | Vì sao cùng sự kiện rút cáp lại sinh 2 dòng khác severity? Hệ quả khi đặt `logging trap 4`? |
 | SNMP | v2c vs v3: v3 thêm gì? 3 security level của v3 (noAuthNoPriv/authNoPriv/authPriv) |
-| NetFlow vs Flexible NetFlow | 7 field định nghĩa flow truyền thống. FNF cho phép làm gì thêm? |
+| **Port & Trap/Inform** | Agent nghe port nào, manager nghe port nào? **Trap khác Inform** chỗ nào? |
+| NetFlow vs Flexible NetFlow | **7 field** định nghĩa flow truyền thống (đừng quên ToS + input interface). FNF cho phép làm gì thêm? |
+| **4 thành phần FNF** | Record / Exporter / Monitor / Sampler. **`match` khác `collect`** thế nào? |
+| **`cache timeout active`** | Mặc định bao nhiêu? Vì sao con số đó nguy hiểm? |
 | SPAN family | SPAN (local) / RSPAN (qua VLAN) / **ERSPAN** (qua L3, dùng GRE) — chọn cái nào khi nào? |
+| **Bẫy SPAN destination** | Cổng đích bị gì? Vì sao thiết bị cắm vào mất mạng dù cổng `up/up`? Oversubscription? |
 | IPSLA | Đo gì? Cấu hình 1 operation icmp-echo cần mấy dòng? Dùng chung với object tracking ra sao? |
+| **`ip sla schedule` & Responder** | Quên schedule thì sao? Operation nào **bắt buộc** cần Responder? `reachability` vs `state`? |
+| Debug an toàn | Vì sao `debug all` là tự sát trên production? **Thủ phạm thật là gì?** `terminal monitor`, conditional debug |
+| **Bẫy CEF khi debug** | Vì sao `debug ip packet` không thấy traffic đi xuyên qua router? |
 | DNA Center Assurance | Health score, Network Time Travel, Path Trace, Client 360 |
-| Debug an toàn | Vì sao `debug all` là tự sát trên production? `terminal monitor`, conditional debug |
+| **NETCONF/RESTCONF (4.7)** | ⚠️ **Thuộc Domain 4.0 chứ không phải 6.0!** Port 830 vs 443 · cái nào có rollback? → học ở M12 |
 
 ### Module-12 — Automation
 

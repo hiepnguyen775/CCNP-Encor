@@ -54,7 +54,7 @@ Tôi sẽ không nói với bạn "3 tháng có CCNP". Đây là những gì th�
 
 | File | Nội dung | Tuần |
 |---|---|---|
-| [Module-01-Packet-Forwarding-va-Kien-truc-Thiet-bi.md](Module-01-Packet-Forwarding-va-Kien-truc-Thiet-bi.md) | Control/Data/Management plane, Process switching → CEF, RIB vs FIB, CAM/TCAM, SDM | Tuần 3 |
+| [Module-01-Packet-Forwarding-va-Kien-truc-Thiet-bi.md](Module-01-Packet-Forwarding-va-Kien-truc-Thiet-bi.md)<br>+ 🧪 [**Module-01-LAB.md**](Module-01-LAB.md) | Control/Data/Management plane, Process switching → CEF, RIB vs FIB, CAM/TCAM, SDM<br>⭐ **Có trang TÓM TẮT 10 phút + lộ trình đọc 3 mức + LAB tách riêng** | Tuần 3 |
 | [Module-02-Layer2-STP-RSTP-MST-EtherChannel.md](Module-02-Layer2-STP-RSTP-MST-EtherChannel.md) | STP sâu, RSTP, MST, các loại Guard + UDLD, EtherChannel LACP/PAgP | Tuần 4–5 |
 | [Module-03-IP-Routing-Nen-tang.md](Module-03-IP-Routing-Nen-tang.md) | Bảng định tuyến, AD, longest-prefix, static + **IP SLA/track**, redistribute, EIGRP↔OSPF | Tuần 6 |
 | [Module-04A-OSPF-Nen-tang-va-LSDB.md](Module-04A-OSPF-Nen-tang-va-LSDB.md) | Neighbor states, network type, **DR/BDR**, **LSA type 1–3**, đọc LSDB | Tuần 7 |
@@ -78,7 +78,7 @@ Tôi sẽ không nói với bạn "3 tháng có CCNP". Đây là những gì th�
 | File | Nội dung | Tuần |
 |---|---|---|
 | [Module-10-Security.md](Module-10-Security.md) | Hardening & password type, ⭐ **AAA (TACACS+/RADIUS)**, ⭐ **ACL nâng cao**, ⭐ **CoPP**, 802.1X/MAB/WebAuth, wireless security, TrustSec, MACsec, NGFW, REST API security | Tuần 16 |
-| Module-11-Network-Assurance.md | Syslog, SNMPv2c/v3, NetFlow & Flexible NetFlow, SPAN/RSPAN/ERSPAN, IPSLA, DNA Center Assurance, debug | Tuần 17 |
+| [Module-11-Network-Assurance.md](Module-11-Network-Assurance.md) | Syslog, SNMPv2c/v3, ⭐ **Flexible NetFlow**, SPAN/RSPAN/ERSPAN, ⭐ **IP SLA**, ⭐ **debug an toàn**, DNA Center Assurance | Tuần 17 |
 | Module-12-Automation-va-Programmability.md | JSON/XML/YAML, REST API, NETCONF/RESTCONF/YANG, EEM, Python netmiko, Ansible, DNAC & vManage API | Tuần 18–19 |
 
 ### Về đích
