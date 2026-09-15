@@ -48,7 +48,7 @@ Tôi sẽ không nói với bạn "3 tháng có CCNP". Đây là những gì th�
 |---|---|---|
 | [ROADMAP.md](ROADMAP.md) | **Lộ trình 20 tuần dạng bảng** — đọc ngay sau README | — |
 | [Module-00-Setup-Lab-EVE-NG.md](Module-00-Setup-Lab-EVE-NG.md) | Dựng lab EVE-NG trên VMware từ số 0 | Tuần 0 |
-| [Module-P0-Nen-tang-Ready-for-ENCOR.md](Module-P0-Nen-tang-Ready-for-ENCOR.md) | Vá nền tảng: CLI Cisco, VLAN/trunk, STP, cách chọn đường, static/OSPF cơ bản, NAT, ACL | Tuần 1–2 |
+| [Module-P0-Nen-tang-Ready-for-ENCOR.md](Module-P0-Nen-tang-Ready-for-ENCOR.md)<br>+ 🧪 [**LAB Tuần 1**](Module-P0-LAB-Tuan1.md) · 🧪 [**LAB Tuần 2**](Module-P0-LAB-Tuan2.md) | Vá nền tảng: CLI Cisco, VLAN/trunk, STP, cách chọn đường, static/OSPF cơ bản, NAT, ACL<br>⭐ **Có trang TÓM TẮT 10 phút + bố cục 4 phần + LAB tách theo tuần** | Tuần 1–2 |
 
 ### Khối Infrastructure — 30% đề, nặng nhất
 

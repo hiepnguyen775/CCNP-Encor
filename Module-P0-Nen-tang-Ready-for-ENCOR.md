@@ -25,6 +25,75 @@ routing + 3 router OSPF + NAT + ACL, **trong 60 phút, không nhìn tài liệu.
 
 ---
 
+# 📌 TÓM TẮT — đọc 10 phút là nắm khung
+
+## Module này trả lời một câu hỏi duy nhất
+
+> **"Một gói tin đi từ máy tôi ra Internet thì gặp những gì trên đường?"**
+
+Sáu thứ bạn sắp học chính là **sáu trạm** trên hành trình đó. Không phải sáu chủ đề rời rạc.
+
+## Toàn module trong một hình
+
+```
+   [PC]  ──①──▶  SWITCH L2  ──②──▶  ROUTER L3  ──③──▶  ROUTER BIÊN  ──▶ INTERNET
+
+   ① VLAN     — cách ly máy nào nói chuyện được với máy nào       (§3.3)
+      STP     — chặn vòng lặp để mạng không tự sập                (§3.4)
+
+   ② Bảng route — chọn đường: longest prefix → AD → metric        (§3.5)
+      OSPF      — router tự học đường, không phải khai tay        (§3.6)
+
+   ③ NAT     — đổi IP riêng thành IP public                       (§3.7)
+      ACL     — quyết định gói nào được đi, gói nào bị chặn       (§3.8)
+```
+
+## 7 ý phải nhớ
+
+| # | Ý | Một câu |
+|:---:|---|---|
+| 1 | **VLAN** | Cắt một switch vật lý thành nhiều mạng logic. **Khác VLAN thì phải có router mới nói chuyện được** |
+| 2 | **Trunk** | Một sợi cáp chở **nhiều VLAN**, phân biệt bằng thẻ 802.1Q. VLAN phải tồn tại ở **cả hai đầu** |
+| 3 | **STP** | Mạng có vòng lặp thì broadcast chạy mãi → sập. STP **chủ động chặn bớt đường** để còn đúng một lối đi |
+| 4 | **Thứ tự chọn đường** | **Longest prefix → AD → metric.** Đúng thứ tự này, không bao giờ đảo |
+| 5 | **AD** | Mức độ *tin cậy nguồn tin*: Connected 0 · Static 1 · OSPF 110 · RIP 120. **Số nhỏ = tin hơn** |
+| 6 | **NAT** | Nhiều máy dùng chung một IP public, phân biệt nhau bằng **số port** |
+| 7 | **ACL** | Duyệt **từ trên xuống, khớp dòng nào dừng dòng đó**, và cuối luôn có `deny` ngầm |
+
+## Bảng lệnh cốt lõi
+
+| Lệnh | Cho biết gì |
+|---|---|
+| `show vlan brief` | VLAN nào tồn tại, port nào thuộc VLAN nào |
+| `show interfaces trunk` | Trunk lên chưa, chở được VLAN nào |
+| `show spanning-tree` | Ai là Root Bridge, port nào bị chặn |
+| `show ip route` | Bảng định tuyến — đường đi router đang dùng |
+| `show ip ospf neighbor` | OSPF đã bắt tay được chưa (phải `FULL`) |
+| `show ip nat translations` | NAT đang đổi IP nào thành IP nào |
+| `show access-lists` | ACL đang chặn/cho qua bao nhiêu gói |
+
+## 🗺️ Bố cục module — đọc theo đúng thứ tự này
+
+| Phần | Tên | Đọc thế nào | Thời gian |
+|:---:|---|---|:---:|
+| **1** | 🧠 **CÁI ĐÓ LÀ GÌ** | Đọc **một mạch**, toàn ví von, không lệnh | 1 giờ |
+| **2** | ⚙️ **NÓ CHẠY THẾ NÀO** | Đọc kỹ, đối chiếu sơ đồ. Bảng để tra sau | 4 giờ |
+| **3** | 🧪 **NHÌN THẤY NÓ** | [LAB Tuần 1](Module-P0-LAB-Tuan1.md) + [LAB Tuần 2](Module-P0-LAB-Tuan2.md) | 10 giờ |
+| **4** | 🏗️ **TOPO & KIẾN TRÚC** | Ghép 6 thứ thành một mạng. **Vẽ lại trên giấy** | 1 giờ |
+| **📎** | **PHỤ LỤC** | 🔴 **KHÔNG đọc lần đầu** — chỉ tra khi cần | — |
+
+**Chia theo 2 tuần:**
+
+| Tuần | Đọc gì | Lab gì |
+|:---:|---|---|
+| **1** | Phần 1 (toàn bộ) → Phần 2 mục **§3.1–3.4** | [LAB Tuần 1](Module-P0-LAB-Tuan1.md): VLAN · Inter-VLAN · STP |
+| **2** | Phần 2 mục **§3.5–3.8** → **Phần 4** | [LAB Tuần 2](Module-P0-LAB-Tuan2.md): Static · OSPF · NAT · ACL |
+
+> **Nếu bạn thấy nản giữa chừng:** đọc lại **Phần 1**. Nó ngắn, không có lệnh,
+> và nó là thứ duy nhất bạn thật sự cần *hiểu* — phần còn lại chỉ là chi tiết để tra.
+
+---
+
 ## ✅ 1. Chuẩn bị trước khi học
 
 | Cần có | Chi tiết |
@@ -37,9 +106,103 @@ routing + 3 router OSPF + NAT + ACL, **trong 60 phút, không nhìn tài liệu.
 
 ---
 
-## 📘 2. LÝ THUYẾT — dạng bảng
+## 🧠 PHẦN 1 — CÁI ĐÓ LÀ GÌ
 
-### 2.1 Ôn nhanh: IP & Subnet (chỉ để đối chiếu, không giảng lại)
+> **Đọc phần này TRƯỚC, đọc một mạch, đừng ghi chép gì.** Ở đây không có lệnh, không có bảng tra —
+> chỉ có ví von đời thường để bạn bật ra *"à, ra nó là thế"*.
+>
+> **Cách tự kiểm tra:** đọc xong mỗi mục, gấp tài liệu lại và **nói lại bằng lời của bạn trong 3 câu**.
+> Nói được thì đi tiếp. Không nói được thì đọc lại mục đó — đừng cố nhớ, hãy cố *hiểu*.
+
+### 2.1 STP như một cái cây trong rừng dây
+
+Tưởng tượng bạn có 4 switch nối chéo nhau đủ đường — đó là một **mạng lưới** (mesh), có vòng.
+STP không cắt dây vật lý, nó **chọn ra một cái cây** (tree) từ mạng lưới đó:
+
+- **Root Bridge** = gốc cây. Cả mạng chỉ có 1 gốc.
+- **Root Port** = mỗi switch có 1 nhánh chỉ về gốc. "Đường về nhà của tôi là đường này."
+- **Blocking port** = những cành gây vòng → STP **treo biển "cấm đi"**, nhưng dây vẫn ở đó.
+- Khi 1 nhánh chính đứt → STP **bỏ biển cấm** ở cành dự phòng → mạng tự lành.
+
+🧠 **Một câu để nhớ:** *STP không xóa dây, nó chỉ chọn dây nào được dùng. Dây bị block vẫn nằm đó
+chờ tới lượt.*
+
+**Vì sao phải hiểu chỗ này:** người mới hay nghĩ "block port là port hỏng". Không —
+port blocking vẫn **nhận BPDU** để biết khi nào cần chuyển sang forwarding. Nó đang canh, không đang ngủ.
+
+### 2.2 Longest prefix match như địa chỉ nhà
+
+Bạn có 3 tờ chỉ đường đến nhà tôi:
+
+| Tờ | Nội dung | Prefix |
+|---|---|---|
+| A | "Đi Việt Nam" | `/8` |
+| B | "Đi TP.HCM" | `/16` |
+| C | "Đi số 12 đường Nguyễn Huệ, Quận 1, TP.HCM" | `/32` |
+
+Bạn dùng tờ nào? **Tờ C** — cụ thể nhất, dù cả 3 đều đúng.
+
+Router y hệt: có `10.0.0.0/8`, `10.1.0.0/16`, `10.1.1.0/24` — gói tới `10.1.1.5` sẽ đi theo `/24`.
+**Không quan tâm route nào học từ protocol nào.**
+
+🧠 **Một câu để nhớ:** *Cụ thể thắng tin cậy. Longest prefix đứng trước AD, luôn luôn.*
+
+### 2.3 AD như mức độ tin cậy nguồn tin
+
+Bạn muốn biết đường đi. Có 4 người nói khác nhau:
+
+| Người | AD | Vì sao tin cỡ đó |
+|---|:---:|---|
+| Bạn **tự nhìn thấy** con đường | 0 | Không gì tin hơn mắt mình → Connected |
+| **Bạn tự tay ghi** vào sổ | 1 | Bạn ghi thì bạn chịu trách nhiệm → Static |
+| Người **cùng công ty**, có bản đồ đầy đủ | 110 | Đồng nghiệp đáng tin → OSPF |
+| Người **nghe kể lại** từ người khác | 120 | Truyền tai → RIP |
+
+🧠 **Một câu để nhớ:** *AD = "tôi tin nguồn này bao nhiêu". Số càng nhỏ càng tin.*
+
+### 2.4 OSPF: link-state vs distance-vector
+
+| | Distance-vector (RIP) | Link-state (OSPF) |
+|---|---|---|
+| Kiểu thông tin | "Đến X thì đi hướng tôi, xa 3 hop" | "Đây là **toàn bộ bản đồ** mạng" |
+| Ví von | **Hỏi đường người đi qua** | **Có bản đồ Google Maps offline** |
+| Tính đường | Tin lời người ta | **Tự tính** bằng Dijkstra |
+| Hội tụ | Chậm, dễ loop | Nhanh, không loop trong 1 area |
+| Tốn tài nguyên | Ít | Nhiều CPU/RAM (phải lưu bản đồ) |
+
+🧠 **Một câu để nhớ:** *RIP hỏi đường, OSPF có bản đồ. Vì có bản đồ nên OSPF phải đồng bộ bản đồ —
+đó chính là ý nghĩa của LSDB và của việc neighbor phải lên "Full".*
+
+### 2.5 Vì sao OSPF có "area"
+
+Có bản đồ toàn mạng là tốt, nhưng mạng 500 router thì bản đồ khổng lồ:
+- Mỗi lần 1 link đâu đó nhấp nháy → **cả 500 router** phải tính lại Dijkstra
+- Router nhỏ ở nhánh xa không đủ RAM lưu bản đồ
+
+**Area = chia bản đồ thành từng tờ.** Router trong area 10 chỉ giữ chi tiết area 10, còn các area
+khác chỉ biết "có mạng đó, đi qua ABR này". Link nhấp nháy trong area 10 **không làm area 20 tính lại**.
+
+🧠 **Một câu để nhớ:** *Area tồn tại để giới hạn phạm vi ảnh hưởng của một sự cố. Đây là ý tưởng cốt lõi
+mà Module-04 sẽ khai thác qua LSA type và stub area.*
+
+---
+
+## ⚙️ PHẦN 2 — NÓ CHẠY THẾ NÀO
+
+> Giờ bạn đã có **hình dung**. Phần này lắp **tên gọi kỹ thuật, con số và câu lệnh thật** vào đó.
+>
+> Mỗi mục nối ngược về một ví von ở Phần 1:
+>
+> | Phần 1 (ví von) | → | Phần 2 (cơ chế) |
+> |---|:---:|---|
+> | §2.1 cái cây trong rừng dây | → | **§3.4 STP** |
+> | §2.2 địa chỉ nhà · §2.3 nguồn tin | → | **§3.5 Router chọn đường** |
+> | §2.4 link-state · §2.5 vì sao có area | → | **§3.6 OSPF** |
+>
+> ⚠️ **Bảng trong phần này là để TRA CỨU về sau, không phải để học thuộc ngay.**
+> Đọc hiểu ý chính, rồi quay lại tra khi làm LAB.
+
+### 3.1 Ôn nhanh: IP & Subnet (chỉ để đối chiếu, không giảng lại)
 
 | Khái niệm | Nội dung |
 |---|---|
@@ -69,7 +232,7 @@ routing + 3 router OSPF + NAT + ACL, **trong 60 phút, không nhìn tài liệu.
 
 ---
 
-### 2.2 CLI Cisco — bảng bạn sẽ dùng suốt 20 tuần
+### 3.2 CLI Cisco — bảng bạn sẽ dùng suốt 20 tuần
 
 **Các mode và cách di chuyển:**
 
@@ -125,7 +288,7 @@ line con 0
 
 ---
 
-### 2.3 VLAN & Trunk — ôn nhanh dạng bảng
+### 3.3 VLAN & Trunk
 
 | Khái niệm | Nội dung |
 |---|---|
@@ -173,7 +336,7 @@ line con 0
 
 ---
 
-### 2.4 🔴 STP — dạy từ gốc (chỗ mờ của bạn)
+### 3.4 STP — dạy từ gốc
 
 #### Vấn đề STP giải quyết
 
@@ -299,7 +462,7 @@ spanning-tree vlan 10 root primary           ! macro: IOS tự tính priority th
 
 ---
 
-### 2.5 🔴 Router chọn đường thế nào (nền của mọi module routing sau)
+### 3.5 Router chọn đường thế nào
 
 #### Thứ tự 3 bước — PHẢI ĐÚNG THỨ TỰ NÀY
 
@@ -385,7 +548,7 @@ O IA     10.2.2.0/24 [110/3] via 10.0.0.2, 00:04:58, GigabitEthernet0/0
 
 ---
 
-### 2.6 🔴 OSPF single-area (nền cho Module-04)
+### 3.6 OSPF single-area
 
 | Khái niệm | Nội dung |
 |---|---|
@@ -471,7 +634,7 @@ interface GigabitEthernet0/0
 
 ---
 
-### 2.7 NAT — đủ dùng (Module-06 nâng cao)
+### 3.7 NAT — đủ dùng cho ENCOR
 
 | Loại NAT | Làm gì | Dùng khi nào |
 |---|---|---|
@@ -518,7 +681,7 @@ debug ip nat                     ! xem NAT hoạt động (nhớ tắt)
 
 ---
 
-### 2.8 ACL — đủ dùng (Module-10 nâng cao)
+### 3.8 ACL — đủ dùng cho ENCOR
 
 | Loại ACL | Số hiệu | Lọc theo | Đặt ở đâu |
 |---|---|---|---|
@@ -570,1196 +733,122 @@ clear access-list counters               ! reset bộ đếm để test lại
 
 ---
 
-## 📖 3. HIỂU RÕ HƠN — mô hình tư duy
+## 🧪 PHẦN 3 — NHÌN THẤY NÓ
 
-### 3.1 STP như một cái cây trong rừng dây
+> LAB đã tách ra file riêng để bạn **mở song song** với lý thuyết — một cửa sổ đọc, một cửa sổ gõ.
 
-Tưởng tượng bạn có 4 switch nối chéo nhau đủ đường — đó là một **mạng lưới** (mesh), có vòng.
-STP không cắt dây vật lý, nó **chọn ra một cái cây** (tree) từ mạng lưới đó:
+> ### 👉 **[LAB Tuần 1 — Switching (VLAN · Inter-VLAN · STP)](Module-P0-LAB-Tuan1.md)**
+> ### 👉 **[LAB Tuần 2 — Routing (Static · OSPF · NAT · ACL)](Module-P0-LAB-Tuan2.md)**
 
-- **Root Bridge** = gốc cây. Cả mạng chỉ có 1 gốc.
-- **Root Port** = mỗi switch có 1 nhánh chỉ về gốc. "Đường về nhà của tôi là đường này."
-- **Blocking port** = những cành gây vòng → STP **treo biển "cấm đi"**, nhưng dây vẫn ở đó.
-- Khi 1 nhánh chính đứt → STP **bỏ biển cấm** ở cành dự phòng → mạng tự lành.
+| Tuần | LAB | Trả lời câu hỏi | Ví von ở Phần 1 | Cơ chế ở Phần 2 |
+|:---:|---|---|---|---|
+| 1 | **P0-1** VLAN + Trunk | VLAN cách ly bằng cách nào? | — | §3.3 |
+| 1 | **P0-2** Inter-VLAN Routing | Hai VLAN nói chuyện qua đâu? | — | §3.3 |
+| 1 | **P0-3** STP | Có vòng lặp thì sao? Ép Root Bridge thế nào? | §2.1 cái cây | §3.4 |
+| 2 | **P0-4** Static + Floating | Router chọn đường theo thứ tự nào? | §2.2 địa chỉ nhà · §2.3 nguồn tin | §3.5 |
+| 2 | **P0-5** OSPF single-area | OSPF tự tìm đường ra sao? | §2.4 · §2.5 | §3.6 |
+| 2 | **P0-6** NAT + ACL | Nhiều máy chung 1 IP public? ACL đặt ở đâu? | — | §3.7 · §3.8 |
 
-🧠 **Một câu để nhớ:** *STP không xóa dây, nó chỉ chọn dây nào được dùng. Dây bị block vẫn nằm đó
-chờ tới lượt.*
+> ⚠️ **Đọc lý thuyết mà không làm LAB thì coi như chưa học module này.**
+> P0 là module **vá nền tảng** — nếu bạn chỉ đọc mà không gõ, lỗ hổng vẫn còn nguyên
+> và nó sẽ lộ ra ở Module-02, 03, 04 khi mọi thứ khó hơn nhiều.
 
-**Vì sao phải hiểu chỗ này:** người mới hay nghĩ "block port là port hỏng". Không —
-port blocking vẫn **nhận BPDU** để biết khi nào cần chuyển sang forwarding. Nó đang canh, không đang ngủ.
 
-### 3.2 Longest prefix match như địa chỉ nhà
+## 🏗️ PHẦN 4 — TOPO & KIẾN TRÚC
 
-Bạn có 3 tờ chỉ đường đến nhà tôi:
+> Bạn vừa học **6 thứ rời rạc**: VLAN, STP, routing, OSPF, NAT, ACL.
+> Phần này ghép chúng lại thành **một mạng hoàn chỉnh** để bạn thấy mỗi thứ nằm ở đâu.
 
-| Tờ | Nội dung | Prefix |
-|---|---|---|
-| A | "Đi Việt Nam" | `/8` |
-| B | "Đi TP.HCM" | `/16` |
-| C | "Đi số 12 đường Nguyễn Huệ, Quận 1, TP.HCM" | `/32` |
-
-Bạn dùng tờ nào? **Tờ C** — cụ thể nhất, dù cả 3 đều đúng.
-
-Router y hệt: có `10.0.0.0/8`, `10.1.0.0/16`, `10.1.1.0/24` — gói tới `10.1.1.5` sẽ đi theo `/24`.
-**Không quan tâm route nào học từ protocol nào.**
-
-🧠 **Một câu để nhớ:** *Cụ thể thắng tin cậy. Longest prefix đứng trước AD, luôn luôn.*
-
-### 3.3 AD như mức độ tin cậy nguồn tin
-
-Bạn muốn biết đường đi. Có 4 người nói khác nhau:
-
-| Người | AD | Vì sao tin cỡ đó |
-|---|:---:|---|
-| Bạn **tự nhìn thấy** con đường | 0 | Không gì tin hơn mắt mình → Connected |
-| **Bạn tự tay ghi** vào sổ | 1 | Bạn ghi thì bạn chịu trách nhiệm → Static |
-| Người **cùng công ty**, có bản đồ đầy đủ | 110 | Đồng nghiệp đáng tin → OSPF |
-| Người **nghe kể lại** từ người khác | 120 | Truyền tai → RIP |
-
-🧠 **Một câu để nhớ:** *AD = "tôi tin nguồn này bao nhiêu". Số càng nhỏ càng tin.*
-
-### 3.4 OSPF: link-state vs distance-vector
-
-| | Distance-vector (RIP) | Link-state (OSPF) |
-|---|---|---|
-| Kiểu thông tin | "Đến X thì đi hướng tôi, xa 3 hop" | "Đây là **toàn bộ bản đồ** mạng" |
-| Ví von | **Hỏi đường người đi qua** | **Có bản đồ Google Maps offline** |
-| Tính đường | Tin lời người ta | **Tự tính** bằng Dijkstra |
-| Hội tụ | Chậm, dễ loop | Nhanh, không loop trong 1 area |
-| Tốn tài nguyên | Ít | Nhiều CPU/RAM (phải lưu bản đồ) |
-
-🧠 **Một câu để nhớ:** *RIP hỏi đường, OSPF có bản đồ. Vì có bản đồ nên OSPF phải đồng bộ bản đồ —
-đó chính là ý nghĩa của LSDB và của việc neighbor phải lên "Full".*
-
-### 3.5 Vì sao OSPF có "area"
-
-Có bản đồ toàn mạng là tốt, nhưng mạng 500 router thì bản đồ khổng lồ:
-- Mỗi lần 1 link đâu đó nhấp nháy → **cả 500 router** phải tính lại Dijkstra
-- Router nhỏ ở nhánh xa không đủ RAM lưu bản đồ
-
-**Area = chia bản đồ thành từng tờ.** Router trong area 10 chỉ giữ chi tiết area 10, còn các area
-khác chỉ biết "có mạng đó, đi qua ABR này". Link nhấp nháy trong area 10 **không làm area 20 tính lại**.
-
-🧠 **Một câu để nhớ:** *Area tồn tại để giới hạn phạm vi ảnh hưởng của một sự cố. Đây là ý tưởng cốt lõi
-mà Module-04 sẽ khai thác qua LSA type và stub area.*
-
----
-
-## 🧪 4. LAB — TUẦN 1
-
-### LAB P0-1 — VLAN + Trunk (2 switch)
-
-**Mục tiêu:** PC cùng VLAN nói được với nhau qua 2 switch; khác VLAN thì không.
-
-#### Topology
+### 4.1 Toàn bộ những gì bạn vừa học, trên một sơ đồ
 
 ```
-        VLAN 10 = SALES        VLAN 20 = IT
-              
-   [PC1]──Gi0/1  SW1  Gi0/0 ══════ Gi0/0  SW2  Gi0/1──[PC3]
-   V10                    TRUNK                        V10
-   [PC2]──Gi0/2                    Gi0/2──[PC4]
-   V20                                     V20
+                                    INTERNET
+                                        ▲
+                                        │ IP public: 203.0.113.1
+                              ┌─────────┴─────────┐
+                              │   ROUTER BIÊN     │
+                              │                   │
+                              │  ⑤ NAT: đổi IP    │  ← §3.7
+                              │     private→public│
+                              │  ⑥ ACL: chặn gói  │  ← §3.8
+                              └─────────┬─────────┘
+                                        │
+                              ┌─────────┴─────────┐
+                              │  ROUTER / SW L3   │
+                              │                   │
+                              │  ③ Bảng route:    │  ← §3.5
+                              │     longest prefix│
+                              │     → AD → metric │
+                              │  ④ OSPF tự học    │  ← §3.6
+                              │     đường         │
+                              └────┬─────────┬────┘
+                                   │ SVI     │ SVI
+                          VLAN 10  │         │  VLAN 20
+                              ┌────┴─────────┴────┐
+                              │     SWITCH L2     │
+                              │                   │
+                              │  ② STP chặn vòng  │  ← §3.4
+                              │     lặp           │
+                              │  ① VLAN cách ly   │  ← §3.3
+                              └──┬─────┬─────┬────┘
+                                 │     │     │
+                              [PC1] [PC2] [Máy in]
+                              V10   V20    V20
 ```
 
-| Thiết bị | Image | RAM | Interface | Cấu hình |
-|---|---|:---:|---|---|
-| SW1 | vIOS-L2 | 768 MB | Gi0/0 | Trunk → SW2 |
-| | | | Gi0/1 | Access VLAN 10 → PC1 |
-| | | | Gi0/2 | Access VLAN 20 → PC2 |
-| SW2 | vIOS-L2 | 768 MB | Gi0/0 | Trunk → SW1 |
-| | | | Gi0/1 | Access VLAN 10 → PC3 |
-| | | | Gi0/2 | Access VLAN 20 → PC4 |
-| PC1–PC4 | **VPCS** hoặc Linux nhẹ | 0–128 MB | e0 | IP tĩnh |
+### 4.2 Thứ tự một gói tin đi qua — và nó gặp cái gì
 
-**Tổng RAM: ~1.8 GB** ✅
+Bạn ở PC1 (VLAN 10, IP `10.10.10.11`), mở một trang web:
 
-> 💡 **Không có image PC?** Trong EVE-NG có node **VPCS** (Virtual PC Simulator) — siêu nhẹ, gần như
-> không ăn RAM, đủ để ping. Đây là cách chuẩn để làm PC trong lab.
-> Nếu cũng không có VPCS: dùng thêm 1 vIOS làm "PC" (cấu hình IP + default gateway, dùng `ping`).
-
-#### Bảng địa chỉ
-
-| Thiết bị | IP | Mask | VLAN |
-|---|---|---|:---:|
-| PC1 | 10.10.10.11 | /24 | 10 |
-| PC3 | 10.10.10.13 | /24 | 10 |
-| PC2 | 10.10.20.12 | /24 | 20 |
-| PC4 | 10.10.20.14 | /24 | 20 |
-
-#### Bước 1 — Dựng topology trong EVE-NG
-
-1. Add new lab: `LAB-P0-1-VLAN-Trunk`
-2. Add node: 2× vIOS-L2, RAM 768, Ethernets **4**
-3. Add node: 4× VPCS
-4. Nối dây theo bảng trên (**nối trước khi start node** — EVE-NG không cho nối khi node đang chạy)
-5. Start all nodes, chờ vIOS-L2 boot (2–4 phút, switch boot lâu hơn router)
-
-#### Bước 2 — Cấu hình SW1
-
-```
-enable
-configure terminal
-!
-hostname SW1
-no ip domain lookup
-!
-! === Tạo VLAN ===
-vlan 10
- name SALES
-vlan 20
- name IT
-exit
-!
-! === Trunk về SW2 ===
-interface GigabitEthernet0/0
- description ---> TRUNK to SW2
- switchport trunk encapsulation dot1q
- switchport mode trunk
- switchport trunk allowed vlan 10,20
- switchport nonegotiate
- no shutdown
-!
-! === Access port ===
-interface GigabitEthernet0/1
- description ---> PC1 (VLAN 10)
- switchport mode access
- switchport access vlan 10
- spanning-tree portfast
- spanning-tree bpduguard enable
- no shutdown
-!
-interface GigabitEthernet0/2
- description ---> PC2 (VLAN 20)
- switchport mode access
- switchport access vlan 20
- spanning-tree portfast
- spanning-tree bpduguard enable
- no shutdown
-!
-line con 0
- exec-timeout 0 0
- logging synchronous
-!
-end
-write memory
-```
-
-#### Bước 3 — Cấu hình SW2
-
-```
-enable
-configure terminal
-!
-hostname SW2
-no ip domain lookup
-!
-vlan 10
- name SALES
-vlan 20
- name IT
-exit
-!
-interface GigabitEthernet0/0
- description ---> TRUNK to SW1
- switchport trunk encapsulation dot1q
- switchport mode trunk
- switchport trunk allowed vlan 10,20
- switchport nonegotiate
- no shutdown
-!
-interface GigabitEthernet0/1
- description ---> PC3 (VLAN 10)
- switchport mode access
- switchport access vlan 10
- spanning-tree portfast
- spanning-tree bpduguard enable
- no shutdown
-!
-interface GigabitEthernet0/2
- description ---> PC4 (VLAN 20)
- switchport mode access
- switchport access vlan 20
- spanning-tree portfast
- spanning-tree bpduguard enable
- no shutdown
-!
-line con 0
- exec-timeout 0 0
- logging synchronous
-!
-end
-write memory
-```
-
-#### Bước 4 — Cấu hình PC (VPCS)
-
-Trên console VPCS của PC1:
-```
-ip 10.10.10.11/24
-save
-```
-PC2: `ip 10.10.20.12/24` · PC3: `ip 10.10.10.13/24` · PC4: `ip 10.10.20.14/24`
-
-#### Bước 5 — Kiểm tra
-
-**a) VLAN đã tạo và port gán đúng chưa:**
-```
-SW1# show vlan brief
-```
-**Output mẫu:**
-```
-VLAN Name                             Status    Ports
----- -------------------------------- --------- -------------------------------
-1    default                          active    Gi0/3
-10   SALES                            active    Gi0/1
-20   IT                               active    Gi0/2
-1002 fddi-default                     act/unsup
-```
-✅ **Checkpoint:** Gi0/1 nằm ở VLAN 10, Gi0/2 ở VLAN 20. **Gi0/0 KHÔNG xuất hiện** vì nó là trunk.
-
-**b) Trunk đã lên chưa — lệnh quan trọng nhất của lab này:**
-```
-SW1# show interfaces trunk
-```
-**Output mẫu:**
-```
-Port        Mode             Encapsulation  Status        Native vlan
-Gi0/0       on               802.1q         trunking      1
-
-Port        Vlans allowed on trunk
-Gi0/0       10,20
-
-Port        Vlans allowed and active in management domain
-Gi0/0       10,20
-
-Port        Vlans in spanning tree forwarding state and not pruned
-Gi0/0       10,20
-```
-✅ **Checkpoint:** `Status = trunking` · `Vlans allowed = 10,20` · cả 4 bảng đều thấy 10,20.
-
-**c) Ping test:**
-
-| Từ | Đến | Mong đợi | Vì sao |
-|---|---|:---:|---|
-| PC1 | PC3 (10.10.10.13) | ✅ **Được** | Cùng VLAN 10, đi qua trunk |
-| PC2 | PC4 (10.10.20.14) | ✅ **Được** | Cùng VLAN 20 |
-| PC1 | PC2 (10.10.20.12) | ❌ **Không được** | Khác VLAN, chưa có router |
-| PC1 | PC4 | ❌ Không được | Khác VLAN |
-
-> ⭐ **Ping PC1→PC2 KHÔNG được là ĐÚNG, không phải lỗi.** Đây chính là bản chất của VLAN:
-> tách broadcast domain. Muốn nói chuyện giữa VLAN thì cần **routing** — làm ở LAB P0-2.
-
-#### ⚠️ Nếu trunk không lên — kiểm tra theo thứ tự
-
-| # | Kiểm tra | Lệnh | Nguyên nhân thường gặp |
+| # | Chặng | Cái bạn vừa học được dùng | Nếu hỏng thì sao |
 |:---:|---|---|---|
-| 1 | Interface up/up? | `show ip int br` | Thiếu `no shutdown` |
-| 2 | Cả 2 đầu đều `mode trunk`? | `show run int Gi0/0` | 1 đầu là access → lệch |
-| 3 | Native VLAN 2 đầu có khớp? | `show int trunk` | Lệch → log cảnh báo, VLAN native bị lẫn |
-| 4 | `allowed vlan` có chứa VLAN cần? | `show int trunk` | Quên `allowed vlan 10,20` |
-| 5 | VLAN có tồn tại trên CẢ 2 switch? | `show vlan brief` | ⭐ **Lỗi phổ biến nhất:** tạo VLAN 20 trên SW1 mà quên SW2 |
+| 1 | PC1 → switch | **VLAN** gắn gói vào broadcast domain 10 | Sai VLAN → không thấy gateway |
+| 2 | Trong switch | **STP** đảm bảo không có vòng lặp | Có loop → broadcast storm, mạng chết |
+| 3 | Switch → SVI VLAN 10 | Đây là **default gateway** của PC1 | Sai gateway → không ra khỏi VLAN được |
+| 4 | Router tra bảng | **Longest prefix → AD → metric** chọn đường | Thiếu route → gói bị bỏ |
+| 5 | Router biên | **NAT** đổi `10.10.10.11` → `203.0.113.1` | Không NAT → Internet không biết đường trả lời |
+| 6 | Trước khi ra | **ACL** quyết định cho đi hay chặn | ACL sai chiều → chặn nhầm traffic hợp lệ |
 
-#### 🧪 Thử nghiệm — làm để hiểu
+> **Đây là toàn bộ Module-P0 trong một câu chuyện.** Nếu bạn kể lại được 6 chặng này
+> bằng lời của mình, bạn đã "Ready for ENCOR".
 
-| Thử nghiệm | Gõ gì | Quan sát | Bài học |
-|---|---|---|---|
-| Xóa VLAN 20 khỏi SW2 | SW2: `no vlan 20` | PC2 ping PC4 fail. `show int trunk` bảng 3 mất VLAN 20 | VLAN phải tồn tại ở **mọi switch** trên đường đi |
-| Lệch native VLAN | SW1: `switchport trunk native vlan 99` | Console báo `%CDP-4-NATIVE_VLAN_MISMATCH` | Đề ENCOR hỏi về lỗi này |
-| Bắt gói trên trunk | Click phải link SW1↔SW2 → **Capture** | Wireshark thấy **802.1Q header** với VLAN ID | ⭐ Tận mắt thấy cái tag 4 byte |
-| Bắt gói trên access port | Capture link SW1↔PC1 | **Không có** 802.1Q header | Access port gửi frame không tag |
-| Đổi allowed vlan | SW1: `switchport trunk allowed vlan 10` | PC2↔PC4 chết, PC1↔PC3 vẫn sống | `allowed vlan` lọc thật, không phải trang trí |
+### 4.3 Sáu thứ này sẽ lớn lên thành gì
 
----
-
-### LAB P0-2 — Inter-VLAN Routing (2 cách)
-
-**Mục tiêu:** cho VLAN 10 và VLAN 20 nói chuyện được với nhau.
-
-#### Cách A — Router-on-a-stick
-
-Giữ nguyên LAB P0-1, thêm 1 router:
-
-```
-   [PC1 V10]──SW1──Gi0/0═══TRUNK═══Gi0/0──R1
-   [PC2 V20]──/                            (Gi0/0.10 + Gi0/0.20)
-```
-
-**Cấu hình SW1 — biến Gi0/3 thành trunk về router:**
-```
-configure terminal
-interface GigabitEthernet0/3
- description ---> TRUNK to R1
- switchport trunk encapsulation dot1q
- switchport mode trunk
- switchport trunk allowed vlan 10,20
- switchport nonegotiate
- no shutdown
-end
-write memory
-```
-
-**Cấu hình R1 — sub-interface:**
-```
-enable
-configure terminal
-!
-hostname R1
-no ip domain lookup
-!
-interface GigabitEthernet0/0
- description ---> TRUNK to SW1
- no ip address
- no shutdown
-!
-interface GigabitEthernet0/0.10
- description ---> Gateway VLAN 10 SALES
- encapsulation dot1Q 10
- ip address 10.10.10.1 255.255.255.0
-!
-interface GigabitEthernet0/0.20
- description ---> Gateway VLAN 20 IT
- encapsulation dot1Q 20
- ip address 10.10.20.1 255.255.255.0
-!
-end
-write memory
-```
-
-**Trên PC thêm default gateway** (VPCS):
-```
-! PC1
-ip 10.10.10.11/24 10.10.10.1
-save
-! PC2
-ip 10.10.20.12/24 10.10.20.1
-save
-```
-
-**Kiểm tra:**
-```
-R1# show ip interface brief
-```
-**Output mẫu:**
-```
-Interface                  IP-Address      OK? Method Status                Protocol
-GigabitEthernet0/0         unassigned      YES manual up                    up
-GigabitEthernet0/0.10      10.10.10.1      YES manual up                    up
-GigabitEthernet0/0.20      10.10.20.1      YES manual up                    up
-```
-
-```
-R1# show ip route
-```
-**Output mẫu (phần quan trọng):**
-```
-      10.0.0.0/8 is variably subnetted, 4 subnets, 2 masks
-C        10.10.10.0/24 is directly connected, GigabitEthernet0/0.10
-L        10.10.10.1/32 is directly connected, GigabitEthernet0/0.10
-C        10.10.20.0/24 is directly connected, GigabitEthernet0/0.20
-L        10.10.20.1/32 is directly connected, GigabitEthernet0/0.20
-```
-
-✅ **Checkpoint:**
-
-| Kiểm tra | Mong đợi |
-|---|---|
-| PC1 ping 10.10.10.1 (gateway của mình) | ✅ được |
-| PC1 ping 10.10.20.1 (gateway VLAN khác) | ✅ được |
-| **PC1 ping PC2 (10.10.20.12)** | ✅ **được** ← mục tiêu của lab |
-| `show ip route` trên R1 | Có 2 route `C` cho 2 VLAN |
-
-⚠️ **Nếu PC1 ping PC2 không được:**
-
-| Kiểm tra | Cách |
-|---|---|
-| PC đã có default gateway chưa? | VPCS: `show ip` → phải thấy dòng GATEWAY |
-| Sub-interface có `encapsulation dot1Q <đúng VLAN>`? | `show run int Gi0/0.10` |
-| Trunk SW1↔R1 có allow VLAN 10,20? | `show int trunk` trên SW1 |
-| Sub-interface up/up? | `show ip int br` — nếu interface cha down thì con cũng down |
-
-#### Cách B — SVI trên switch L3 (chuẩn production)
-
-> ℹ️ vIOS-L2 hỗ trợ L3 hạn chế. Nếu lệnh `ip routing` không có, làm cách A là đủ cho Module-P0.
-> Module-02 sẽ làm SVI kỹ hơn.
-
-```
-! Trên SW1 (nếu image hỗ trợ)
-configure terminal
-ip routing                          ! Bật routing — thiếu dòng này SVI không route
-!
-interface Vlan10
- ip address 10.10.10.1 255.255.255.0
- no shutdown
-!
-interface Vlan20
- ip address 10.10.20.1 255.255.255.0
- no shutdown
-!
-end
-```
-
-**So sánh 2 cách — bảng đề ENCOR hay hỏi:**
-
-| | Router-on-a-stick | SVI (switch L3) |
+| Bạn vừa học (P0) | Sẽ thành | Ở module |
 |---|---|---|
-| Thiết bị | Router + switch L2 | Multilayer switch |
-| Điểm nghẽn | ⚠️ Mọi traffic inter-VLAN qua **1 link trunk** | Không — chuyển mạch trong ASIC |
-| Tốc độ | Chậm (CPU router) | Rất nhanh (hardware) |
-| Chi phí | Rẻ | Switch L3 đắt hơn |
-| Thực tế | Mạng rất nhỏ / lab | ⭐ **Chuẩn của mọi campus** |
+| VLAN, trunk cơ bản | MST, EtherChannel, các loại Guard | **Module-02** |
+| STP cơ bản | RSTP, MST, Root Guard, Loop Guard, BPDU Guard | **Module-02** |
+| Bảng route, AD, static | Floating static, IP SLA + track, redistribute | **Module-03** |
+| OSPF single-area | LSA type 1–7, area stub/NSSA, summarization, OSPFv3 | **Module-04A/B** |
+| NAT cơ bản | NAT dual-ISP, thứ tự NAT–routing, NAT64 | **Module-06B** |
+| ACL cơ bản | ACL nâng cao, CoPP, VACL/PACL, uRPF | **Module-10** |
+
+> **Vì sao P0 đáng bỏ 2 tuần:** mọi module sau đều **xây tiếp** lên đúng 6 thứ này.
+> Học hời hợt ở đây thì Module-04 (OSPF) sẽ như đọc tiếng nước ngoài.
+
+### 4.4 Vẽ lại để nhớ
+
+> **Bài tập 15 phút, làm trên giấy — đừng bỏ qua.**
+>
+> 1. Vẽ lại sơ đồ §4.1 **không nhìn tài liệu**
+> 2. Đánh số ① → ⑥ vào đúng chỗ mỗi công nghệ nằm
+> 3. Kể lại hành trình gói tin từ PC1 ra Internet, **nói thành tiếng**
+
+<details>
+<summary>Tự chấm</summary>
+
+Bạn phải đặt được:
+- **VLAN + STP** ở **switch L2** (dưới cùng)
+- **Bảng route + OSPF** ở **router / switch L3** (giữa)
+- **NAT + ACL** ở **router biên** (trên cùng, sát Internet)
+
+Nếu bạn đặt NAT ở switch L2 hoặc STP ở router biên → **đọc lại §4.1**.
+
+</details>
 
 ---
 
-### LAB P0-3 — Quan sát & điều khiển STP (3 switch có vòng)
-
-**Mục tiêu:** nhìn thấy STP làm việc, và tự ép root bridge theo ý muốn.
-
-#### Topology — CÓ VÒNG LẶP (cố ý)
-
-```
-              SW1
-            /     \
-      Gi0/1         Gi0/2
-        /             \
-   Gi0/1               Gi0/1
-    SW2 ───Gi0/2────Gi0/2─── SW3
-```
-
-| Link | Đầu A | Đầu B |
-|---|---|---|
-| 1 | SW1 Gi0/1 | SW2 Gi0/1 |
-| 2 | SW1 Gi0/2 | SW3 Gi0/1 |
-| 3 | SW2 Gi0/2 | SW3 Gi0/2 |
-
-**RAM: 3× 768 MB = 2.3 GB** ✅
-
-#### Bước 1 — Cấu hình tối thiểu cả 3 switch
-
-```
-! Làm giống nhau trên SW1, SW2, SW3 (chỉ đổi hostname)
-enable
-configure terminal
-hostname SW1
-no ip domain lookup
-!
-vlan 10
- name TEST
-exit
-!
-interface range GigabitEthernet0/1 - 2
- switchport trunk encapsulation dot1q
- switchport mode trunk
- switchport trunk allowed vlan 10
- switchport nonegotiate
- no shutdown
-!
-line con 0
- exec-timeout 0 0
- logging synchronous
-end
-write memory
-```
-
-#### Bước 2 — Ai đang là Root Bridge?
-
-```
-SW1# show spanning-tree vlan 10
-```
-**Output mẫu:**
-```
-VLAN0010
-  Spanning tree enabled protocol ieee
-  Root ID    Priority    32778
-             Address     0c:1a:2b:00:01:00
-             This bridge is the root
-             Hello Time   2 sec  Max Age 20 sec  Forward Delay 15 sec
-
-  Bridge ID  Priority    32778  (priority 32768 sys-id-ext 10)
-             Address     0c:1a:2b:00:01:00
-             Hello Time   2 sec  Max Age 20 sec  Forward Delay 15 sec
-             Aging Time  300 sec
-
-Interface           Role Sts Cost      Prio.Nbr Type
-------------------- ---- --- --------- -------- --------------------------------
-Gi0/1               Desg FWD 4         128.2    P2p
-Gi0/2               Desg FWD 4         128.3    P2p
-```
-
-**Cách đọc output này — quan trọng:**
-
-| Dòng | Nghĩa |
-|---|---|
-| `Priority 32778` | = 32768 (mặc định) + 10 (VLAN ID). ⭐ **Không phải ai đó đổi priority** |
-| `This bridge is the root` | Switch này đang là Root Bridge |
-| `Cost 4` | Link Gigabit = cost 4 (802.1D short mode) |
-| `Role Desg` | Designated Port — được forward |
-| `Sts FWD` | State = Forwarding |
-| `Type P2p` | Point-to-point (full-duplex) |
-
-**Chạy lệnh trên cả 3 switch, ghi vào bảng:**
-
-| Switch | MAC address | Là root? | Port role |
-|---|---|---|---|
-| SW1 | | | |
-| SW2 | | | |
-| SW3 | | | |
-
-✅ **Checkpoint:** Đúng **1 switch** báo `This bridge is the root`, và đó là switch có **MAC nhỏ nhất**
-(vì priority cả 3 đều mặc định).
-
-**Tìm port bị block:**
-```
-SW2# show spanning-tree vlan 10 | include BLK|Altn
-```
-**Output mẫu:**
-```
-Gi0/2               Altn BLK 4         128.3    P2p
-```
-✅ Có đúng **1 port ở trạng thái BLK/Altn** trong toàn mạng → vòng lặp đã bị phá.
-
-#### Bước 3 — Ép SW1 làm Root Bridge
-
-```
-SW1(config)# spanning-tree vlan 10 priority 4096
-```
-
-Chờ ~30 giây rồi kiểm tra lại:
-```
-SW1# show spanning-tree vlan 10
-```
-**Output mẫu (đã đổi):**
-```
-  Root ID    Priority    4106
-             Address     0c:1a:2b:00:01:00
-             This bridge is the root
-  Bridge ID  Priority    4106  (priority 4096 sys-id-ext 10)
-```
-
-> 💡 `4106 = 4096 + 10`. Luôn nhớ cộng VLAN ID.
-
-**Xác nhận từ switch khác:**
-```
-SW2# show spanning-tree vlan 10
-```
-Phải thấy `Root ID Address` = MAC của SW1, và **không** còn dòng `This bridge is the root`.
-
-✅ **Checkpoint:** SW1 là root · SW2 và SW3 đều trỏ Root ID về MAC của SW1 · vẫn có đúng 1 port BLK.
-
-#### Bước 4 — 🚀 Đo thời gian hội tụ (bài quan trọng nhất)
-
-**a) Với STP thường:**
-
-1. Xác nhận mode: `show spanning-tree summary | include mode`
-2. Từ 1 PC (hoặc dùng `ping` liên tục giữa 2 switch), chạy ping **không dừng**
-3. Trên switch đang có Root Port hoạt động → `shutdown` port đó
-4. **Đếm số gói ping mất**
-
-**Kết quả mong đợi:** mất khoảng **15 gói** (~30 giây, direct failure = 2× forward delay).
-
-**b) Chuyển sang Rapid PVST+ rồi đo lại:**
-
-```
-! Làm trên CẢ 3 switch
-configure terminal
-spanning-tree mode rapid-pvst
-end
-```
-
-Lặp lại bài đo. **Kết quả mong đợi:** mất **1–3 gói** (vài giây).
-
-**Ghi vào bảng:**
-
-| Mode | Số gói ping mất | Thời gian hội tụ |
-|---|:---:|---|
-| PVST+ (802.1D) | | |
-| Rapid PVST+ (802.1w) | | |
-
-> ⭐ **Đây là bài lab giá trị nhất của Module-P0.** Bạn vừa **tự tay đo được** con số 30s vs vài giây
-> mà sách chỉ ghi lý thuyết. Con số bạn tự đo sẽ không bao giờ quên.
-
-#### 🧪 Thử nghiệm thêm
-
-| Thử nghiệm | Gõ gì | Quan sát | Bài học |
-|---|---|---|---|
-| Ép root bằng macro | `spanning-tree vlan 10 root primary` | `show run \| inc priority` → IOS tự đặt 24586 | Macro tính priority thấp hơn root hiện tại |
-| Priority không phải bội 4096 | `spanning-tree vlan 10 priority 5000` | IOS báo lỗi | Priority chỉ nhận bội số 4096 |
-| Đổi cost để đổi Root Port | `int Gi0/1` → `spanning-tree cost 100` | Root Port chuyển sang port khác | Cost điều khiển đường đi |
-| Bắt gói BPDU | Capture 1 link trunk | Wireshark → filter `stp` → thấy BPDU mỗi 2s | ⭐ Nhìn thấy Bridge ID, cost, timer thật |
-| Root Guard | Port hướng SW3: `spanning-tree guard root` → rồi ép SW3 priority 0 | SW3 không lên được root, port thành `ROOT_Inc` | Cơ chế bảo vệ root |
-
----
-
-## 🧪 5. LAB — TUẦN 2
-
-### LAB P0-4 — Static route + Floating static
-
-#### Topology
-
-```
-              10.0.12.0/30
-      R1 ─────────────────── R2
-       │  Gi0/0        Gi0/0  │
-       │                      │
-Gi0/1  │  10.0.13.0/30        │ Gi0/1
-       └────── R3 ────────────┘
-            10.0.23.0/30
-
-Loopback: R1=1.1.1.1/32 · R2=2.2.2.2/32 · R3=3.3.3.3/32
-```
-
-| Link | Đầu A | Đầu B |
-|---|---|---|
-| R1 Gi0/0 (10.0.12.1/30) | | R2 Gi0/0 (10.0.12.2/30) |
-| R1 Gi0/1 (10.0.13.1/30) | | R3 Gi0/0 (10.0.13.2/30) |
-| R2 Gi0/1 (10.0.23.1/30) | | R3 Gi0/1 (10.0.23.2/30) |
-
-**RAM: 3× 512 MB = 1.5 GB** ✅
-
-#### Cấu hình R1
-
-```
-enable
-configure terminal
-hostname R1
-no ip domain lookup
-!
-interface Loopback0
- ip address 1.1.1.1 255.255.255.255
-!
-interface GigabitEthernet0/0
- description ---> To R2
- ip address 10.0.12.1 255.255.255.252
- no shutdown
-!
-interface GigabitEthernet0/1
- description ---> To R3
- ip address 10.0.13.1 255.255.255.252
- no shutdown
-!
-! === Đường CHÍNH tới 2.2.2.2: đi trực tiếp qua R2 (AD mặc định = 1) ===
-ip route 2.2.2.2 255.255.255.255 10.0.12.2
-!
-! === Đường DỰ PHÒNG: đi vòng qua R3, AD = 200 (floating static) ===
-ip route 2.2.2.2 255.255.255.255 10.0.13.2 200
-!
-line con 0
- exec-timeout 0 0
- logging synchronous
-end
-write memory
-```
-
-#### Cấu hình R2
-
-```
-enable
-configure terminal
-hostname R2
-no ip domain lookup
-!
-interface Loopback0
- ip address 2.2.2.2 255.255.255.255
-!
-interface GigabitEthernet0/0
- description ---> To R1
- ip address 10.0.12.2 255.255.255.252
- no shutdown
-!
-interface GigabitEthernet0/1
- description ---> To R3
- ip address 10.0.23.1 255.255.255.252
- no shutdown
-!
-ip route 1.1.1.1 255.255.255.255 10.0.12.1
-ip route 1.1.1.1 255.255.255.255 10.0.23.2 200
-!
-line con 0
- exec-timeout 0 0
- logging synchronous
-end
-write memory
-```
-
-#### Cấu hình R3 (router trung chuyển)
-
-```
-enable
-configure terminal
-hostname R3
-no ip domain lookup
-!
-interface Loopback0
- ip address 3.3.3.3 255.255.255.255
-!
-interface GigabitEthernet0/0
- description ---> To R1
- ip address 10.0.13.2 255.255.255.252
- no shutdown
-!
-interface GigabitEthernet0/1
- description ---> To R2
- ip address 10.0.23.2 255.255.255.252
- no shutdown
-!
-ip route 1.1.1.1 255.255.255.255 10.0.13.1
-ip route 2.2.2.2 255.255.255.255 10.0.23.1
-!
-line con 0
- exec-timeout 0 0
- logging synchronous
-end
-write memory
-```
-
-#### Kiểm tra & bài học chính
-
-**a) Đường nào đang được dùng?**
-```
-R1# show ip route 2.2.2.2
-```
-**Output mẫu:**
-```
-Routing entry for 2.2.2.2/32
-  Known via "static", distance 1, metric 0
-  Routing Descriptor Blocks:
-  * 10.0.12.2
-      Route metric is 0, traffic share count is 1
-```
-✅ `distance 1` → đang dùng đường **chính** qua R2. Route AD 200 **không xuất hiện** trong bảng.
-
-**b) Xác nhận bằng traceroute:**
-```
-R1# traceroute 2.2.2.2 source 1.1.1.1
-```
-**Output mẫu:**
-```
-  1 10.0.12.2 2 msec 1 msec 1 msec    ← đi trực tiếp qua R2, 1 hop
-```
-
-**c) ⭐ Test failover — đây là mục tiêu của lab:**
-
-```
-R1(config)# interface GigabitEthernet0/0
-R1(config-if)# shutdown
-```
-
-Chờ vài giây rồi:
-```
-R1# show ip route 2.2.2.2
-```
-**Output mẫu:**
-```
-Routing entry for 2.2.2.2/32
-  Known via "static", distance 200, metric 0
-  Routing Descriptor Blocks:
-  * 10.0.13.2
-```
-✅ **Route AD 200 đã "nổi lên"** thay thế. Đây chính là ý nghĩa của từ *floating*.
-
-```
-R1# traceroute 2.2.2.2 source 1.1.1.1
-```
-**Output mẫu:**
-```
-  1 10.0.13.2 2 msec 1 msec 1 msec    ← qua R3
-  2 10.0.23.1 3 msec 2 msec 2 msec    ← rồi tới R2
-```
-
-**d) Bật lại link chính:**
-```
-R1(config-if)# no shutdown
-```
-→ `show ip route 2.2.2.2` phải quay về `distance 1`.
-
-✅ **Checkpoint LAB P0-4:**
-
-| Kiểm tra | Mong đợi |
-|---|---|
-| Bình thường: `show ip route 2.2.2.2` | `distance 1`, next-hop 10.0.12.2 |
-| Bình thường: traceroute | 1 hop |
-| Sau khi shut Gi0/0: `show ip route 2.2.2.2` | `distance 200`, next-hop 10.0.13.2 |
-| Sau khi shut: traceroute | 2 hop, qua R3 |
-| Sau `no shut`: | Quay về distance 1 |
-
-#### 🧪 Thử nghiệm
-
-| Thử nghiệm | Gõ gì | Quan sát | Bài học |
-|---|---|---|---|
-| Đặt 2 static cùng AD | `ip route 2.2.2.2 255.255.255.255 10.0.13.2` (bỏ số 200) | `show ip route 2.2.2.2` có **cả 2** next-hop | Cùng AD + cùng metric = **ECMP load-balance** |
-| Longest prefix thắng AD | Thêm `ip route 2.2.2.0 255.255.255.0 10.0.13.2` | `show ip route 2.2.2.2` vẫn dùng `/32` | `/32` cụ thể hơn `/24` → thắng bất kể AD |
-| Route tới đích không tồn tại | `ip route 9.9.9.9 255.255.255.255 10.0.12.2` | Route vẫn cài vào bảng, nhưng ping fail | Static route **không kiểm tra** đích có thật hay không |
-| Next-hop không reachable | `ip route 8.8.8.8 255.255.255.255 172.16.99.99` | Route **không** vào bảng route | Static cần next-hop reachable — gọi là *recursive lookup* |
-
----
-
-### LAB P0-5 — OSPF single-area
-
-**Mục tiêu:** thay toàn bộ static route bằng OSPF, thấy được sự khác biệt.
-
-#### Topology — giống LAB P0-4
-
-Dùng lại lab cũ. **Trước tiên xóa hết static route:**
-
-```
-! Trên cả R1, R2, R3
-configure terminal
-no ip route 1.1.1.1 255.255.255.255 10.0.12.1
-no ip route 1.1.1.1 255.255.255.255 10.0.23.2 200
-no ip route 2.2.2.2 255.255.255.255 10.0.12.2
-no ip route 2.2.2.2 255.255.255.255 10.0.13.2 200
-no ip route 2.2.2.2 255.255.255.255 10.0.23.1
-no ip route 1.1.1.1 255.255.255.255 10.0.13.1
-end
-```
-Xác nhận sạch: `show ip route static` → không còn gì.
-
-#### Cấu hình OSPF — R1
-
-```
-configure terminal
-!
-router ospf 1
- router-id 1.1.1.1
- auto-cost reference-bandwidth 10000        ! tránh mọi link Gi đều cost 1
- network 1.1.1.1 0.0.0.0 area 0             ! quảng bá loopback
- network 10.0.12.0 0.0.0.3 area 0
- network 10.0.13.0 0.0.0.3 area 0
-!
-end
-write memory
-```
-
-#### R2
-
-```
-configure terminal
-router ospf 1
- router-id 2.2.2.2
- auto-cost reference-bandwidth 10000
- network 2.2.2.2 0.0.0.0 area 0
- network 10.0.12.0 0.0.0.3 area 0
- network 10.0.23.0 0.0.0.3 area 0
-end
-write memory
-```
-
-#### R3
-
-```
-configure terminal
-router ospf 1
- router-id 3.3.3.3
- auto-cost reference-bandwidth 10000
- network 3.3.3.3 0.0.0.0 area 0
- network 10.0.13.0 0.0.0.3 area 0
- network 10.0.23.0 0.0.0.3 area 0
-end
-write memory
-```
-
-> 💡 `network 1.1.1.1 0.0.0.0 area 0` — wildcard `0.0.0.0` nghĩa là "đúng chính xác IP này".
-> Đây là cách chuẩn để quảng bá 1 loopback `/32`.
-
-#### Kiểm tra — theo đúng thứ tự này
-
-**a) Neighbor đã lên Full chưa? (lệnh đầu tiên luôn phải chạy)**
-```
-R1# show ip ospf neighbor
-```
-**Output mẫu:**
-```
-Neighbor ID     Pri   State           Dead Time   Address         Interface
-2.2.2.2           1   FULL/BDR        00:00:35    10.0.12.2       GigabitEthernet0/0
-3.3.3.3           1   FULL/BDR        00:00:33    10.0.13.2       GigabitEthernet0/1
-```
-✅ **Checkpoint:** cả 2 neighbor ở `FULL`. `Dead Time` đếm ngược từ 40s và **reset liên tục**.
-
-**Cách đọc `FULL/BDR`:** state là `FULL`, và **neighbor đó** đang giữ vai trò BDR trên segment.
-Trên link P2P giữa 2 router bạn có thể thấy `FULL/DROTHER` hoặc `FULL/  -` — đều bình thường.
-
-**b) Bảng route đã học được gì?**
-```
-R1# show ip route ospf
-```
-**Output mẫu:**
-```
-      2.0.0.0/32 is subnetted, 1 subnets
-O        2.2.2.2 [110/2] via 10.0.12.2, 00:02:14, GigabitEthernet0/0
-      3.0.0.0/32 is subnetted, 1 subnets
-O        3.3.3.3 [110/2] via 10.0.13.2, 00:02:14, GigabitEthernet0/1
-      10.0.0.0/8 is variably subnetted, 6 subnets, 2 masks
-O        10.0.23.0/30 [110/11] via 10.0.13.2, 00:02:14, GigabitEthernet0/1
-                              [110/11] via 10.0.12.2, 00:02:14, GigabitEthernet0/0
-```
-✅ **Checkpoint:**
-- `[110/x]` → AD 110 = OSPF ✅
-- `10.0.23.0/30` có **2 next-hop** → cost bằng nhau → **ECMP load-balance** ⭐
-
-**c) Interface nào đang chạy OSPF:**
-```
-R1# show ip ospf interface brief
-```
-**Output mẫu:**
-```
-Interface    PID   Area   IP Address/Mask    Cost  State Nbrs F/C
-Lo0          1     0      1.1.1.1/32         1     LOOP  0/0
-Gi0/0        1     0      10.0.12.1/30       10    BDR   1/1
-Gi0/1        1     0      10.0.13.1/30       10    BDR   1/1
-```
-✅ Cost = **10** (không phải 1) → `auto-cost reference-bandwidth 10000` đã có tác dụng
-(10000 Mbps / 1000 Mbps = 10).
-
-**d) Xem LSDB — bản đồ mạng:**
-```
-R1# show ip ospf database
-```
-Bạn sẽ thấy `Router Link States (Area 0)` với 3 dòng — mỗi router 1 LSA type 1.
-**Module-04 sẽ đào rất sâu vào đây.** Giờ chỉ cần biết: LSDB là bản đồ, và 3 router phải có
-bản đồ **giống nhau**.
-
-**e) Ping full mesh:**
-```
-R1# ping 2.2.2.2 source 1.1.1.1
-R1# ping 3.3.3.3 source 1.1.1.1
-```
-✅ Cả hai 100%.
-
-#### ⚠️ Nếu neighbor không lên Full — checklist theo thứ tự
-
-| # | Triệu chứng | Kiểm tra | Nguyên nhân |
-|:---:|---|---|---|
-| 1 | Không thấy neighbor nào | `show ip ospf interface brief` | Interface không nằm trong OSPF → sai wildcard trong `network` |
-| 2 | Không thấy neighbor nào | `show ip protocols \| inc Passive` | Interface bị `passive-interface` |
-| 3 | Kẹt ở **INIT** | Ping 2 chiều được không? | Hello đi 1 chiều — ACL chặn, hoặc lỗi L2 |
-| 4 | Kẹt ở **EXSTART/EXCHANGE** | `show int Gi0/0 \| inc MTU` cả 2 đầu | ⭐ **MTU lệch** — lỗi kinh điển nhất |
-| 5 | Neighbor **flapping** liên tục | `show ip ospf int Gi0/0 \| inc Timer` | Hello/Dead timer lệch |
-| 6 | Neighbor lên rồi tụt | `show ip ospf \| inc ID` cả 2 router | **Router-ID trùng nhau** |
-| 7 | Neighbor Full nhưng không có route | `show ip ospf database` | Area lệch, hoặc network chưa được quảng bá |
-
-**Lệnh debug khi bí:**
-```
-R1# debug ip ospf adj
-! ... xem log ...
-R1# undebug all              ! ⚠️ ĐỪNG QUÊN
-```
-
-#### 🧪 Thử nghiệm — so sánh với static route
-
-| Thử nghiệm | Gõ gì | Quan sát | Bài học |
-|---|---|---|---|
-| ⭐ **Failover tự động** | R1: `int Gi0/0` → `shutdown` | Sau ~40s, route 2.2.2.2 chuyển sang qua R3 **tự động, không cần cấu hình gì** | Đây là điểm hơn hẳn static route: OSPF tự phát hiện và tự tính lại |
-| Đo thời gian hội tụ | Ping liên tục rồi shutdown | Mất ~40 gói (dead interval) | Vì sao production tune timer hoặc dùng BFD |
-| Tune timer cho nhanh | `int Gi0/1` → `ip ospf hello-interval 1` + `ip ospf dead-interval 4` (cả 2 đầu) | Hội tụ còn ~4s | ⚠️ Phải đặt **cả 2 đầu**, nếu 1 đầu → neighbor xuống |
-| Đổi cost đổi đường | R1: `int Gi0/0` → `ip ospf cost 500` | Route 2.2.2.2 chuyển đi qua R3 | Cost điều khiển đường đi |
-| Lệch MTU (tái hiện lỗi #4) | R1: `int Gi0/0` → `mtu 1400` | Neighbor kẹt **EXSTART** | ⭐ Tự tay tạo ra lỗi kinh điển để nhớ mãi |
-| Trùng Router-ID | R2: `router ospf 1` → `router-id 1.1.1.1` → `clear ip ospf process` | Log báo duplicate router-id | Router-ID phải unique |
-| Bắt gói OSPF Hello | Capture link R1↔R2, filter `ospf` | Thấy Hello mỗi 10s tới 224.0.0.5, có Router-ID, Area, timer | ⭐ Nhìn thấy điều kiện "phải khớp" bằng mắt |
-
----
-
-### LAB P0-6 — NAT + ACL
-
-**Mục tiêu:** cho mạng nội bộ ra "Internet" qua PAT, và dùng ACL lọc truy cập.
-
-#### Topology
-
-```
-                            NAT boundary
-                                 │
- [PC1 10.10.10.11]              │
-        │                        │
-       SW1 ── R1 ──────────────  R-ISP ── [SRV 8.8.8.8]
-              │  203.0.113.1/30 │ .2
-         (gateway               │
-          10.10.10.1)      "Internet"
-```
-
-| Thiết bị | Vai | Interface | IP |
-|---|---|---|---|
-| R1 | Router biên (NAT) | Gi0/0 (outside) | 203.0.113.1/30 |
-| | | Gi0/1 (inside) | 10.10.10.1/24 |
-| R-ISP | Giả lập Internet | Gi0/0 | 203.0.113.2/30 |
-| | | Loopback0 | 8.8.8.8/32 (giả làm server ngoài) |
-| PC1 | Máy nội bộ | e0 | 10.10.10.11/24, GW 10.10.10.1 |
-
-**RAM: 2× vIOS (1 GB) + 1× vIOS-L2 (768 MB) + VPCS ≈ 1.8 GB** ✅
-
-#### Cấu hình R1 (router biên)
-
-```
-enable
-configure terminal
-hostname R1
-no ip domain lookup
-!
-interface GigabitEthernet0/0
- description ---> OUTSIDE to ISP
- ip address 203.0.113.1 255.255.255.252
- ip nat outside
- no shutdown
-!
-interface GigabitEthernet0/1
- description ---> INSIDE to LAN
- ip address 10.10.10.1 255.255.255.0
- ip nat inside
- no shutdown
-!
-! === Default route ra Internet — BẮT BUỘC, thiếu là NAT vô nghĩa ===
-ip route 0.0.0.0 0.0.0.0 203.0.113.2
-!
-! === ACL định nghĩa mạng nào được NAT ===
-ip access-list standard ACL-NAT
- permit 10.10.10.0 0.0.0.255
-!
-! === Bật PAT (overload) ===
-ip nat inside source list ACL-NAT interface GigabitEthernet0/0 overload
-!
-line con 0
- exec-timeout 0 0
- logging synchronous
-end
-write memory
-```
-
-#### Cấu hình R-ISP (giả lập Internet)
-
-```
-enable
-configure terminal
-hostname R-ISP
-no ip domain lookup
-!
-interface Loopback0
- description ---> Gia lam server tren Internet
- ip address 8.8.8.8 255.255.255.255
-!
-interface GigabitEthernet0/0
- ip address 203.0.113.2 255.255.255.252
- no shutdown
-!
-! ⚠️ CỐ Ý KHÔNG có route về 10.10.10.0/24
-!    Đây là điểm quan trọng: ISP không biết mạng private của bạn.
-!    Nếu NAT hoạt động đúng thì vẫn ping được — đó là chứng minh NAT thật sự chạy.
-!
-line con 0
- exec-timeout 0 0
- logging synchronous
-end
-write memory
-```
-
-#### Kiểm tra NAT
-
-**a) Từ PC1 ping ra "Internet":**
-```
-PC1> ping 8.8.8.8
-```
-✅ **Phải được.** Nếu được → NAT đang hoạt động (vì R-ISP không có route về 10.10.10.0/24).
-
-**b) Xem bảng NAT — bằng chứng trực tiếp:**
-```
-R1# show ip nat translations
-```
-**Output mẫu:**
-```
-Pro Inside global         Inside local          Outside local         Outside global
-icmp 203.0.113.1:1        10.10.10.11:1         8.8.8.8:1             8.8.8.8:1
-```
-
-**Đọc bảng này:**
-
-| Cột | Giá trị | Nghĩa |
-|---|---|---|
-| Inside local | `10.10.10.11:1` | IP **thật** của PC1 |
-| Inside global | `203.0.113.1:1` | IP PC1 **hóa trang thành** — chính là IP interface outside |
-| Outside global | `8.8.8.8:1` | Đích |
-
-⭐ **Đây là toàn bộ bản chất của PAT:** nhiều IP nội bộ dùng chung 1 IP public,
-phân biệt nhau bằng **port number**.
-
-**c) Thống kê:**
-```
-R1# show ip nat statistics
-```
-**Output mẫu:**
-```
-Total active translations: 1 (0 static, 1 dynamic; 1 extended)
-Outside interfaces:
-  GigabitEthernet0/0
-Inside interfaces:
-  GigabitEthernet0/1
-Hits: 15  Misses: 0
-```
-✅ `Hits` tăng khi có traffic. `Misses` cao là dấu hiệu có vấn đề.
-
-**d) Chứng minh bằng phản chứng — quan trọng:**
-```
-R-ISP# ping 10.10.10.11
-```
-❌ **Phải FAIL.** Vì R-ISP không có route về mạng private. Điều này chứng minh:
-traffic từ PC1 ra được **là nhờ NAT**, không phải nhờ routing.
-
-#### Thêm ACL — lọc truy cập
-
-**Yêu cầu:** PC1 chỉ được ping và truy cập web ra ngoài, chặn mọi thứ khác.
-
-```
-R1(config)# ip access-list extended ACL-LAN-OUT
-R1(config-ext-nacl)#  permit icmp 10.10.10.0 0.0.0.255 any
-R1(config-ext-nacl)#  permit tcp  10.10.10.0 0.0.0.255 any eq 80
-R1(config-ext-nacl)#  permit tcp  10.10.10.0 0.0.0.255 any eq 443
-R1(config-ext-nacl)#  permit udp  10.10.10.0 0.0.0.255 any eq 53
-R1(config-ext-nacl)#  deny   ip   any any log
-R1(config-ext-nacl)# exit
-R1(config)# interface GigabitEthernet0/1
-R1(config-if)#  ip access-group ACL-LAN-OUT in
-```
-
-> 💡 **Vì sao apply `in` trên Gi0/1 (inside):** ACL extended nên đặt **gần source** để chặn sớm.
-> Traffic từ PC1 **đi vào** router qua Gi0/1 → dùng chiều `in`.
-
-**Kiểm tra:**
-```
-R1# show access-lists ACL-LAN-OUT
-```
-**Output mẫu:**
-```
-Extended IP access list ACL-LAN-OUT
-    10 permit icmp 10.10.10.0 0.0.0.255 any (12 matches)
-    20 permit tcp 10.10.10.0 0.0.0.255 any eq www
-    30 permit tcp 10.10.10.0 0.0.0.255 any eq 443
-    40 permit udp 10.10.10.0 0.0.0.255 any eq domain
-    50 deny ip any any log (3 matches)
-```
-✅ **Checkpoint:** counter `(12 matches)` ở dòng permit icmp tăng khi bạn ping.
-Dòng `deny ... log` có match → có traffic bị chặn (xem `show logging`).
-
-✅ **Checkpoint LAB P0-6:**
-
-| Kiểm tra | Mong đợi |
-|---|---|
-| PC1 ping 8.8.8.8 | ✅ Được |
-| `show ip nat translations` | Có entry với Inside local = 10.10.10.11 |
-| R-ISP ping 10.10.10.11 | ❌ Fail (đúng — chứng minh NAT hoạt động) |
-| `show access-lists` | Counter dòng permit icmp tăng |
-| Sau ACL: PC1 ping vẫn được | ✅ (icmp được permit) |
-| `show logging \| include list` | Có log của traffic bị deny |
-
-#### 🧪 Thử nghiệm
-
-| Thử nghiệm | Gõ gì | Quan sát | Bài học |
-|---|---|---|---|
-| Xóa default route | R1: `no ip route 0.0.0.0 0.0.0.0 203.0.113.2` | PC1 ping fail | ⭐ **Routing xảy ra TRƯỚC NAT.** Không có route thì NAT vô nghĩa |
-| Đặt sai chiều inside/outside | Đổi Gi0/0 thành `ip nat inside` | NAT không hoạt động | Chiều inside/outside sai là hỏng hoàn toàn |
-| Xem NAT hoạt động | `debug ip nat` rồi ping từ PC1 | Log từng gói được dịch | Nhớ `undebug all` |
-| ACL chặn ICMP | Xóa dòng `permit icmp` | PC1 ping fail ngay | Implicit `deny any` ở cuối ACL |
-| Thứ tự ACL sai | Đưa `deny ip any any` lên **dòng 5** | Chặn hết mọi thứ | ⭐ ACL xử lý từ trên xuống, khớp là dừng |
-| Bắt gói 2 bên NAT | Capture Gi0/1 (inside) và Gi0/0 (outside) cùng lúc | Inside: src = 10.10.10.11 · Outside: src = 203.0.113.1 | ⭐ Nhìn thấy NAT đổi IP bằng mắt |
-
----
-
-## 💡 6. THỰC CHIẾN ĐI LÀM — điều giáo trình thi không dạy
+## 💡 4.5 Thực chiến đi làm — điều giáo trình thi không dạy
 
 | Chủ đề | Thi dạy | Thực tế đi làm |
 |---|---|---|
@@ -1778,6 +867,22 @@ Dòng `deny ... log` có match → có traffic bị chặn (xem `show logging`).
 | **Sửa ACL đang chạy** | Không dạy | ⚠️ Sửa named ACL đang apply trên production = **có khoảng thời gian ACL không đầy đủ** → có thể chặn mất traffic. Cách an toàn: tạo ACL mới tên khác → apply → xóa ACL cũ |
 | **`write memory`** | Nhớ gõ | ⭐ Thói quen production: **backup config ra ngoài** trước khi sửa. `show run` → lưu file. Module-12 sẽ tự động hóa bằng Ansible |
 | **Console timeout** | `exec-timeout 0 0` cho tiện | ⚠️ **Chỉ dùng trong lab.** Production phải có timeout (VD `exec-timeout 10 0`) — bỏ máy đi ăn cơm mà console mở là rủi ro bảo mật |
+
+---
+
+# 📎 PHỤ LỤC — TRA CỨU
+
+> 🔴 **KHÔNG đọc phần này ở lần học đầu tiên.** Đây là tài liệu **tra cứu**, không phải để học.
+>
+> | Khi nào | Mở mục nào |
+> |---|---|
+> | Đang lab mà lỗi | **Gỡ lỗi nhanh** (§8) — có bảng *triệu chứng → nguyên nhân → cách sửa* |
+> | Quên một lệnh | **Hộp lệnh** (§8.1) |
+> | Tuần 20, đang ôn thi | **Bẫy đề** (§7) + **Quiz** (§9) |
+> | Gặp từ tiếng Anh lạ | **Thuật ngữ** (§10) |
+> | Học xong, muốn tự chấm | **Đúc kết + Milestone** (§11) |
+>
+> Đọc tuần tự phụ lục ở lần đầu là **cách nhanh nhất để kiệt sức và bỏ cuộc**.
 
 ---
 
