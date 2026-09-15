@@ -162,7 +162,7 @@ router ospf 1
 **Kiểm tra:**
 ```
 show ip ospf | include Area|stub|nssa|It is
-show ip ospf database database-summary        ! ⭐ đếm LSA để CHỨNG MINH bị chặn
+show ip ospf database database-summary        ! đếm LSA để CHỨNG MINH bị chặn
 show ip route ospf
 show ip ospf interface Gi0/0 | include Hello  ! xem E-bit qua debug/wireshark
 ```
@@ -288,7 +288,7 @@ router ospf 1
 
 ```
 ip prefix-list PL-BLOCK seq 5 deny 172.16.2.0/24
-ip prefix-list PL-BLOCK seq 10 permit 0.0.0.0/0 le 32     ! ⭐ catch-all, đừng quên
+ip prefix-list PL-BLOCK seq 10 permit 0.0.0.0/0 le 32     ! catch-all, đừng quên
 !
 router ospf 1
  area 1 filter-list prefix PL-BLOCK out         ! chặn LSA 3 ĐI RA khỏi area 1
@@ -339,7 +339,7 @@ router ospf 1
 ! Trên ASBR / router có đường ra Internet
 router ospf 1
  default-information originate                    ! chỉ quảng bá NẾU có 0.0.0.0/0 trong RIB
- default-information originate always             ! ⭐ quảng bá LUÔN, dù không có route
+ default-information originate always             ! quảng bá LUÔN, dù không có route
  default-information originate metric 50 metric-type 1
 ```
 
@@ -382,9 +382,9 @@ router ospf 1
 !area 0 authentication                        ! plain text cho cả area 0
 !
 interface GigabitEthernet0/1
- ip ospf message-digest-key 1 md5 MyS3cr3tK3y  ! ⭐ key vẫn phải đặt trên interface
+ ip ospf message-digest-key 1 md5 MyS3cr3tK3y  ! key vẫn phải đặt trên interface
 
-! ═══ CÁCH B: theo INTERFACE (linh hoạt hơn, ⭐ khuyến nghị) ═══
+! ═══ CÁCH B: theo INTERFACE (linh hoạt hơn, khuyến nghị) ═══
 interface GigabitEthernet0/1
  ip ospf authentication message-digest
  ip ospf message-digest-key 1 md5 MyS3cr3tK3y
@@ -452,7 +452,7 @@ và **một đầu phải ở area 0**. Cấu hình đúng:
 ```
 ! Trên R3 (ABR có area 0 và area 1)
 router ospf 1
- area 1 virtual-link 4.4.4.4          ! ⭐ dùng ROUTER ID của đầu kia
+ area 1 virtual-link 4.4.4.4          ! dùng ROUTER ID của đầu kia
 
 ! Trên R4 (ABR có area 1 và area 2)
 router ospf 1
@@ -534,17 +534,17 @@ Blueprint ghi rõ: *"point-to-point and broadcast of **OSPFv2 and OSPFv3**"*.
 
 ```
 ! ═══ CÁCH 1 (cổ điển, hay xuất hiện trong đề): ipv6 router ospf ═══
-ipv6 unicast-routing                            ! ⭐ BẮT BUỘC, thiếu là không chạy
+ipv6 unicast-routing                            ! BẮT BUỘC, thiếu là không chạy
 !
 ipv6 router ospf 1
- router-id 1.1.1.1                              ! ⭐ vẫn dạng IPv4
+ router-id 1.1.1.1                              ! vẫn dạng IPv4
  auto-cost reference-bandwidth 100000
  passive-interface Loopback0
 !
 interface GigabitEthernet0/0
  ipv6 address 2001:DB8:0:12::1/64
  ipv6 enable
- ipv6 ospf 1 area 0                             ! ⭐ bật trên interface
+ ipv6 ospf 1 area 0                             ! bật trên interface
  ipv6 ospf network point-to-point               ! đổi network type
 !
 interface Loopback0
@@ -569,11 +569,11 @@ interface GigabitEthernet0/0
 **Lệnh kiểm tra OSPFv3 (chú ý: `ipv6` thay vì `ip`):**
 ```
 show ipv6 ospf                              ! Router ID, area, ABR/ASBR
-show ipv6 ospf neighbor                     ! ⭐ neighbor (địa chỉ là link-local)
-show ipv6 ospf interface                    ! ⭐ area, cost, network type, DR/BDR
+show ipv6 ospf neighbor                     ! neighbor (địa chỉ là link-local)
+show ipv6 ospf interface                    ! area, cost, network type, DR/BDR
 show ipv6 ospf interface brief
-show ipv6 ospf database                     ! ⭐ LSDB
-show ipv6 route ospf                        ! ⭐ bảng route IPv6
+show ipv6 ospf database                     ! LSDB
+show ipv6 route ospf                        ! bảng route IPv6
 show ipv6 protocols
 debug ipv6 ospf adj                         ! ⚠️ chỉ lab
 ```
@@ -596,12 +596,12 @@ ADV Router      Age  Seq#        Fragment ID  Link count  Bits
 1.1.1.1         245  0x80000003  0            1           None
 2.2.2.2         240  0x80000004  0            1           B
 
-                Link (Type-8) Link States (Area 0)          ← ⭐ LSA MỚI của v3
+                Link (Type-8) Link States (Area 0)          ← LSA MỚI của v3
 ADV Router      Age  Seq#        Link ID    Interface
 1.1.1.1         245  0x80000002  3          Gi0/0
 2.2.2.2         240  0x80000002  3          Gi0/0
 
-                Intra Area Prefix Link States (Area 0)      ← ⭐ LSA MỚI (type 9)
+                Intra Area Prefix Link States (Area 0)      ← LSA MỚI (type 9)
 ADV Router      Age  Seq#        Link ID    Ref-lstype  Ref-LSID
 1.1.1.1         245  0x80000002  0          0x2001      0
 ```
@@ -723,7 +723,7 @@ Dùng lại topology Module-04A. **Thêm 1 loopback "external" trên R4** để 
       (AREA 1)                    │
                                ┌──┴─┐
                                │ R4 │  Lo1: 172.16.4.0/24 (AREA 3)
-                               └────┘  Lo8: 8.8.8.8/32   ← ⭐ EXTERNAL (redistribute)
+                               └────┘  Lo8: 8.8.8.8/32   ← EXTERNAL (redistribute)
                                ABR (0,3) + ASBR
 ```
 
@@ -743,7 +743,7 @@ R4(config)# ip route 203.0.113.64 255.255.255.192 Null0
 R4(config)# ip route 203.0.114.0 255.255.255.0 Null0
 R4(config)# ip route 203.0.115.0 255.255.255.0 Null0
 !
-! ⭐ Biến R4 thành ASBR
+! Biến R4 thành ASBR
 R4(config)# router ospf 1
 R4(config-router)#  redistribute connected subnets route-map RM-EXT
 R4(config-router)#  redistribute static subnets
@@ -780,14 +780,14 @@ R1# show ip ospf database external
   Options: (No TOS-capability, DC)
   LS Type: AS External Link
   Link State ID: 8.8.8.8 (External Network Number)
-  Advertising Router: 4.4.4.4                          ← ⭐ ASBR sinh ra
+  Advertising Router: 4.4.4.4                          ← ASBR sinh ra
   LS Seq Number: 80000001
   Checksum: 0x3A4B
   Length: 36
   Network Mask: /32
         Metric Type: 2 (Larger than any link state path)
         MTID: 0
-        Metric: 20                                      ← ⭐ seed metric mặc định
+        Metric: 20                                      ← seed metric mặc định
         Forward Address: 0.0.0.0
         External Route Tag: 0
 ```
@@ -808,8 +808,8 @@ R1# show ip ospf database asbr-summary
   LS age: 140
   Options: (No TOS-capability, DC, Upward)
   LS Type: Summary Links(AS Boundary Router)
-  Link State ID: 4.4.4.4 (AS Boundary Router address)   ← ⭐ Router ID của ASBR
-  Advertising Router: 2.2.2.2                            ← ⭐ ABR sinh ra
+  Link State ID: 4.4.4.4 (AS Boundary Router address)   ← Router ID của ASBR
+  Advertising Router: 2.2.2.2                            ← ABR sinh ra
   LS Seq Number: 80000001
   Checksum: 0x5C6D
   Length: 28
@@ -869,7 +869,7 @@ Area 1 database summary
   Router        2        0        0
   Network       0        0        0
   Summary Net   9        0        0       ← LSA 3
-  Summary ASBR  1        0        0       ← ⭐ LSA 4
+  Summary ASBR  1        0        0       ← LSA 4
   Type-7 Ext    0        0        0
   Subtotal      12       0        0
 
@@ -879,7 +879,7 @@ Process 1 database summary
   Network       0        0        0
   Summary Net   9        0        0
   Summary ASBR  1        0        0
-  Type-5 Ext    6        0        0       ← ⭐ LSA 5
+  Type-5 Ext    6        0        0       ← LSA 5
   Type-7 Ext    0        0        0
   Total         18       0        0
 ```
@@ -944,7 +944,7 @@ R4(config-router)# redistribute static subnets
 #### 3a) Biến area 1 thành Stub
 
 ```
-! ⭐ Trên MỌI router trong area 1 — bao gồm cả ABR (R2)
+! Trên MỌI router trong area 1 — bao gồm cả ABR (R2)
 R1(config)# router ospf 1
 R1(config-router)#  area 1 stub
 !
@@ -975,7 +975,7 @@ R2# show ip ospf | include Area|stub|generates
     Area BACKBONE(0)
     Area 1
         It is a stub area
-          generates stub default route with cost 1     ← ⭐ ABR tự inject default
+          generates stub default route with cost 1     ← ABR tự inject default
 ```
 
 #### 3b) ⭐ CHỨNG MINH LSA bị chặn — phần giá trị nhất
@@ -989,14 +989,14 @@ Area 1 database summary
   LSA Type      Count    Delete   Maxage
   Router        2        0        0
   Network       0        0        0
-  Summary Net   10       0        0       ← ⭐ TĂNG 1 (thêm default route 0.0.0.0/0)
-  Summary ASBR  0        0        0       ← ⭐⭐ TỪ 1 → 0 : LSA 4 BỊ CHẶN
+  Summary Net   10       0        0       ← TĂNG 1 (thêm default route 0.0.0.0/0)
+  Summary ASBR  0        0        0       ← TỪ 1 → 0 : LSA 4 BỊ CHẶN
   Type-7 Ext    0        0        0
   Subtotal      12       0        0
 
 Process 1 database summary
   ...
-  Type-5 Ext    0        0        0       ← ⭐⭐ TỪ 6 → 0 : LSA 5 BỊ CHẶN
+  Type-5 Ext    0        0        0       ← TỪ 6 → 0 : LSA 5 BỊ CHẶN
   Total         12       0        0
 ```
 
@@ -1018,7 +1018,7 @@ R1# show ip route 0.0.0.0
 ```
 Routing entry for 0.0.0.0/0, supernet
   Known via "ospf 1", distance 110, metric 101, candidate default path
-  Tag 1, type inter area                            ← ⭐ type INTER AREA (LSA 3!)
+  Tag 1, type inter area                            ← type INTER AREA (LSA 3!)
   Last update from 10.1.12.2 on GigabitEthernet0/0, 00:01:22 ago
   Routing Descriptor Blocks:
   * 10.1.12.2, from 2.2.2.2, 00:01:22 ago, via GigabitEthernet0/0
@@ -1080,7 +1080,7 @@ R1(config-router)# area 1 stub
 ### Bước 4 — ⭐⭐ TOTALLY STUBBY
 
 ```
-! ⭐ CHỈ trên ABR (R2). R1 giữ nguyên "area 1 stub"
+! CHỈ trên ABR (R2). R1 giữ nguyên "area 1 stub"
 R2(config)# router ospf 1
 R2(config-router)#  area 1 stub no-summary
 ```
@@ -1095,10 +1095,10 @@ Area 1 database summary
   LSA Type      Count    Delete   Maxage
   Router        2        0        0
   Network       0        0        0
-  Summary Net   1        0        0       ← ⭐⭐ TỪ 10 → 1 : chỉ còn default route!
+  Summary Net   1        0        0       ← TỪ 10 → 1 : chỉ còn default route!
   Summary ASBR  0        0        0
   Type-7 Ext    0        0        0
-  Subtotal      3        0        0       ← ⭐ LSDB CỰC NHỎ
+  Subtotal      3        0        0       ← LSDB CỰC NHỎ
 ```
 
 ⭐⭐ **`Summary Net` từ 10 xuống 1** — LSA 3 bị chặn hết, chỉ giữ lại **default route**.
@@ -1111,7 +1111,7 @@ R1# show ip ospf database summary
                 Summary Net Link States (Area 1)
 
   LS Type: Summary Links(Network)
-  Link State ID: 0.0.0.0 (summary Network Number)      ← ⭐ CHỈ CÓ DEFAULT ROUTE
+  Link State ID: 0.0.0.0 (summary Network Number)      ← CHỈ CÓ DEFAULT ROUTE
   Advertising Router: 2.2.2.2
   Network Mask: /0
         MTID: 0         Metric: 1
@@ -1222,7 +1222,7 @@ R3(config-router)# no area 2 stub
 #### 5c) Cấu hình NSSA
 
 ```
-! ⭐ Trên MỌI router trong area 2 (ở đây chỉ có R3)
+! Trên MỌI router trong area 2 (ở đây chỉ có R3)
 R3(config)# router ospf 1
 R3(config-router)#  area 2 nssa
 ```
@@ -1254,12 +1254,12 @@ R3# show ip ospf database nssa-external
   Options: (No TOS-capability, Type 7/5 translation, DC)
   LS Type: AS External Link
   Link State ID: 198.18.0.0 (External Network Number)
-  Advertising Router: 3.3.3.3                          ← ⭐ ASBR trong NSSA
+  Advertising Router: 3.3.3.3                          ← ASBR trong NSSA
   LS Seq Number: 80000001
   Network Mask: /24
         Metric Type: 2
         Metric: 20
-        Forward Address: 3.3.3.3                       ← ⭐ CHÚ Ý: KHÔNG phải 0.0.0.0
+        Forward Address: 3.3.3.3                       ← CHÚ Ý: KHÔNG phải 0.0.0.0
         External Route Tag: 0
 ```
 
@@ -1277,11 +1277,11 @@ R2# show ip ospf database external 198.18.0.0
 
   LS Type: AS External Link
   Link State ID: 198.18.0.0 (External Network Number)
-  Advertising Router: 3.3.3.3                          ← ⭐ ABR dịch (NSSA translator)
+  Advertising Router: 3.3.3.3                          ← ABR dịch (NSSA translator)
   Network Mask: /24
         Metric Type: 2
         Metric: 20
-        Forward Address: 3.3.3.3                       ← ⭐ giữ lại forward address
+        Forward Address: 3.3.3.3                       ← giữ lại forward address
 ```
 
 ⭐ **Quá trình:** ASBR trong NSSA sinh **LSA 7** (chỉ trong NSSA) →
@@ -1408,7 +1408,7 @@ R3# show ip ospf database summary | include 172.16
 #### 6b) ⭐ `area range` trên ABR
 
 ```
-! ⭐ Trên ABR của area 1 (R2)
+! Trên ABR của area 1 (R2)
 R2(config)# router ospf 1
 R2(config-router)#  area 1 range 172.16.0.0 255.255.252.0
 ```
@@ -1442,7 +1442,7 @@ R2# show ip route 172.16.0.0 255.255.252.0
 Routing entry for 172.16.0.0/22
   Known via "ospf 1", distance 110, metric 1, type intra area
   Routing Descriptor Blocks:
-  * directly connected, via Null0                    ← ⭐ DISCARD ROUTE
+  * directly connected, via Null0                    ← DISCARD ROUTE
       Route metric is 1, traffic share count is 1
 ```
 ⭐ **IOS tự tạo route `/22 → Null0` trên ABR để chống loop.**
@@ -1562,7 +1562,7 @@ O E2     203.0.115.0/24 [110/20] via 10.0.0.4, ...
 
 **Summarize trên ASBR:**
 ```
-! ⭐ Trên ASBR (R4), KHÔNG phải ABR
+! Trên ASBR (R4), KHÔNG phải ABR
 R4(config)# router ospf 1
 R4(config-router)#  summary-address 203.0.112.0 255.255.252.0
 ```
@@ -1639,7 +1639,7 @@ R2(config-router)# no area 1 range 172.16.2.0 255.255.255.0 not-advertise
 ```
 ! Trên ABR (R2)
 R2(config)# ip prefix-list PL-BLOCK-OUT seq 5 deny 172.16.2.0/24
-R2(config)# ip prefix-list PL-BLOCK-OUT seq 10 permit 0.0.0.0/0 le 32    ! ⭐ catch-all
+R2(config)# ip prefix-list PL-BLOCK-OUT seq 10 permit 0.0.0.0/0 le 32    ! catch-all
 R2(config)# router ospf 1
 R2(config-router)#  area 1 filter-list prefix PL-BLOCK-OUT out
 ```
@@ -1702,7 +1702,7 @@ R1(config-router)#  distribute-list prefix PL-NO-RIB in
 **⭐ Verify — đây là điểm cốt lõi:**
 ```
 R1# show ip route ospf | include 172.16.4
-! → ⭐ TRỐNG — route KHÔNG vào RIB
+! → TRỐNG — route KHÔNG vào RIB
 ```
 ```
 R1# show ip ospf database summary | include 172.16.4
@@ -1750,7 +1750,7 @@ R1(config-router)# no distribute-list prefix PL-NO-RIB in
 ### Bước 8 — Authentication
 
 ```
-! ⭐ Trên CẢ 2 ĐẦU của link R1↔R2
+! Trên CẢ 2 ĐẦU của link R1↔R2
 R1(config)# interface GigabitEthernet0/0
 R1(config-if)#  ip ospf authentication message-digest
 R1(config-if)#  ip ospf message-digest-key 1 md5 CcnpEncor2026
@@ -1830,7 +1830,7 @@ R2(config-if)# no ip ospf authentication        ! trả về (dùng area-level)
 
 ```
 ! ═══ R1 ═══
-R1(config)# ipv6 unicast-routing                 ! ⭐ BẮT BUỘC
+R1(config)# ipv6 unicast-routing                 ! BẮT BUỘC
 !
 R1(config)# interface Loopback0
 R1(config-if)#  ipv6 address 2001:DB8::1/128
@@ -1843,7 +1843,7 @@ R1(config-if)#  ipv6 ospf 1 area 1
 R1(config-if)#  ipv6 ospf network point-to-point
 !
 R1(config)# ipv6 router ospf 1
-R1(config-rtr)#  router-id 1.1.1.1               ! ⭐ VẪN dạng IPv4
+R1(config-rtr)#  router-id 1.1.1.1               ! VẪN dạng IPv4
 R1(config-rtr)#  auto-cost reference-bandwidth 100000
 
 ! ═══ R2 ═══
@@ -1924,17 +1924,17 @@ ADV Router      Age  Seq#        Fragment ID  Link count  Bits
 1.1.1.1         245  0x80000003  0            1           None
 2.2.2.2         240  0x80000004  0            1           B
 
-                Link (Type-8) Link States (Area 1)              ← ⭐ LSA MỚI
+                Link (Type-8) Link States (Area 1)              ← LSA MỚI
 ADV Router      Age  Seq#        Link ID    Interface
 1.1.1.1         245  0x80000002  3          Gi0/0
 2.2.2.2         240  0x80000002  3          Gi0/0
 
-                Intra Area Prefix Link States (Area 1)          ← ⭐ LSA MỚI (Type-9)
+                Intra Area Prefix Link States (Area 1)          ← LSA MỚI (Type-9)
 ADV Router      Age  Seq#        Link ID    Ref-lstype  Ref-LSID
 1.1.1.1         245  0x80000003  0          0x2001      0
 2.2.2.2         240  0x80000002  0          0x2001      0
 
-                Inter Area Prefix Link States (Area 1)          ← ⭐ LSA 3 đổi tên
+                Inter Area Prefix Link States (Area 1)          ← LSA 3 đổi tên
 ADV Router      Age  Seq#        Prefix
 2.2.2.2         235  0x80000001  2001:DB8::2/128
 2.2.2.2         235  0x80000001  2001:DB8:0:0::/64
@@ -2151,29 +2151,29 @@ R4(config-if)# ip ospf 1 area 0
 
 ```
 ! ═══ AREA TYPE ═══
-show ip ospf | include Area|stub|nssa|It is|generates    ! ⭐ area type + ABR/ASBR
-show ip ospf database database-summary                   ! ⭐⭐ ĐẾM LSA — chứng minh bị chặn
+show ip ospf | include Area|stub|nssa|It is|generates    ! area type + ABR/ASBR
+show ip ospf database database-summary                   ! ĐẾM LSA — chứng minh bị chặn
 show ip ospf | section Area 1                            ! chi tiết 1 area
 
 ! ═══ LSA TYPE 4, 5, 7 ═══
-show ip ospf database asbr-summary                       ! ⭐ LSA 4
-show ip ospf database external                            ! ⭐ LSA 5
+show ip ospf database asbr-summary                       ! LSA 4
+show ip ospf database external                            ! LSA 5
 show ip ospf database external <prefix>
-show ip ospf database nssa-external                       ! ⭐ LSA 7
-show ip ospf border-routers                               ! ⭐ ABR/ASBR nào biết + cost
+show ip ospf database nssa-external                       ! LSA 7
+show ip ospf border-routers                               ! ABR/ASBR nào biết + cost
 
 ! ═══ SUMMARIZATION ═══
 show ip ospf database summary | include <prefix>          ! LSA 3 có bị gộp?
-show ip route | include Null0                             ! ⭐ discard route
+show ip route | include Null0                             ! discard route
 show ip route <summary-prefix>                            ! metric + Null0
 show running-config | section router ospf                 ! xem area range / summary-address
 
 ! ═══ FILTERING ═══
 show ip prefix-list
-show ip prefix-list detail <TÊN>                          ! ⭐ có counter hit
+show ip prefix-list detail <TÊN>                          ! có counter hit
 show ip ospf | include filter
 show running-config | include distribute-list|filter-list
-! ⭐ SO SÁNH LSDB vs RIB để biết lọc ở đâu:
+! SO SÁNH LSDB vs RIB để biết lọc ở đâu:
 show ip ospf database summary | include <prefix>          ! LSA còn không?
 show ip route <prefix>                                    ! route có không?
 
@@ -2192,21 +2192,21 @@ show ip ospf database external 0.0.0.0
 show ip ospf | include default
 
 ! ═══ SPF (đo lợi ích summarization) ═══
-show ip ospf | include SPF algorithm executed             ! ⭐ đếm số lần SPF
+show ip ospf | include SPF algorithm executed             ! đếm số lần SPF
 show ip ospf statistics                                    ! chi tiết SPF theo area
 
 ! ═══ OSPFv3 (chú ý: ipv6 thay vì ip) ═══
 show ipv6 ospf                                            ! Router ID, area, ABR/ASBR
-show ipv6 ospf neighbor                                   ! ⭐ neighbor
-show ipv6 ospf interface                                  ! ⭐ link-local, Interface ID
+show ipv6 ospf neighbor                                   ! neighbor
+show ipv6 ospf interface                                  ! link-local, Interface ID
 show ipv6 ospf interface brief
-show ipv6 ospf database                                   ! ⭐ Type-8, Type-9
-show ipv6 route ospf                                      ! ⭐ ký hiệu OI, next-hop link-local
+show ipv6 ospf database                                   ! Type-8, Type-9
+show ipv6 route ospf                                      ! ký hiệu OI, next-hop link-local
 show ipv6 protocols
 debug ipv6 ospf adj                                       ! ⚠️ chỉ lab
 
 ! ═══ DEBUG (⚠️ chỉ lab) ═══
-debug ip ospf adj                                         ! ⭐ lỗi adjacency (E-bit/auth/area)
+debug ip ospf adj                                         ! lỗi adjacency (E-bit/auth/area)
 debug ip ospf lsa-generation                              ! xem LSA nào được sinh
 debug ip ospf spf                                         ! xem SPF chạy
 undebug all
@@ -2247,7 +2247,7 @@ CÂU HỎI 1: "Route bị mất — LSA có tồn tại không?"
    show ip ospf database database-summary
    show ip ospf database summary|external|asbr-summary|nssa-external
    ├─ LSA KHÔNG CÓ  → bị chặn ở NGUỒN → sang câu hỏi 2
-   └─ LSA CÓ mà route không có → bị chặn ở RIB → ⭐ distribute-list in!
+   └─ LSA CÓ mà route không có → bị chặn ở RIB → distribute-list in!
         ↓
 CÂU HỎI 2: "LSA bị chặn bởi cái gì?"
    show ip ospf | include stub|nssa|It is
@@ -2263,7 +2263,7 @@ CÂU HỎI 3: "Có filter hoặc summarize nào không?"
    ├─ area range <prefix>           → route bị GỘP (tìm prefix ngắn hơn!)
    └─ summary-address               → external bị gộp
         ↓
-   ⭐ show ip prefix-list detail <TÊN>   → counter có hit không? catch-all có chưa?
+   show ip prefix-list detail <TÊN>   → counter có hit không? catch-all có chưa?
         ↓
 CÂU HỎI 4: "Có route dạng gộp hoặc default không?"
    show ip route <prefix>            → % Network not in table?
@@ -2498,7 +2498,7 @@ Nên `distribute-list in` chỉ can thiệp ở bước **LSDB → RIB** trên *
 
 **Chứng minh:**
 ```
-show ip ospf database summary | include 172.16.4      ← ⭐ LSA VẪN CÓ
+show ip ospf database summary | include 172.16.4      ← LSA VẪN CÓ
 show ip route 172.16.4.0                               ← ❌ route KHÔNG có
 ```
 
@@ -2544,7 +2544,7 @@ sẽ bị **deny mặc định**.
 **Sửa — thêm catch-all:**
 ```
 ip prefix-list PL-X seq 5  deny   172.16.2.0/24
-ip prefix-list PL-X seq 10 permit 0.0.0.0/0 le 32     ! ⭐ catch-all
+ip prefix-list PL-X seq 10 permit 0.0.0.0/0 le 32     ! catch-all
 ```
 
 `permit 0.0.0.0/0 le 32` = "cho phép mọi prefix với độ dài mask từ 0 đến 32".
@@ -2610,7 +2610,7 @@ qua ASBR của mình. Tự động inject default route có thể **ghi đè đ�
 ```
 area 2 nssa default-information-originate                    ! chỉ khi có default trong RIB
 area 2 nssa default-information-originate metric 50          ! ép metric
-area 2 nssa no-summary                                        ! ⭐ Totally NSSA → tự inject
+area 2 nssa no-summary                                        ! Totally NSSA → tự inject
 ```
 </details>
 
@@ -2665,7 +2665,7 @@ router ospf 1
 **Cách 2 — `area filter-list`** (linh hoạt hơn, dùng prefix-list):
 ```
 ip prefix-list PL-HIDE seq 5  deny   172.16.2.0/24
-ip prefix-list PL-HIDE seq 10 permit 0.0.0.0/0 le 32     ! ⭐ đừng quên catch-all
+ip prefix-list PL-HIDE seq 10 permit 0.0.0.0/0 le 32     ! đừng quên catch-all
 !
 router ospf 1
  area 1 filter-list prefix PL-HIDE out
@@ -2713,16 +2713,16 @@ hay không"*.
 **Lớp 1 — bỏ `always`:**
 ```
 router ospf 1
- default-information originate         ! ⭐ chỉ quảng bá NẾU có 0.0.0.0/0 trong RIB
+ default-information originate         ! chỉ quảng bá NẾU có 0.0.0.0/0 trong RIB
 ```
 → Mất default route trong RIB → OSPF **tự động ngừng quảng bá** → traffic chuyển sang router khác.
 
 **Lớp 2 — ⭐ IP SLA + track cho default route** (Module-03 §2.4):
 ```
 ip sla 1
- icmp-echo 8.8.8.8 source-interface GigabitEthernet0/0      ! ⭐ source-interface bắt buộc
+ icmp-echo 8.8.8.8 source-interface GigabitEthernet0/0      ! source-interface bắt buộc
  frequency 5
-ip sla schedule 1 life forever start-time now                ! ⭐ đừng quên
+ip sla schedule 1 life forever start-time now                ! đừng quên
 !
 track 1 ip sla 1 reachability
  delay down 3 up 5

@@ -71,7 +71,7 @@ Hiểu 3 bảng này là hiểu cách OSPF vận hành. Mọi lệnh `show` đ�
 ├──────────────────────────────────────────────────────────────────────┤
 │ 2. LSDB (Link-State Database)   "Bản đồ mạng của tôi"                │
 │    show ip ospf database                                             │
-│    → Tập hợp mọi LSA. ⭐ MỌI router trong CÙNG AREA phải GIỐNG NHAU  │
+│    → Tập hợp mọi LSA. MỌI router trong CÙNG AREA phải GIỐNG NHAU  │
 ├──────────────────────────────────────────────────────────────────────┤
 │              │ chạy Dijkstra SPF trên LSDB                           │
 │              ▼                                                        │
@@ -289,7 +289,7 @@ interface GigabitEthernet0/0
 **Kiểm tra:**
 ```
 show ip ospf | include Reference bandwidth
-show ip ospf interface brief                 ! ⭐ cột Cost
+show ip ospf interface brief                 ! cột Cost
 show ip ospf interface Gi0/0 | include Cost
 ```
 
@@ -311,7 +311,7 @@ Network type quyết định: **có bầu DR/BDR không**, **timer bao nhiêu**,
 ```
 ! Đổi network type
 interface GigabitEthernet0/0
- ip ospf network point-to-point              ! ⭐ hay dùng nhất
+ ip ospf network point-to-point              ! hay dùng nhất
  ip ospf network broadcast
  ip ospf network non-broadcast
  ip ospf network point-to-multipoint
@@ -492,14 +492,14 @@ show ip ospf | include Area|area|It is an
 **Output mẫu:**
 ```
  Routing Process "ospf 1" with ID 2.2.2.2
- It is an area border router                 ← ⭐ ABR
+ It is an area border router                 ← ABR
  Number of areas in this router is 2. 2 normal 0 stub 0 nssa
     Area BACKBONE(0)
     Area 1
 ```
 
 ```
-show ip ospf border-routers                  ! ⭐ ABR/ASBR nào đang biết
+show ip ospf border-routers                  ! ABR/ASBR nào đang biết
 show ip ospf interface brief                 ! interface nào thuộc area nào
 ```
 
@@ -544,7 +544,7 @@ show ip ospf database router self-originate       ! LSA type 1 của chính mìn
   LS Seq Number: 80000004
   Checksum: 0x1A2B
   Length: 48
-  Area Border Router                              ← ⭐ R2 là ABR
+  Area Border Router                              ← R2 là ABR
    Number of Links: 2
 
     Link connected to: another Router (point-to-point)
@@ -577,8 +577,8 @@ show ip ospf database network
 
   LS age: 312
   LS Type: Network Links
-  Link State ID: 10.0.0.3 (address of Designated Router)      ← ⭐ IP của DR
-  Advertising Router: 3.3.3.3                                  ← ⭐ DR sinh ra
+  Link State ID: 10.0.0.3 (address of Designated Router)      ← IP của DR
+  Advertising Router: 3.3.3.3                                  ← DR sinh ra
   Network Mask: /24
         Attached Router: 3.3.3.3
         Attached Router: 2.2.2.2
@@ -609,8 +609,8 @@ show ip ospf database summary 10.1.12.0
 
   LS age: 180
   LS Type: Summary Links(Network)
-  Link State ID: 10.1.12.0 (summary Network Number)           ← ⭐ địa chỉ mạng
-  Advertising Router: 2.2.2.2                                  ← ⭐ ABR sinh ra
+  Link State ID: 10.1.12.0 (summary Network Number)           ← địa chỉ mạng
+  Advertising Router: 2.2.2.2                                  ← ABR sinh ra
   Network Mask: /30
         MTID: 0         Metric: 100
 ```
@@ -632,15 +632,15 @@ show ip ospf database summary 10.1.12.0
 #### Lệnh xem LSDB — bảng tra cứu
 
 ```
-show ip ospf database                        ! ⭐ tổng quan MỌI LSA
+show ip ospf database                        ! tổng quan MỌI LSA
 show ip ospf database router                 ! Type 1
 show ip ospf database network                ! Type 2
 show ip ospf database summary                ! Type 3
 show ip ospf database asbr-summary           ! Type 4  (04B)
 show ip ospf database external                ! Type 5  (04B)
 show ip ospf database nssa-external            ! Type 7  (04B)
-show ip ospf database self-originate          ! ⭐ LSA do CHÍNH mình sinh
-show ip ospf database adv-router 2.2.2.2      ! ⭐ mọi LSA do R2 sinh
+show ip ospf database self-originate          ! LSA do CHÍNH mình sinh
+show ip ospf database adv-router 2.2.2.2      ! mọi LSA do R2 sinh
 show ip ospf database database-summary        ! đếm LSA theo type/area
 ```
 
@@ -1870,47 +1870,47 @@ R1(config-router)# auto-cost reference-bandwidth 100000
 
 ```
 ! ═══ BẢNG 1: NEIGHBOR ═══
-show ip ospf neighbor                           ! ⭐ LỆNH ĐẦU TIÊN LUÔN
+show ip ospf neighbor                           ! LỆNH ĐẦU TIÊN LUÔN
 show ip ospf neighbor detail                    ! chi tiết từng neighbor
-show ip ospf interface brief                    ! ⭐ interface nào trong OSPF, area, cost, số Nbr
-show ip ospf interface GigabitEthernet0/0       ! ⭐⭐ LỆNH VẠN NĂNG — chạy trên CẢ 2 ROUTER rồi so
+show ip ospf interface brief                    ! interface nào trong OSPF, area, cost, số Nbr
+show ip ospf interface GigabitEthernet0/0       ! LỆNH VẠN NĂNG — chạy trên CẢ 2 ROUTER rồi so
 show ip protocols                               ! passive-interface, network statement, redistribute
 
 ! ═══ BẢNG 2: LSDB ═══
-show ip ospf database                           ! ⭐ tổng quan
-show ip ospf database database-summary          ! ⭐ đếm LSA theo type + area
+show ip ospf database                           ! tổng quan
+show ip ospf database database-summary          ! đếm LSA theo type + area
 show ip ospf database router                    ! Type 1
 show ip ospf database router <router-id>
 show ip ospf database network                   ! Type 2
 show ip ospf database summary                   ! Type 3
 show ip ospf database self-originate            ! LSA của chính mình
-show ip ospf database adv-router <router-id>    ! ⭐ mọi LSA do router đó sinh
+show ip ospf database adv-router <router-id>    ! mọi LSA do router đó sinh
 
 ! ═══ BẢNG 3: ROUTE ═══
 show ip route ospf
-show ip route <prefix>                          ! ⭐ AD, metric, type (intra/inter/extern)
+show ip route <prefix>                          ! AD, metric, type (intra/inter/extern)
 show ip ospf border-routers                     ! ABR/ASBR nào đang biết
-show ip ospf statistics                         ! ⭐ số lần chạy SPF + thời gian
+show ip ospf statistics                         ! số lần chạy SPF + thời gian
 
 ! ═══ TỔNG QUAN PROCESS ═══
-show ip ospf                                    ! ⭐ Router ID, area, ABR/ASBR, reference-bw, SPF count
-show ip ospf | include Reference bandwidth      ! ⭐ verify khi nhận bàn giao mạng
+show ip ospf                                    ! Router ID, area, ABR/ASBR, reference-bw, SPF count
+show ip ospf | include Reference bandwidth      ! verify khi nhận bàn giao mạng
 show ip ospf | include It is an                 ! ABR? ASBR?
 
 ! ═══ NỀN TẢNG (đừng bỏ) ═══
 show ip interface brief                         ! up/up?
-show interfaces Gi0/0 | include MTU             ! ⭐ MTU — chạy CẢ 2 ĐẦU
+show interfaces Gi0/0 | include MTU             ! MTU — chạy CẢ 2 ĐẦU
 show access-lists                               ! ACL chặn multicast?
 
 ! ═══ DEBUG (⚠️ chỉ lab, hoặc production có kiểm soát) ═══
-debug ip ospf adj                               ! ⭐ quá trình lên neighbor — hữu ích nhất
+debug ip ospf adj                               ! quá trình lên neighbor — hữu ích nhất
 debug ip ospf hello                             ! ⚠️ rất nhiều output
 debug ip ospf events
 debug ip ospf packet
-undebug all                                     ! ⭐ THUỘC LÒNG
+undebug all                                     ! THUỘC LÒNG
 
 ! ═══ RESET (⚠️ gây downtime) ═══
-clear ip ospf process                           ! 🔴 reset TOÀN BỘ — chỉ khi cần
+clear ip ospf process                           ! reset TOÀN BỘ — chỉ khi cần
 clear ip ospf counters
 ```
 
@@ -1952,13 +1952,13 @@ clear ip ospf counters
    show ip ospf neighbor
    ├─ TRỐNG?              → show ip ospf interface brief (interface có trong OSPF?)
    │                      → show ip protocols | inc Passive
-   ├─ Kẹt EXSTART/EXCHANGE→ 🔴 MTU! show interfaces | inc MTU (CẢ 2 ĐẦU)
+   ├─ Kẹt EXSTART/EXCHANGE→ MTU! show interfaces | inc MTU (CẢ 2 ĐẦU)
    ├─ Kẹt INIT            → Hello một chiều: ACL? multicast? L2?
    ├─ 2WAY/DROTHER        → ✅ BÌNH THƯỜNG, bỏ qua
    ├─ Lên rồi tụt         → duplicate Router ID? timer lệch?
    └─ FULL ✅             → sang bước 2
         ↓
-   ⭐ NẾU KHÔNG LÊN: chạy lệnh này trên CẢ 2 ROUTER rồi SO TỪNG DÒNG:
+   NẾU KHÔNG LÊN: chạy lệnh này trên CẢ 2 ROUTER rồi SO TỪNG DÒNG:
       show ip ospf interface GigabitEthernet0/0
       → Area · Network Type · Cost · Timer (Hello/Dead) · Authentication
         ↓
@@ -1968,7 +1968,7 @@ clear ip ospf counters
    │                            show ip ospf interface brief TRÊN ROUTER ĐÓ
    ├─ Chỉ có Type 3, không có Type 1 của area khác → ✅ ĐÚNG (LSA 1/2 không ra khỏi area)
    ├─ Thiếu Type 5/7          → xem Module-04B (area type filter)
-   └─ LSDB lệch giữa 2 router cùng area → 🔴 lỗi nghiêm trọng (MTU/bug)
+   └─ LSDB lệch giữa 2 router cùng area → lỗi nghiêm trọng (MTU/bug)
         ↓
 3. BẢNG 3 — ROUTE
    show ip route <prefix>
@@ -2244,7 +2244,7 @@ Router chọn cái nào? Vì sao?
 
 ```
 1. Intra-area  (O)      ← tốt nhất
-2. Inter-area  (O IA)   ← ⭐ thắng ở đây
+2. Inter-area  (O IA)   ← thắng ở đây
 3. External E1 (O E1)
 4. External E2 (O E2)   ← kém nhất
 ```
@@ -2343,7 +2343,7 @@ Router `4.4.4.4` có 1 interface đang up/down liên tục → mỗi lần đổ
 với Seq# tăng.
 
 ```
-show ip ospf statistics                   ! ⭐ SPF chạy bao nhiêu lần
+show ip ospf statistics                   ! SPF chạy bao nhiêu lần
 show interfaces | include flapped|reset
 show logging | include LINK-3|LINEPROTO
 ```
@@ -2393,7 +2393,7 @@ show ip ospf interface GigabitEthernet0/0
 
 **Hai điều kiện còn thiếu và lệnh bổ sung:**
 ```
-show interfaces GigabitEthernet0/0 | include MTU      ! ⭐ cho EXSTART/EXCHANGE
+show interfaces GigabitEthernet0/0 | include MTU      ! cho EXSTART/EXCHANGE
 show ip protocols | include Passive                    ! cho trạng thái Down
 ```
 

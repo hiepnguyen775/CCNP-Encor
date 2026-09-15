@@ -123,7 +123,7 @@
 0 dBm  = 1 mW
 +10 dB → 10 dBm = 10 mW        (×10)
 +10 dB → 20 dBm = 100 mW       (×10)
-                    ⭐ Đáp án: 100 mW
+                    Đáp án: 100 mW
 ```
 
 **Ví dụ 2 — 26 dBm bằng bao nhiêu mW?**
@@ -132,13 +132,13 @@
 +10 → 10 dBm = 10 mW
 +10 → 20 dBm = 100 mW
 +3  → 23 dBm = 200 mW
-+3  → 26 dBm = 400 mW          ⭐ Đáp án: 400 mW
++3  → 26 dBm = 400 mW          Đáp án: 400 mW
 ```
 
 **Ví dụ 3 — 50 mW là bao nhiêu dBm?** (đi ngược)
 ```
 100 mW = 20 dBm
-÷2 → 50 mW = 20 − 3 = 17 dBm   ⭐ Đáp án: 17 dBm
+÷2 → 50 mW = 20 − 3 = 17 dBm   Đáp án: 17 dBm
 ```
 
 #### Bảng tra nhanh — nhớ được 5 dòng in đậm là đủ thi
@@ -170,7 +170,7 @@
 
 ```
    ┌──────────────────────────────────────────────────────────────┐
-   │  ⭐⭐  EIRP (dBm) = Tx Power (dBm) − Cable Loss (dB) + Antenna Gain (dBi)  │
+   │   EIRP (dBm) = Tx Power (dBm) − Cable Loss (dB) + Antenna Gain (dBi)  │
    └──────────────────────────────────────────────────────────────┘
 
         [ Radio AP ]───── cáp ─────[ Antenna ]  ~~~~~~>  không trung
@@ -235,10 +235,10 @@ EIRP tăng 6 dB  →  công suất phát ra tăng ×4  (+3 = ×2, +3 nữa = ×4
 | ⭐⭐ **SNR** (Signal-to-Noise Ratio) | ⭐ **RSSI − Noise floor** | ⭐ **dB** (số dương, vì là *chênh lệch*) | Tính ra từ 2 số trên |
 
 ```
-   ⭐⭐  SNR (dB)  =  RSSI (dBm)  −  Noise floor (dBm)
+    SNR (dB)  =  RSSI (dBm)  −  Noise floor (dBm)
 
    Ví dụ:   RSSI = −65 dBm ,  Noise = −92 dBm
-            SNR  = −65 − (−92) = ⭐ 27 dB     → tốt
+            SNR  = −65 − (−92) = 27 dB     → tốt
 ```
 
 #### ⭐ Bảng ngưỡng thực tế — nhớ 3 mốc in đậm
@@ -326,10 +326,10 @@ EIRP tăng 6 dB  →  công suất phát ra tăng ×4  (+3 = ×2, +3 nữa = ×4
    ch1  ├──────────────┤
    ch6            ├──────────────┤
    ch11                     ├──────────────┤
-        ⭐ Cách nhau 25 MHz  →  KHÔNG chồng lấn
+        Cách nhau 25 MHz  →  KHÔNG chồng lấn
 
    ch1  ├──────────────┤
-   ch3        ├──────────────┤      🔴 CHỒNG LẤN → phá nhau
+   ch3        ├──────────────┤      CHỒNG LẤN → phá nhau
 ```
 
 > 🔴 ⭐⭐ **Chỉ có 3 channel không chồng lấn ở 2.4 GHz: 1, 6, 11.**
@@ -422,13 +422,13 @@ tín hiệu của chính nó át hết. Không nghe được thì không biết 
 
 ```
   Muốn phát 1 frame:
-  1. ⭐ Nghe kênh (Clear Channel Assessment - CCA)
+  1. Nghe kênh (Clear Channel Assessment - CCA)
         ├─ Có ai đang phát? → CHỜ
         └─ Rảnh? → tiếp
   2. Chờ hết DIFS (khoảng lặng bắt buộc)
-  3. ⭐ Chờ thêm một số ngẫu nhiên (random backoff)   ← chống 2 máy cùng nhảy vào
+  3. Chờ thêm một số ngẫu nhiên (random backoff)   ← chống 2 máy cùng nhảy vào
   4. Phát frame
-  5. ⭐ CHỜ ACK. Không có ACK trong SIFS → coi như MẤT → phát lại (retry)
+  5. CHỜ ACK. Không có ACK trong SIFS → coi như MẤT → phát lại (retry)
 ```
 
 | Thuật ngữ | Nghĩa |
@@ -447,11 +447,11 @@ tín hiệu của chính nó át hết. Không nghe được thì không biết 
 ```
         A  ────── nghe được ──────  AP  ────── nghe được ──────  B
         │                                                        │
-        └──────────  ⭐ A và B KHÔNG nghe thấy nhau  ────────────┘
+        └──────────  A và B KHÔNG nghe thấy nhau  ────────────┘
 
    → A nghe kênh: "rảnh" (không nghe được B) → phát
    → B nghe kênh: "rảnh" (không nghe được A) → phát
-   → ⭐ Hai gói ĐỤNG NHAU tại AP → cả hai hỏng → cả hai retry → vòng lặp tệ hơn
+   → Hai gói ĐỤNG NHAU tại AP → cả hai hỏng → cả hai retry → vòng lặp tệ hơn
 ```
 
 | Vấn đề | Tên | Cách xử lý |
@@ -518,7 +518,7 @@ chỉ frame lớn hơn ngưỡng mới dùng RTS/CTS).
 
 ```
    4 x 4 : 4
-   │   │   └── ⭐ số SPATIAL STREAM (số luồng dữ liệu song song)  ← cái quyết định tốc độ
+   │   │   └── số SPATIAL STREAM (số luồng dữ liệu song song)  ← cái quyết định tốc độ
    │   └────── số antenna THU (Receive)
    └────────── số antenna PHÁT (Transmit)
 ```
@@ -594,21 +594,21 @@ chỉ frame lớn hơn ngưỡng mới dùng RTS/CTS).
 
 ```
    ① DISCOVERY  ─ Client tìm AP
-      ├─ ⭐ Passive scanning : nghe BEACON (AP phát ~10 lần/giây)
-      └─ ⭐ Active scanning  : client gửi PROBE REQUEST → AP trả PROBE RESPONSE
-                               ⭐ (SSID ẩn → phải dùng active scanning)
+      ├─ Passive scanning : nghe BEACON (AP phát ~10 lần/giây)
+      └─ Active scanning  : client gửi PROBE REQUEST → AP trả PROBE RESPONSE
+                               (SSID ẩn → phải dùng active scanning)
 
-   ② 802.11 AUTHENTICATION  ─ ⭐ Chỉ là thủ tục "chào hỏi", KHÔNG phải bảo mật thật
+   ② 802.11 AUTHENTICATION  ─ Chỉ là thủ tục "chào hỏi", KHÔNG phải bảo mật thật
       └─ Open System (gần như luôn dùng)  |  Shared Key (WEP, tuyệt chủng)
 
    ③ ASSOCIATION  ─ Client xin gia nhập BSS
-      └─ AP cấp ⭐ AID (Association ID)  → giờ client "thuộc về" AP này
+      └─ AP cấp AID (Association ID)  → giờ client "thuộc về" AP này
 
-   ④ ⭐ SECURITY  ─ Bảo mật thật xảy ra Ở ĐÂY
-      ├─ WPA2/3-Personal : ⭐ 4-way handshake với PSK
-      └─ WPA2/3-Enterprise: ⭐ 802.1X/EAP với RADIUS  → rồi 4-way handshake
+   ④ SECURITY  ─ Bảo mật thật xảy ra Ở ĐÂY
+      ├─ WPA2/3-Personal : 4-way handshake với PSK
+      └─ WPA2/3-Enterprise: 802.1X/EAP với RADIUS  → rồi 4-way handshake
                                                     ↓
-   ⑤ (nếu có) DHCP → client có IP → ⭐ MỚI thật sự dùng được mạng
+   ⑤ (nếu có) DHCP → client có IP → MỚI thật sự dùng được mạng
 ```
 
 > 🔴 ⭐⭐ **Bẫy đề kinh điển:** *"Client hiện Associated nhưng không vào được mạng"*.
@@ -734,9 +734,9 @@ Beacon interval (mặc định ~102.4 ms) · TIM · Capability info · RSN IE (t
            ╰───────╯                              ╲___╱
 
         nhìn từ bên (hình BÁNH RÁN):
-           ~~~~●~~~~                    ⭐ Gom hết năng lượng
+           ~~~~●~~~~                    Gom hết năng lượng
               ⚠️                            về MỘT hướng
-       ⭐ Ngay DƯỚI antenna là YẾU
+       Ngay DƯỚI antenna là YẾU
 ```
 
 | | ⭐ **Omnidirectional** | ⭐ **Directional** |
@@ -903,15 +903,15 @@ netsh wlan show interfaces
 ```
     Name                   : Wi-Fi
     SSID                   : CTY-CORP
-    BSSID                  : a4:53:0e:11:22:30      <-- ⭐ MAC radio của AP
+    BSSID                  : a4:53:0e:11:22:30      <-- MAC radio của AP
     Network type           : Infrastructure
-    Radio type             : 802.11ax               <-- ⭐ chuẩn đang dùng
-    Authentication         : WPA2-Enterprise        <-- ⭐ 802.1X (Module-10)
+    Radio type             : 802.11ax               <-- chuẩn đang dùng
+    Authentication         : WPA2-Enterprise        <-- 802.1X (Module-10)
     Cipher                 : CCMP
-    Channel                : 44                     <-- ⭐ 5 GHz, UNII-1, không DFS
+    Channel                : 44                     <-- 5 GHz, UNII-1, không DFS
     Receive rate (Mbps)    : 573
     Transmit rate (Mbps)   : 573
-    Signal                 : 82%                    <-- ⭐ Windows cho %, không cho dBm
+    Signal                 : 82%                    <-- Windows cho %, không cho dBm
 ```
 
 ✅ **Checkpoint 1 — trả lời được 5 câu này về chính mạng của bạn:**
@@ -942,7 +942,7 @@ SSID 3 : NHA-HANG-XOM
          Signal             : 45%
          Radio type         : 802.11n
          Band               : 2.4 GHz
-         Channel            : 3            <-- 🔴 ⭐ KHÔNG PHẢI 1/6/11 → gây ACI!
+         Channel            : 3            <-- KHÔNG PHẢI 1/6/11 → gây ACI!
     BSSID 2                 : 3c:84:6a:aa:bb:c1
          Signal             : 38%
          Radio type         : 802.11ac
@@ -974,7 +974,7 @@ netsh wlan show drivers
 **Tìm 3 dòng:**
 ```
     Radio types supported     : 802.11a 802.11b 802.11g 802.11n 802.11ac 802.11ax
-    802.11w Management Frame Protection supported : Yes    <-- ⭐ PMF → WPA3 được
+    802.11w Management Frame Protection supported : Yes    <-- PMF → WPA3 được
     Number of supported ... (tùy driver)
 ```
 
@@ -1138,10 +1138,10 @@ Mở bằng trình duyệt. ⭐ **Ba thứ đáng xem:**
 
 ```
 ═══ TRÊN MÁY WINDOWS (client) ═══
-netsh wlan show interfaces                    ! ⭐ SSID/BSSID/channel/rate/signal hiện tại
-netsh wlan show networks mode=bssid           ! ⭐ Mọi AP xung quanh + channel + band
-netsh wlan show drivers                       ! ⭐ Card này hỗ trợ chuẩn gì, có PMF không
-netsh wlan show wlanreport                    ! ⭐ Báo cáo HTML — lịch sử roam & rớt
+netsh wlan show interfaces                    ! SSID/BSSID/channel/rate/signal hiện tại
+netsh wlan show networks mode=bssid           ! Mọi AP xung quanh + channel + band
+netsh wlan show drivers                       ! Card này hỗ trợ chuẩn gì, có PMF không
+netsh wlan show wlanreport                    ! Báo cáo HTML — lịch sử roam & rớt
 
 ═══ TRÊN MACOS ═══
 ! Giữ Option + click icon Wi-Fi → xem RSSI, noise, channel ngay
@@ -1153,11 +1153,11 @@ iw dev wlan0 scan | grep -E "SSID|signal|freq"
 iwconfig                   ! (cũ) link quality, signal level
 
 ═══ TRÊN WLC (Catalyst 9800 / IOS-XE) — sẽ dùng nhiều ở 07B ═══
-show ap summary                               ! ⭐ danh sách AP + mode + channel
-show ap dot11 5ghz summary                    ! ⭐ channel, Tx power từng AP
+show ap summary                               ! danh sách AP + mode + channel
+show ap dot11 5ghz summary                    ! channel, Tx power từng AP
 show wireless client summary                  ! danh sách client
-show wireless client mac-address <MAC> detail ! ⭐ RSSI, SNR, data rate của 1 client
-show ap auto-rf dot11 5ghz                    ! ⭐ thông tin RRM: noise, interference, channel
+show wireless client mac-address <MAC> detail ! RSSI, SNR, data rate của 1 client
+show ap auto-rf dot11 5ghz                    ! thông tin RRM: noise, interference, channel
 ```
 
 ### 11.2 ⭐⭐ Bảng: triệu chứng → nguyên nhân → cách sửa
@@ -1186,14 +1186,14 @@ show ap auto-rf dot11 5ghz                    ! ⭐ thông tin RRM: noise, inter
 ② TÍN HIỆU có đủ không?     → RSSI ≥ −67 dBm?
    → Không đủ  → vấn đề COVERAGE: thêm AP / đổi vị trí / đổi antenna
 
-③ TÍN HIỆU có SẠCH không?   → ⭐ SNR ≥ 20–25 dB? Noise floor ≤ −85 dBm?
+③ TÍN HIỆU có SẠCH không?   → SNR ≥ 20–25 dB? Noise floor ≤ −85 dBm?
    → Không sạch → vấn đề NHIỄU: CleanAir / SE-Connect / đổi channel
 
-④ KÊNH có ĐÔNG không?       → ⭐ Bao nhiêu BSSID cùng channel? Channel utilization %?
+④ KÊNH có ĐÔNG không?       → Bao nhiêu BSSID cùng channel? Channel utilization %?
    → Đông      → vấn đề CAPACITY: thêm AP + giảm công suất + tắt rate thấp + bớt SSID
 
 ⑤ HAI CHIỀU có CÂN không?   → Client nghe AP tốt mà AP nghe client kém?
-   → Lệch      → ⭐ GIẢM Tx power của AP
+   → Lệch      → GIẢM Tx power của AP
 ```
 
 > ⭐ **Nhớ đúng thứ tự này** — nó ngăn bạn khỏi sai lầm số 1: nhảy ngay vào "tăng công suất".

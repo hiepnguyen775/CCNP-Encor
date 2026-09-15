@@ -103,14 +103,14 @@
 | ⭐ **Điều tra sự cố an ninh** | 🔴 ⭐ **Log không có giá trị pháp lý nếu thời gian không tin cậy** |
 
 ```
-! ⭐⭐ BA DÒNG PHẢI CÓ TRÊN MỌI THIẾT BỊ — trước khi làm bất cứ gì trong module này
+! BA DÒNG PHẢI CÓ TRÊN MỌI THIẾT BỊ — trước khi làm bất cứ gì trong module này
 ntp server 10.99.1.5 prefer
 ntp server 10.99.1.6
 clock timezone ICT 7 0
 !
-⭐ service timestamps log datetime msec localtime show-timezone
-⭐ service timestamps debug datetime msec localtime show-timezone
-⭐ service sequence-numbers
+service timestamps log datetime msec localtime show-timezone
+service timestamps debug datetime msec localtime show-timezone
+service sequence-numbers
 ```
 
 | Lệnh | ⭐ Vì sao cần |
@@ -122,9 +122,9 @@ clock timezone ICT 7 0
 ⭐ **Kiểm chứng:**
 ```
 show clock detail
-   ⭐ 14:23:45.123 ICT Thu Sep 10 2026
-   ⭐ Time source is NTP              ← ⭐ PHẢI có dòng này
-   🔴 (nếu thấy dấu * trước giờ = CHƯA đồng bộ — Module-06B §3.5)
+   14:23:45.123 ICT Thu Sep 10 2026
+   Time source is NTP              ← PHẢI có dòng này
+   (nếu thấy dấu * trước giờ = CHƯA đồng bộ — Module-06B §3.5)
 show ntp status | include synchronized|stratum
 ```
 
@@ -157,9 +157,9 @@ show ntp status | include synchronized|stratum
 ### 3.2 🔴 ⭐⭐ `logging trap <mức>` lọc như thế nào — bẫy đề kinh điển
 
 ```
-   ⭐⭐ logging trap 4   →  GỬI ĐI CÁC MỨC 0, 1, 2, 3, VÀ 4
+   logging trap 4   →  GỬI ĐI CÁC MỨC 0, 1, 2, 3, VÀ 4
                             (tức là "mức 4 TRỞ XUỐNG SỐ", = nghiêm trọng hơn hoặc bằng)
-                            🔴 KHÔNG gửi mức 5, 6, 7
+                            KHÔNG gửi mức 5, 6, 7
 ```
 
 | Cấu hình | ⭐ Gửi những mức nào | Số lượng log |
@@ -193,26 +193,26 @@ service timestamps log datetime msec localtime show-timezone
 service sequence-numbers
 
 ! ─── ② Buffer trên RAM ───
-⭐ logging buffered 64000 debugging          ! ⭐ 64 KB, nhận tới mức 7
+logging buffered 64000 debugging          ! 64 KB, nhận tới mức 7
 
-! ─── ③ 🔴 GIẢM SPAM CONSOLE — rất quan trọng ───
-⭐ logging console warnings                  ! ⭐ chỉ 0–4 ra console
+! ─── ③ GIẢM SPAM CONSOLE — rất quan trọng ───
+logging console warnings                  ! chỉ 0–4 ra console
    ! hoặc mạnh tay: no logging console
 
 ! ─── ④ VTY ───
-logging monitor debugging                   ! ⭐ nhớ gõ "terminal monitor" khi SSH
+logging monitor debugging                   ! nhớ gõ "terminal monitor" khi SSH
 
-! ─── ⑤ ⭐⭐ SYSLOG SERVER TỪ XA (chính là mục 4.2) ───
-⭐ logging host 10.99.1.20
+! ─── ⑤ SYSLOG SERVER TỪ XA (chính là mục 4.2) ───
+logging host 10.99.1.20
    ! (cú pháp mới, chỉ định rõ transport/port:)
    ! logging host 10.99.1.20 transport udp port 514
-⭐ logging trap informational                ! ⭐ = mức 6 → gửi 0–6
-⭐ logging source-interface Loopback0        ! ⭐ IP nguồn CỐ ĐỊNH — server dễ nhận diện
-logging origin-id hostname                  ! ⭐ nhét tên thiết bị vào mỗi dòng
-logging facility local6                     ! ⭐ để server phân loại
+logging trap informational                ! = mức 6 → gửi 0–6
+logging source-interface Loopback0        ! IP nguồn CỐ ĐỊNH — server dễ nhận diện
+logging origin-id hostname                  ! nhét tên thiết bị vào mỗi dòng
+logging facility local6                     ! để server phân loại
 
 ! ─── ⑥ Chống nghẽn khi bão log ───
-logging rate-limit 50 except errors         ! ⭐ tối đa 50 msg/s, trừ lỗi nghiêm trọng
+logging rate-limit 50 except errors         ! tối đa 50 msg/s, trừ lỗi nghiêm trọng
 ```
 
 > ⭐⭐ **Ba dòng đáng giá nhất trong khối trên:**
@@ -228,12 +228,12 @@ logging rate-limit 50 except errors         ! ⭐ tối đa 50 msg/s, trừ lỗ
         GigabitEthernet0/0, changed state to up
 └──┬──┘ └──────────┬──────────┘  └────┬────┘└┬┘└──┬──┘  └───────────┬──────────────┘
    │               │                  │      │    │                 │
-   │               │                  │      │    │            ⭐ MÔ TẢ
-   │               │                  │      │    └── ⭐ MNEMONIC (tên sự kiện)
-   │               │                  │      └────── ⭐⭐ SEVERITY (5 = Notification)
-   │               │                  └───────────── ⭐ FACILITY (hệ thống con nào)
-   │               └──────────────────────────────── ⭐ TIMESTAMP (nhờ service timestamps)
-   └──────────────────────────────────────────────── ⭐ SEQUENCE (nhờ service sequence-numbers)
+   │               │                  │      │    │            MÔ TẢ
+   │               │                  │      │    └── MNEMONIC (tên sự kiện)
+   │               │                  │      └────── SEVERITY (5 = Notification)
+   │               │                  └───────────── FACILITY (hệ thống con nào)
+   │               └──────────────────────────────── TIMESTAMP (nhờ service timestamps)
+   └──────────────────────────────────────────────── SEQUENCE (nhờ service sequence-numbers)
 ```
 
 ⭐⭐ **Định dạng chuẩn:** `%FACILITY-SEVERITY-MNEMONIC: mô tả`
@@ -268,23 +268,23 @@ logging rate-limit 50 except errors         ! ⭐ tối đa 50 msg/s, trừ lỗ
 ### 3.6 ⭐ Verify syslog
 
 ```
-⭐ show logging                              ! ⭐⭐ lệnh chính — cấu hình + toàn bộ buffer
+show logging                              ! lệnh chính — cấu hình + toàn bộ buffer
 show logging | include %LINK|%LINEPROTO     ! lọc theo facility
 show logging | include Sep 10 14:           ! lọc theo giờ
-show logging count                          ! ⭐ đếm số message theo facility
-clear logging                                ! ⭐ xóa buffer trước khi tái hiện lỗi
-terminal monitor  /  terminal no monitor    ! ⭐ bật/tắt xem log trên phiên SSH
+show logging count                          ! đếm số message theo facility
+clear logging                                ! xóa buffer trước khi tái hiện lỗi
+terminal monitor  /  terminal no monitor    ! bật/tắt xem log trên phiên SSH
 ```
 
 ⭐ **Đọc phần đầu của `show logging` — đây là nơi kiểm tra cấu hình:**
 ```
 Syslog logging: enabled (0 messages dropped, 0 flushes, 0 overruns)
-    ⭐ Console logging: level warnings, 45 messages logged      ← mức console
-    ⭐ Monitor logging: level debugging, 0 messages logged
-    ⭐ Buffer logging: level debugging, 312 messages logged     ← buffer
-    ⭐ Trap logging: level informational, 289 message lines logged
-        ⭐ Logging to 10.99.1.20 (udp port 514, audit disabled,
-              link up), 289 message lines logged, ⭐ 0 message lines dropped
+    Console logging: level warnings, 45 messages logged      ← mức console
+    Monitor logging: level debugging, 0 messages logged
+    Buffer logging: level debugging, 312 messages logged     ← buffer
+    Trap logging: level informational, 289 message lines logged
+        Logging to 10.99.1.20 (udp port 514, audit disabled,
+              link up), 289 message lines logged, 0 message lines dropped
 ```
 
 | Dòng cần soi | ⭐ Ý nghĩa |
@@ -301,13 +301,13 @@ Syslog logging: enabled (0 messages dropped, 0 flushes, 0 overruns)
 
 ```
    ┌────────────────┐                          ┌─────────────────────┐
-   │  ⭐ MANAGER    │ ── Get/GetNext/GetBulk ──►│  ⭐ AGENT           │
-   │  (NMS: PRTG,   │      ⭐ UDP 161           │  (router/switch)    │
+   │  MANAGER    │ ── Get/GetNext/GetBulk ──►│  AGENT           │
+   │  (NMS: PRTG,   │      UDP 161           │  (router/switch)    │
    │   Zabbix,      │                           │                     │
    │   SolarWinds)  │ ◄──── Response ───────────│  ┌───────────────┐  │
-   │                │                           │  │  ⭐ MIB       │  │
+   │                │                           │  │  MIB       │  │
    │                │ ◄─── Trap / Inform ───────│  │ (cây dữ liệu) │  │
-   │                │      ⭐ UDP 162           │  └───────────────┘  │
+   │                │      UDP 162           │  └───────────────┘  │
    └────────────────┘                          └─────────────────────┘
 ```
 
@@ -373,38 +373,38 @@ Syslog logging: enabled (0 messages dropped, 0 flushes, 0 overruns)
 ### 4.4 ⭐ Cấu hình
 
 ```
-!═══════ SNMPv2c (⭐ chỉ dùng khi buộc phải) ═══════
+!═══════ SNMPv2c (chỉ dùng khi buộc phải) ═══════
 ip access-list standard ACL-SNMP
  permit 10.99.1.0 0.0.0.255
  deny   any log
 !
-⭐ snmp-server community CTY-Read-0nly RO ACL-SNMP     ! ⭐ RO + KHÓA BẰNG ACL
-   ! 🔴 TRÁNH community RW nếu không thật sự cần — nó cho phép GHI cấu hình
+snmp-server community CTY-Read-0nly RO ACL-SNMP     ! RO + KHÓA BẰNG ACL
+   ! TRÁNH community RW nếu không thật sự cần — nó cho phép GHI cấu hình
 snmp-server location "DC1 - Rack 12 - U20"
 snmp-server contact "netops@cty.local"
-⭐ snmp-server host 10.99.1.30 version 2c CTY-Read-0nly
+snmp-server host 10.99.1.30 version 2c CTY-Read-0nly
 snmp-server enable traps snmp linkdown linkup coldstart
 snmp-server enable traps config
 snmp-server enable traps cpu threshold
-⭐ snmp-server source-interface informs Loopback0
+snmp-server source-interface informs Loopback0
 
-!═══════ ⭐⭐ SNMPv3 (nên dùng) ═══════
+!═══════ SNMPv3 (nên dùng) ═══════
 ! ① View — quyết định NHÌN ĐƯỢC phần nào của cây MIB
-⭐ snmp-server view VIEW-ALL iso included
+snmp-server view VIEW-ALL iso included
    ! (hạn chế hơn:  snmp-server view VIEW-IF ifTable included)
 !
 ! ② Group — gắn view + mức bảo mật + ACL
-⭐ snmp-server group GRP-MONITOR v3 priv read VIEW-ALL access ACL-SNMP
+snmp-server group GRP-MONITOR v3 priv read VIEW-ALL access ACL-SNMP
 !                                  └┬─┘
-!                                   ⭐ "priv" = yêu cầu authPriv
+!                                   "priv" = yêu cầu authPriv
 !
 ! ③ User — thuộc group, có mật khẩu xác thực và mật khẩu mã hóa
-⭐ snmp-server user netops GRP-MONITOR v3 auth sha AuthPass2026 priv aes 128 PrivPass2026
+snmp-server user netops GRP-MONITOR v3 auth sha AuthPass2026 priv aes 128 PrivPass2026
 !                                        └───┬───┘             └─────┬─────┘
-!                                       ⭐ XÁC THỰC            ⭐ MÃ HÓA
+!                                       XÁC THỰC            MÃ HÓA
 !
 ! ④ Đích nhận trap
-⭐ snmp-server host 10.99.1.30 version 3 priv netops
+snmp-server host 10.99.1.30 version 3 priv netops
 ```
 
 > ⭐⭐ **Thứ tự bắt buộc: VIEW → GROUP → USER.** ⭐ Group tham chiếu view, user tham chiếu group.
@@ -413,23 +413,23 @@ snmp-server enable traps cpu threshold
 ### 4.5 ⭐ Verify SNMP
 
 ```
-⭐ show snmp                        ! ⭐ thống kê tổng, số gói vào/ra
+show snmp                        ! thống kê tổng, số gói vào/ra
 show snmp community                ! (v2c — có thể bị ẩn vì lý do bảo mật)
-⭐ show snmp user                   ! ⭐⭐ v3: user, engineID, auth/priv protocol
-⭐ show snmp group                  ! ⭐ group đang dùng view nào, mức bảo mật gì
+show snmp user                   ! v3: user, engineID, auth/priv protocol
+show snmp group                  ! group đang dùng view nào, mức bảo mật gì
 show snmp view
-⭐ show snmp host                   ! ⭐ đang gửi trap/inform đi đâu
+show snmp host                   ! đang gửi trap/inform đi đâu
 show snmp engineID
 debug snmp packet                  ! ⚠️ chỉ lab
 ```
 
 ⭐ **Đọc `show snmp user`:**
 ```
-User name: ⭐ netops
+User name: netops
 Engine ID: 800000090300AABBCC001100
 storage-type: nonvolatile        active
-⭐ Authentication Protocol: SHA          ← ⭐ xác thực
-⭐ Privacy Protocol: AES128              ← ⭐ mã hóa → đây là authPriv ✅
+Authentication Protocol: SHA          ← xác thực
+Privacy Protocol: AES128              ← mã hóa → đây là authPriv ✅
 Group-name: GRP-MONITOR
 ```
 > ⭐ **Nếu `Privacy Protocol: None`** → ⭐ **user này chỉ ở mức `authNoPriv`**, dữ liệu **không được mã hóa.**
@@ -457,17 +457,17 @@ Group-name: GRP-MONITOR
 ### 5.2 ⭐⭐ NetFlow truyền thống — 7 trường định nghĩa một FLOW
 
 ```
-   ⭐⭐ HAI GÓI THUỘC CÙNG MỘT FLOW khi CẢ BẢY trường sau GIỐNG NHAU:
+   HAI GÓI THUỘC CÙNG MỘT FLOW khi CẢ BẢY trường sau GIỐNG NHAU:
 
    ① Source IP address
    ② Destination IP address
    ③ Source port
    ④ Destination port
    ⑤ Layer 3 protocol type       (TCP=6, UDP=17, ICMP=1)
-   ⑥ ToS byte  (DSCP)            ⭐ — trường hay bị quên nhất
+   ⑥ ToS byte  (DSCP)            — trường hay bị quên nhất
    ⑦ Input logical interface
 
-   ⭐ Khác MỘT trường thôi  →  ĐÃ LÀ FLOW KHÁC
+   Khác MỘT trường thôi  →  ĐÃ LÀ FLOW KHÁC
 ```
 
 > 🔴 ⭐⭐ **Bẫy đề:** *"Kể 7 trường của NetFlow truyền thống."*
@@ -486,7 +486,7 @@ Group-name: GRP-MONITOR
 
 ```
    ┌──────────────────┐        ┌────────────────────┐
-   │ ⭐ FLOW RECORD   │        │ ⭐ FLOW EXPORTER   │
+   │ FLOW RECORD   │        │ FLOW EXPORTER   │
    │ "ĐO CÁI GÌ"      │        │ "GỬI ĐI ĐÂU"       │
    │ · match = KEY    │        │ · destination IP   │
    │ · collect =      │        │ · port, version    │
@@ -495,12 +495,12 @@ Group-name: GRP-MONITOR
             └────────────┬───────────────┘
                          ▼
               ┌─────────────────────┐
-              │ ⭐⭐ FLOW MONITOR   │  ← ⭐ ghép record + exporter + CACHE
+              │ FLOW MONITOR   │  ← ghép record + exporter + CACHE
               └──────────┬──────────┘
-                         │  (+ ⭐ FLOW SAMPLER — tùy chọn, lấy mẫu 1/N gói)
+                         │  (+ FLOW SAMPLER — tùy chọn, lấy mẫu 1/N gói)
                          ▼
                  ┌───────────────┐
-                 │ ⭐ INTERFACE  │  ip flow monitor <FM> input|output
+                 │ INTERFACE  │  ip flow monitor <FM> input|output
                  └───────────────┘
 ```
 
@@ -532,17 +532,17 @@ Group-name: GRP-MONITOR
 !═══════ ① FLOW RECORD — đo cái gì ═══════
 flow record FR-IPV4
  description Ghi nhan luu luong IPv4
- ! ─── ⭐ KEY FIELDS (match) — định nghĩa flow ───
- ⭐ match ipv4 source address
- ⭐ match ipv4 destination address
- ⭐ match ipv4 protocol
- ⭐ match transport source-port
- ⭐ match transport destination-port
- ⭐ match ipv4 tos
- ⭐ match interface input
- ! ─── ⭐ NON-KEY FIELDS (collect) — ghi thêm ───
- ⭐ collect counter bytes
- ⭐ collect counter packets
+ ! ─── KEY FIELDS (match) — định nghĩa flow ───
+ match ipv4 source address
+ match ipv4 destination address
+ match ipv4 protocol
+ match transport source-port
+ match transport destination-port
+ match ipv4 tos
+ match interface input
+ ! ─── NON-KEY FIELDS (collect) — ghi thêm ───
+ collect counter bytes
+ collect counter packets
  collect interface output
  collect timestamp sys-uptime first
  collect timestamp sys-uptime last
@@ -550,25 +550,25 @@ flow record FR-IPV4
 
 !═══════ ② FLOW EXPORTER — gửi đi đâu ═══════
 flow exporter FE-COLLECTOR
- ⭐ destination 10.99.1.40
- ⭐ source Loopback0                     ! ⭐ IP nguồn cố định
- ⭐ transport udp 2055                   ! ⭐ port phổ biến (2055, 9995, 9996)
- ⭐ export-protocol netflow-v9
- template data timeout 60               ! ⭐ gửi lại template mỗi 60s
- option interface-table                 ! ⭐ gửi kèm bảng tên interface
+ destination 10.99.1.40
+ source Loopback0                     ! IP nguồn cố định
+ transport udp 2055                   ! port phổ biến (2055, 9995, 9996)
+ export-protocol netflow-v9
+ template data timeout 60               ! gửi lại template mỗi 60s
+ option interface-table                 ! gửi kèm bảng tên interface
 
 !═══════ ③ FLOW MONITOR — ghép lại + cache ═══════
 flow monitor FM-IPV4
- ⭐ record FR-IPV4
- ⭐ exporter FE-COLLECTOR
- ⭐ cache timeout active 60              ! ⭐⭐ QUAN TRỌNG — xem cảnh báo dưới
- ⭐ cache timeout inactive 15
+ record FR-IPV4
+ exporter FE-COLLECTOR
+ cache timeout active 60              ! QUAN TRỌNG — xem cảnh báo dưới
+ cache timeout inactive 15
  cache entries 4096
 
 !═══════ ④ ÁP LÊN INTERFACE ═══════
 interface GigabitEthernet0/0
- ⭐ ip flow monitor FM-IPV4 input
- ⭐ ip flow monitor FM-IPV4 output
+ ip flow monitor FM-IPV4 input
+ ip flow monitor FM-IPV4 output
 
 !═══════ ⑤ (tùy chọn) SAMPLER cho link tốc độ cao ═══════
 sampler SAMP-1-IN-100
@@ -593,13 +593,13 @@ interface TenGigabitEthernet0/1
 ### 5.5 ⭐⭐ Verify — và LAB không cần collector
 
 ```
-show flow record FR-IPV4                        ! ⭐ xem lại record
+show flow record FR-IPV4                        ! xem lại record
 show flow exporter FE-COLLECTOR                 ! cấu hình exporter
-⭐ show flow exporter FE-COLLECTOR statistics    ! ⭐ đã gửi bao nhiêu gói, lỗi không
+show flow exporter FE-COLLECTOR statistics    ! đã gửi bao nhiêu gói, lỗi không
 show flow monitor FM-IPV4                       ! cấu hình monitor
-⭐⭐ show flow monitor FM-IPV4 cache              ! ⭐⭐ XEM TOÀN BỘ FLOW — LỆNH HAY NHẤT
-⭐ show flow monitor FM-IPV4 cache format table  ! ⭐ dạng bảng, dễ đọc hơn nhiều
-show flow monitor FM-IPV4 statistics            ! ⭐ số flow, cache có đầy không
+show flow monitor FM-IPV4 cache              ! XEM TOÀN BỘ FLOW — LỆNH HAY NHẤT
+show flow monitor FM-IPV4 cache format table  ! dạng bảng, dễ đọc hơn nhiều
+show flow monitor FM-IPV4 statistics            ! số flow, cache có đầy không
 show flow interface GigabitEthernet0/0          ! interface nào đang chạy monitor nào
 ```
 
@@ -611,7 +611,7 @@ show flow interface GigabitEthernet0/0          ! interface nào đang chạy mo
 ```
 R1# show flow monitor FM-IPV4 cache format table
 
-  IPV4 SRC ADDR   IPV4 DST ADDR   TRNS SRC PORT  TRNS DST PORT  IP PROT   ⭐ bytes  ⭐ pkts
+  IPV4 SRC ADDR   IPV4 DST ADDR   TRNS SRC PORT  TRNS DST PORT  IP PROT   bytes  pkts
   ==============  ==============  =============  =============  =======   ========  ======
   10.1.1.10       8.8.8.8                 53124             53         17       248       4
   10.1.1.10       203.0.113.50            49832            443          6   1458200    1024
@@ -624,13 +624,13 @@ R1# show flow monitor FM-IPV4 cache format table
 R1# show flow monitor FM-IPV4 statistics
   Cache type:                Normal (Platform cache)
   Cache size:                4096
-  ⭐ Current entries:          237
-  ⭐ High Watermark:           891
+  Current entries:          237
+  High Watermark:           891
   Flows added:               15420
-  ⭐ Flows aged:               15183
-    - Active timeout    (60 secs)     ⭐ 402
+  Flows aged:               15183
+    - Active timeout    (60 secs)     402
     - Inactive timeout  (15 secs)     14781
-  🔴 - Emergency aged                  0      ← ⭐ >0 nghĩa là CACHE ĐÃ ĐẦY
+  - Emergency aged                  0      ← >0 nghĩa là CACHE ĐÃ ĐẦY
 ```
 > 🔴 ⭐ **`Emergency aged > 0`** = ⭐ **cache đầy, flow bị đẩy ra sớm → số liệu KHÔNG chính xác.**
 > ⭐ **Sửa: tăng `cache entries`, hoặc giảm số `match`, hoặc bật sampler.**
@@ -642,13 +642,13 @@ R1# show flow monitor FM-IPV4 statistics
 ### 6.1 ⭐⭐ Bảng ba loại — học thuộc
 
 ```
-   ⭐ SPAN (local)          ⭐ RSPAN (qua L2)              ⭐⭐ ERSPAN (qua L3)
+   SPAN (local)          RSPAN (qua L2)              ERSPAN (qua L3)
 
    ┌──────────┐         ┌──────┐  ┌──────┐          ┌──────┐        ┌──────┐
    │  SW1     │         │ SW1  │══│ SW2  │          │ SW1  │≈≈GRE≈≈≈│ SW9  │
    │ src→dst  │         │ src  │  │ dst  │          │ src  │ (định  │ dst  │
    └──────────┘         └──────┘  └──────┘          └──────┘ tuyến) └──────┘
-   ⭐ Cùng 1 switch      ⭐ Qua RSPAN VLAN           ⭐ Qua mạng ĐÃ ĐỊNH TUYẾN
+   Cùng 1 switch      Qua RSPAN VLAN           Qua mạng ĐÃ ĐỊNH TUYẾN
                         (phải trunk suốt đường)      (đi được BẤT KỲ ĐÂU)
 ```
 
@@ -667,21 +667,21 @@ R1# show flow monitor FM-IPV4 statistics
 ### 6.2 ⭐⭐ SPAN cục bộ — cấu hình và những giới hạn phải biết
 
 ```
-! ⭐ Sao chép traffic của port Gi1/0/1 sang port Gi1/0/24 (máy phân tích cắm ở đó)
-monitor session 1 source interface GigabitEthernet1/0/1 ⭐ both
+! Sao chép traffic của port Gi1/0/1 sang port Gi1/0/24 (máy phân tích cắm ở đó)
+monitor session 1 source interface GigabitEthernet1/0/1 both
 monitor session 1 destination interface GigabitEthernet1/0/24
 
-! ⭐ Các biến thể nguồn:
-monitor session 1 source interface Gi1/0/1 ⭐ rx        ! chỉ chiều VÀO
-monitor session 1 source interface Gi1/0/1 ⭐ tx        ! chỉ chiều RA
+! Các biến thể nguồn:
+monitor session 1 source interface Gi1/0/1 rx        ! chỉ chiều VÀO
+monitor session 1 source interface Gi1/0/1 tx        ! chỉ chiều RA
 monitor session 1 source interface Gi1/0/1 - 4          ! nhiều port
-⭐ monitor session 1 source vlan 10                      ! ⭐ cả một VLAN (VSPAN)
+monitor session 1 source vlan 10                      ! cả một VLAN (VSPAN)
 
-! ⭐ Đích có thể thêm tùy chọn:
-monitor session 1 destination interface Gi1/0/24 ⭐ encapsulation replicate
-!                                                 └─ ⭐ giữ nguyên tag 802.1Q/CDP/STP
+! Đích có thể thêm tùy chọn:
+monitor session 1 destination interface Gi1/0/24 encapsulation replicate
+!                                                 └─ giữ nguyên tag 802.1Q/CDP/STP
 monitor session 1 destination interface Gi1/0/24 ingress vlan 10
-!                                                └─ ⭐ cho phép cổng đích vẫn NHẬN traffic
+!                                                └─ cho phép cổng đích vẫn NHẬN traffic
 ```
 
 > 🔴 ⭐⭐ **BỐN GIỚI HẠN PHẢI NHỚ — đề hỏi và ngoài đời cũng vấp:**
@@ -696,41 +696,41 @@ monitor session 1 destination interface Gi1/0/24 ingress vlan 10
 > ⭐ **Giới hạn 3 là cái nguy hiểm nhất** vì nó **im lặng** — không có cảnh báo, chỉ là gói bị rơi.
 
 ```
-⭐ show monitor session 1
-⭐ show monitor session all
+show monitor session 1
+show monitor session all
 show monitor session 1 detail
 ```
 ```
 Session 1
 ---------
 Type                   : Local Session
-⭐ Source Ports         :
+Source Ports         :
     Both               : Gi1/0/1
-⭐ Destination Ports    : Gi1/0/24
+Destination Ports    : Gi1/0/24
     Encapsulation      : Native
 ```
 
 ### 6.3 ⭐ RSPAN — qua nhiều switch trong cùng L2
 
 ```
-!═══ ⭐⭐ BƯỚC 0: TẠO RSPAN VLAN TRÊN **MỌI** SWITCH TRÊN ĐƯỜNG ĐI ═══
+!═══ BƯỚC 0: TẠO RSPAN VLAN TRÊN **MỌI** SWITCH TRÊN ĐƯỜNG ĐI ═══
 !    (switch nguồn, các switch trung gian, VÀ switch đích)
 vlan 999
  name RSPAN-VLAN
- ⭐ remote-span                          ! ⭐⭐ DÒNG BẮT BUỘC — quên là hỏng
+ remote-span                          ! DÒNG BẮT BUỘC — quên là hỏng
 
-!═══ ⭐ SWITCH NGUỒN ═══
+!═══ SWITCH NGUỒN ═══
 monitor session 1 source interface GigabitEthernet1/0/1 both
-⭐ monitor session 1 destination remote vlan 999
+monitor session 1 destination remote vlan 999
 
-!═══ ⭐ SWITCH ĐÍCH ═══
-⭐ monitor session 2 source remote vlan 999
+!═══ SWITCH ĐÍCH ═══
+monitor session 2 source remote vlan 999
 monitor session 2 destination interface GigabitEthernet1/0/24
 
-!═══ ⭐ TRÊN MỌI TRUNK TRÊN ĐƯỜNG ĐI ═══
+!═══ TRÊN MỌI TRUNK TRÊN ĐƯỜNG ĐI ═══
 interface GigabitEthernet1/0/48
  switchport mode trunk
- ⭐ switchport trunk allowed vlan add 999    ! ⭐ PHẢI cho VLAN 999 đi qua
+ switchport trunk allowed vlan add 999    ! PHẢI cho VLAN 999 đi qua
 ```
 
 > 🔴 ⭐⭐ **Ba lỗi RSPAN kinh điển:**
@@ -744,22 +744,22 @@ interface GigabitEthernet1/0/48
 ### 6.4 ⭐⭐ ERSPAN — vượt qua mạng định tuyến
 
 ```
-!═══ ⭐ PHÍA NGUỒN ═══
-monitor session 1 ⭐ type erspan-source
+!═══ PHÍA NGUỒN ═══
+monitor session 1 type erspan-source
  source interface GigabitEthernet0/1 both
  no shutdown
  destination
-  ⭐ erspan-id 100                        ! ⭐⭐ PHẢI KHỚP hai đầu
-  ⭐ ip address 10.99.1.50                ! IP của đầu nhận
-  ⭐ origin ip address 10.1.1.1           ! IP nguồn của tunnel GRE
+  erspan-id 100                        ! PHẢI KHỚP hai đầu
+  ip address 10.99.1.50                ! IP của đầu nhận
+  origin ip address 10.1.1.1           ! IP nguồn của tunnel GRE
 
-!═══ ⭐ PHÍA ĐÍCH ═══
-monitor session 2 ⭐ type erspan-destination
+!═══ PHÍA ĐÍCH ═══
+monitor session 2 type erspan-destination
  destination interface GigabitEthernet0/2
  no shutdown
  source
-  ⭐ erspan-id 100                        ! ⭐ khớp với đầu kia
-  ⭐ ip address 10.99.1.50
+  erspan-id 100                        ! khớp với đầu kia
+  ip address 10.99.1.50
 ```
 
 > ⭐⭐ **Ba điều phải nhớ về ERSPAN:**
@@ -821,23 +821,23 @@ monitor session 2 ⭐ type erspan-destination
 ```
 !═══ ① Định nghĩa phép đo ═══
 ip sla 10
- ⭐ icmp-echo 203.0.113.254 source-interface GigabitEthernet0/0
- ⭐ frequency 5                       ! ⭐ đo mỗi 5 giây
- ⭐ timeout 500                       ! ⭐ chờ tối đa 500 ms
- ⭐ threshold 200                     ! ⭐ >200 ms thì tính là "vượt ngưỡng"
+ icmp-echo 203.0.113.254 source-interface GigabitEthernet0/0
+ frequency 5                       ! đo mỗi 5 giây
+ timeout 500                       ! chờ tối đa 500 ms
+ threshold 200                     ! >200 ms thì tính là "vượt ngưỡng"
  tag "ISP1-health-check"
  request-data-size 64
 
-!═══ ② ⭐⭐ LÊN LỊCH — DÒNG HAY QUÊN NHẤT ═══
-⭐ ip sla schedule 10 life forever start-time now
+!═══ ② LÊN LỊCH — DÒNG HAY QUÊN NHẤT ═══
+ip sla schedule 10 life forever start-time now
 
 !═══ ③ Ghép với track (Module-03 / 06A) ═══
-⭐ track 1 ip sla 10 reachability
- delay down 10 up 30                 ! ⭐ chống "nhấp nháy"
+track 1 ip sla 10 reachability
+ delay down 10 up 30                 ! chống "nhấp nháy"
 
 !═══ ④ Dùng track ═══
-ip route 0.0.0.0 0.0.0.0 203.0.113.254 ⭐ track 1
-ip route 0.0.0.0 0.0.0.0 198.51.100.254 ⭐ 10        ! floating static dự phòng
+ip route 0.0.0.0 0.0.0.0 203.0.113.254 track 1
+ip route 0.0.0.0 0.0.0.0 198.51.100.254 10        ! floating static dự phòng
 ```
 
 > 🔴 ⭐⭐ **`ip sla schedule` là dòng bị quên nhiều nhất.**
@@ -858,16 +858,16 @@ ip route 0.0.0.0 0.0.0.0 198.51.100.254 ⭐ 10        ! floating static dự ph�
 ### 7.4 ⭐⭐ IP SLA Responder — khi nào cần và vì sao
 
 ```
-!═══ ⭐ TRÊN THIẾT BỊ ĐÍCH (R2) ═══
-⭐ ip sla responder
+!═══ TRÊN THIẾT BỊ ĐÍCH (R2) ═══
+ip sla responder
    ! hoặc chỉ định rõ:
    ! ip sla responder udp-echo ipaddress 10.0.0.2 port 5000
 
-!═══ ⭐ TRÊN THIẾT BỊ NGUỒN (R1) ═══
+!═══ TRÊN THIẾT BỊ NGUỒN (R1) ═══
 ip sla 20
- ⭐ udp-jitter 10.0.0.2 5000 ⭐ codec g711alaw
+ udp-jitter 10.0.0.2 5000 codec g711alaw
  frequency 30
- ⭐ tos 184                            ! ⭐ DSCP EF=46 → đo đúng hàng đợi voice (Module-09!)
+ tos 184                            ! DSCP EF=46 → đo đúng hàng đợi voice (Module-09!)
 ip sla schedule 20 life forever start-time now
 ```
 
@@ -883,23 +883,23 @@ ip sla schedule 20 life forever start-time now
 ### 7.5 ⭐⭐ Verify và đọc kết quả
 
 ```
-show ip sla configuration 10          ! ⭐ xem lại cấu hình + lịch
-⭐ show ip sla statistics 10           ! ⭐⭐ LỆNH CHÍNH — kết quả mới nhất
-show ip sla statistics aggregated 10  ! ⭐ thống kê gộp theo giờ
-show ip sla summary                   ! ⭐ tất cả operation trên một màn hình
-⭐ show track 1                        ! ⭐ trạng thái track + ai đang dùng nó
-show ip sla responder                 ! ⭐ trên thiết bị đích
+show ip sla configuration 10          ! xem lại cấu hình + lịch
+show ip sla statistics 10           ! LỆNH CHÍNH — kết quả mới nhất
+show ip sla statistics aggregated 10  ! thống kê gộp theo giờ
+show ip sla summary                   ! tất cả operation trên một màn hình
+show track 1                        ! trạng thái track + ai đang dùng nó
+show ip sla responder                 ! trên thiết bị đích
 debug ip sla trace 10                 ! ⚠️ chỉ lab
 ```
 
 ⭐ **Đọc `show ip sla statistics` cho icmp-echo:**
 ```
 IPSLA operation id: 10
-    ⭐ Latest RTT: 12 milliseconds
+    Latest RTT: 12 milliseconds
     Latest operation start time: 14:23:45 ICT Thu Sep 10 2026
-    ⭐ Latest operation return code: OK          ← ⭐⭐ DÒNG QUAN TRỌNG NHẤT
-    ⭐ Number of successes: 1847
-    ⭐ Number of failures: 3
+    Latest operation return code: OK          ← DÒNG QUAN TRỌNG NHẤT
+    Number of successes: 1847
+    Number of failures: 3
     Operation time to live: Forever
 ```
 
@@ -913,13 +913,13 @@ IPSLA operation id: 10
 
 ⭐ **Đọc `show ip sla statistics` cho udp-jitter (VoIP):**
 ```
-    ⭐ Number of RTT: 1000       RTT Min/Avg/Max: 8/14/45 milliseconds
-    ⭐ Latency one-way SD (Source→Destination): Min/Avg/Max: 4/7/22
-    ⭐ Latency one-way DS (Destination→Source): Min/Avg/Max: 4/7/23
-    ⭐⭐ Jitter SD: Min/Avg/Max: 0/2/11
-    ⭐⭐ Jitter DS: Min/Avg/Max: 0/2/9
-    ⭐ Packet Loss SD: 0    Packet Loss DS: 2
-    ⭐⭐ MOS score: 4.34                     ← ⭐⭐ điểm chất lượng thoại
+    Number of RTT: 1000       RTT Min/Avg/Max: 8/14/45 milliseconds
+    Latency one-way SD (Source→Destination): Min/Avg/Max: 4/7/22
+    Latency one-way DS (Destination→Source): Min/Avg/Max: 4/7/23
+    Jitter SD: Min/Avg/Max: 0/2/11
+    Jitter DS: Min/Avg/Max: 0/2/9
+    Packet Loss SD: 0    Packet Loss DS: 2
+    MOS score: 4.34                     ← điểm chất lượng thoại
 ```
 
 > ⭐⭐ **Đối chiếu ngay với ngưỡng VoIP đã học ở [Module-09 §8.1](Module-09-Architecture-va-QoS.md):**
@@ -950,14 +950,14 @@ IPSLA operation id: 10
 ### 8.1 🔴 ⭐⭐ Vì sao `debug all` là tự sát
 
 ```
-   🔴 KỊCH BẢN: bạn gõ "debug all" trên router production
+   KỊCH BẢN: bạn gõ "debug all" trên router production
 
    ① Mọi hệ thống con bắt đầu sinh log ở mức 7
-   ② ⭐ Log mặc định đổ ra CONSOLE — mà console là ĐỒNG BỘ và CHẬM (9600 baud!)
-   ③ ⭐ CPU phải chờ từng ký tự được in ra console
-   ④ ⭐⭐ CPU 100% → router NGỪNG xử lý OSPF hello, NGỪNG forward
-   ⑤ 🔴 Bạn KHÔNG GÕ ĐƯỢC "undebug all" nữa vì phiên của bạn cũng đơ
-   ⑥ 🔴 ⭐ Phải RÚT ĐIỆN router
+   ② Log mặc định đổ ra CONSOLE — mà console là ĐỒNG BỘ và CHẬM (9600 baud!)
+   ③ CPU phải chờ từng ký tự được in ra console
+   ④ CPU 100% → router NGỪNG xử lý OSPF hello, NGỪNG forward
+   ⑤ Bạn KHÔNG GÕ ĐƯỢC "undebug all" nữa vì phiên của bạn cũng đơ
+   ⑥ Phải RÚT ĐIỆN router
 ```
 
 > 🔴 ⭐⭐ **Đây là câu chuyện có thật xảy ra thường xuyên.** ⭐ Nguyên nhân gốc **không phải debug** —
@@ -966,23 +966,23 @@ IPSLA operation id: 10
 ### 8.2 ⭐⭐ Quy trình debug AN TOÀN — 5 bước
 
 ```
-① ⭐⭐ TẮT LOG RA CONSOLE, CHUYỂN VÀO BUFFER
+① TẮT LOG RA CONSOLE, CHUYỂN VÀO BUFFER
    no logging console
    logging buffered 128000 debugging
    clear logging
 
-② ⭐ KIỂM TRA CPU TRƯỚC KHI BẮT ĐẦU
+② KIỂM TRA CPU TRƯỚC KHI BẮT ĐẦU
    show processes cpu sorted | exclude 0.00
-   ⭐ CPU đã > 50% rồi thì ĐỪNG debug
+   CPU đã > 50% rồi thì ĐỪNG debug
 
-③ ⭐⭐ BẬT DEBUG CÓ ĐIỀU KIỆN (không bao giờ debug trần)
-   debug ip packet 199              ← ⭐ lọc bằng ACL
+③ BẬT DEBUG CÓ ĐIỀU KIỆN (không bao giờ debug trần)
+   debug ip packet 199              ← lọc bằng ACL
    ! hoặc:  debug condition interface Gi0/0
 
-④ ⭐ TÁI HIỆN LỖI — CHỈ VÀI GIÂY, RỒI TẮT NGAY
-   undebug all                      ← ⭐⭐ HỌC THUỘC LỆNH NÀY
+④ TÁI HIỆN LỖI — CHỈ VÀI GIÂY, RỒI TẮT NGAY
+   undebug all                      ← HỌC THUỘC LỆNH NÀY
 
-⑤ ⭐ ĐỌC KẾT QUẢ TỪ BUFFER (thoải mái, không áp lực thời gian)
+⑤ ĐỌC KẾT QUẢ TỪ BUFFER (thoải mái, không áp lực thời gian)
    show logging
 ```
 
@@ -997,30 +997,30 @@ IPSLA operation id: 10
 > ⭐ **Ý tưởng:** ⭐ **thay vì xem TẤT CẢ, chỉ xem đúng thứ bạn quan tâm.**
 
 ```
-!═══ ⭐ CÁCH 1: LỌC BẰNG ACL (phổ biến nhất) ═══
+!═══ CÁCH 1: LỌC BẰNG ACL (phổ biến nhất) ═══
 access-list 199 permit ip host 10.1.1.10 host 10.2.2.20
-access-list 199 permit ip host 10.2.2.20 host 10.1.1.10    ! ⭐ nhớ CẢ HAI CHIỀU
+access-list 199 permit ip host 10.2.2.20 host 10.1.1.10    ! nhớ CẢ HAI CHIỀU
 !
-⭐ debug ip packet 199 detail
+debug ip packet 199 detail
 
-!═══ ⭐ CÁCH 2: ĐIỀU KIỆN TOÀN CỤC (áp cho mọi debug đang bật) ═══
-⭐ debug condition interface GigabitEthernet0/0
-⭐ debug condition ip 10.1.1.10
+!═══ CÁCH 2: ĐIỀU KIỆN TOÀN CỤC (áp cho mọi debug đang bật) ═══
+debug condition interface GigabitEthernet0/0
+debug condition ip 10.1.1.10
 debug condition username nam.tran
 debug condition vlan 10
 !
-show debug condition                    ! ⭐ đang có điều kiện nào
-no debug condition all                  ! ⭐ xóa hết điều kiện
+show debug condition                    ! đang có điều kiện nào
+no debug condition all                  ! xóa hết điều kiện
 
-!═══ ⭐ CÁCH 3: IOS-XE — conditional debug hiện đại ═══
+!═══ CÁCH 3: IOS-XE — conditional debug hiện đại ═══
 debug platform condition interface Gi0/0 both
 debug platform condition start
    ... (tái hiện) ...
 debug platform condition stop
 show platform condition
 
-!═══ ⭐ CÁCH 4: WIRELESS (đã học Module-07B §9.4) ═══
-⭐ debug wireless mac aabb.ccdd.eeff internal      ! ⭐ RadioActive Trace
+!═══ CÁCH 4: WIRELESS (đã học Module-07B §9.4) ═══
+debug wireless mac aabb.ccdd.eeff internal      ! RadioActive Trace
 ```
 
 > 🔴 ⭐⭐ **Bẫy với `debug ip packet`:** ⭐ **nó CHỈ thấy gói được xử lý bằng process switching.**
@@ -1034,36 +1034,36 @@ show platform condition
 ### 8.4 ⭐⭐ Ping & Traceroute nâng cao
 
 ```
-!═══ ⭐ EXTENDED PING — mọi tùy chọn trên một dòng ═══
-⭐ ping 10.2.2.2 source Loopback0 repeat 100 size 1400 df-bit timeout 1
+!═══ EXTENDED PING — mọi tùy chọn trên một dòng ═══
+ping 10.2.2.2 source Loopback0 repeat 100 size 1400 df-bit timeout 1
 
-! ⭐ Các tùy chọn quan trọng:
-!   source <intf>   → ⭐ ép IP nguồn (test đúng đường về / khớp ACL, VRF)
-!   size <n>        → ⭐ kích thước gói
-!   df-bit          → ⭐⭐ CẤM PHÂN MẢNH → dùng để TÌM MTU (Module-08 §4.4!)
+! Các tùy chọn quan trọng:
+!   source <intf>   → ép IP nguồn (test đúng đường về / khớp ACL, VRF)
+!   size <n>        → kích thước gói
+!   df-bit          → CẤM PHÂN MẢNH → dùng để TÌM MTU (Module-08 §4.4!)
 !   repeat <n>      → số gói
 !   timeout <n>     → giây chờ
-!   tos <n>         → ⭐ đặt DSCP (Module-09: tos 184 = DSCP EF 46)
+!   tos <n>         → đặt DSCP (Module-09: tos 184 = DSCP EF 46)
 
-!═══ ⭐⭐ TÌM MTU TỰ ĐỘNG bằng chế độ tương tác ═══
+!═══ TÌM MTU TỰ ĐỘNG bằng chế độ tương tác ═══
 R1# ping
 Protocol [ip]:
 Target IP address: 10.2.2.2
 Repeat count [5]: 1
 Datagram size [100]: 
-Extended commands [n]: ⭐ y
-Set DF bit in IP header? [no]: ⭐ yes
-⭐ Sweep range of sizes [n]: y
-⭐ Sweep min size [36]: 1400
-⭐ Sweep max size [18024]: 1500
-⭐ Sweep interval [1]: 4
-   → ⭐⭐ Router tự thử từng kích thước và cho biết ngưỡng nào bắt đầu FAIL
+Extended commands [n]: y
+Set DF bit in IP header? [no]: yes
+Sweep range of sizes [n]: y
+Sweep min size [36]: 1400
+Sweep max size [18024]: 1500
+Sweep interval [1]: 4
+   → Router tự thử từng kích thước và cho biết ngưỡng nào bắt đầu FAIL
 
-!═══ ⭐ VRF (Module-08 §3.4) ═══
-⭐ ping vrf KHACH-A 10.10.10.100
+!═══ VRF (Module-08 §3.4) ═══
+ping vrf KHACH-A 10.10.10.100
 traceroute vrf KHACH-A 10.10.10.100
 
-!═══ ⭐ TRACEROUTE ═══
+!═══ TRACEROUTE ═══
 traceroute 10.2.2.2 source Loopback0 numeric probe 1 ttl 1 15
 ```
 
@@ -1145,14 +1145,14 @@ traceroute 10.2.2.2 source Loopback0 numeric probe 1 ttl 1 15
 | ⭐ Hợp với | ⭐ **Thay đổi cấu hình phức tạp, cần rollback** | ⭐ **Đọc trạng thái, tích hợp nhanh với script/web** |
 
 ```
-! ⭐ Bật trên IOS-XE — chỉ hai dòng
-⭐ netconf-yang
-⭐ restconf
+! Bật trên IOS-XE — chỉ hai dòng
+netconf-yang
+restconf
 !
-ip http secure-server                   ! ⭐ RESTCONF cần HTTPS
+ip http secure-server                   ! RESTCONF cần HTTPS
 !
-⭐ show netconf-yang sessions
-⭐ show platform software yang-management process
+show netconf-yang sessions
+show platform software yang-management process
 ```
 
 > ⭐⭐ **Ba con số phải nhớ ngay bây giờ:** ⭐ **NETCONF = SSH 830** · ⭐ **RESTCONF = HTTPS 443** ·
@@ -1287,10 +1287,10 @@ bạn ⭐ **tách được độ trễ CHIỀU ĐI khỏi độ trễ CHIỀU V�
 ```
 !═══ CẢ R1 VÀ R2 ═══
 clock timezone ICT 7 0
-clock set 14:00:00 10 Sep 2026            ! ⭐ lab không có NTP thì set tay CẢ HAI
-⭐ service timestamps log datetime msec localtime show-timezone
-⭐ service timestamps debug datetime msec localtime show-timezone
-⭐ service sequence-numbers
+clock set 14:00:00 10 Sep 2026            ! lab không có NTP thì set tay CẢ HAI
+service timestamps log datetime msec localtime show-timezone
+service timestamps debug datetime msec localtime show-timezone
+service sequence-numbers
 ```
 
 ---
@@ -1300,8 +1300,8 @@ clock set 14:00:00 10 Sep 2026            ! ⭐ lab không có NTP thì set tay 
 **Bước A1 — Bật buffer, tắt spam console:**
 ```
 !═══ R1 ═══
-⭐ logging buffered 64000 debugging
-⭐ logging console warnings                  ! ⭐ chỉ 0–4 ra console
+logging buffered 64000 debugging
+logging console warnings                  ! chỉ 0–4 ra console
 logging monitor debugging
 clear logging
 ```
@@ -1316,13 +1316,13 @@ R1(config-if)# exit
 R1# show logging | include Loopback99
 ```
 ```
-⭐ 000045: Sep 10 14:05:12.334 ICT: %LINK-⭐3-UPDOWN: Interface Loopback99,
+000045: Sep 10 14:05:12.334 ICT: %LINK-3-UPDOWN: Interface Loopback99,
            changed state to administratively down
-⭐ 000046: Sep 10 14:05:12.335 ICT: %LINEPROTO-⭐5-UPDOWN: Line protocol on
+000046: Sep 10 14:05:12.335 ICT: %LINEPROTO-5-UPDOWN: Line protocol on
            Interface Loopback99, changed state to down
-⭐ 000047: Sep 10 14:05:20.112 ICT: %LINK-⭐3-UPDOWN: Interface Loopback99,
+000047: Sep 10 14:05:20.112 ICT: %LINK-3-UPDOWN: Interface Loopback99,
            changed state to up
-⭐ 000048: Sep 10 14:05:20.113 ICT: %LINEPROTO-⭐5-UPDOWN: Line protocol on
+000048: Sep 10 14:05:20.113 ICT: %LINEPROTO-5-UPDOWN: Line protocol on
            Interface Loopback99, changed state to up
 ```
 
@@ -1341,27 +1341,27 @@ R1# show logging | include Loopback99
 
 **Bước A3 — 🔴 ⭐⭐ Chứng minh `logging trap` lọc như thế nào:**
 ```
-R1(config)# logging host 10.0.0.2               ! ⭐ R2 đóng vai "syslog server" (không cần chạy gì)
-R1(config)# ⭐ logging trap 4                    ! ⭐ chỉ gửi 0–4
+R1(config)# logging host 10.0.0.2               ! R2 đóng vai "syslog server" (không cần chạy gì)
+R1(config)# logging trap 4                    ! chỉ gửi 0–4
 R1# show logging | include Trap logging
 ```
 ```
-    ⭐ Trap logging: level warnings, 12 message lines logged
-        ⭐ Logging to 10.0.0.2 (udp port 514, audit disabled, link up),
+    Trap logging: level warnings, 12 message lines logged
+        Logging to 10.0.0.2 (udp port 514, audit disabled, link up),
               12 message lines logged, 0 message lines dropped
 ```
 ✅ **Checkpoint A3 — ⭐ so sánh hai con số:**
 ```
 R1# show logging | include Buffer logging|Trap logging
-    ⭐ Buffer logging: level debugging, ⭐ 312 messages logged     ← nhận HẾT (0–7)
-    ⭐ Trap logging:   level warnings,  ⭐ 12 message lines logged ← chỉ gửi 0–4
+    Buffer logging: level debugging, 312 messages logged     ← nhận HẾT (0–7)
+    Trap logging:   level warnings,  12 message lines logged ← chỉ gửi 0–4
 ```
 > 💡 ⭐⭐ **Chênh lệch 312 vs 12 chính là bằng chứng của cơ chế lọc.**
 > ⭐ **Buffer nhận mức 7 nên có mọi thứ. Trap chỉ mức 4 nên bỏ qua toàn bộ `%LINEPROTO-5`, `%SYS-5`, `%SEC-6`.**
 
 **Bước A4 — ⭐ Đổi ngưỡng và xác nhận:**
 ```
-R1(config)# ⭐ logging trap 6                    ! informational
+R1(config)# logging trap 6                    ! informational
 R1(config)# interface Loopback99
 R1(config-if)# shutdown
 R1(config-if)# no shutdown
@@ -1377,7 +1377,7 @@ R1# show logging | include Trap logging
 ### LAB B — ⭐ SNMPv2c và v3 (20 phút)
 
 ```
-!═══ R1 — v2c (⭐ khóa bằng ACL) ═══
+!═══ R1 — v2c (khóa bằng ACL) ═══
 ip access-list standard ACL-SNMP
  permit 10.0.0.2
  deny   any log
@@ -1388,31 +1388,31 @@ snmp-server contact "hocvien@lab.local"
 snmp-server host 10.0.0.2 version 2c CTY-Read-0nly
 snmp-server enable traps snmp linkdown linkup
 
-!═══ R1 — ⭐⭐ v3 (thứ tự VIEW → GROUP → USER) ═══
-⭐ snmp-server view VIEW-ALL iso included
-⭐ snmp-server group GRP-MONITOR v3 priv read VIEW-ALL access ACL-SNMP
-⭐ snmp-server user netops GRP-MONITOR v3 auth sha AuthPass2026 priv aes 128 PrivPass2026
+!═══ R1 — v3 (thứ tự VIEW → GROUP → USER) ═══
+snmp-server view VIEW-ALL iso included
+snmp-server group GRP-MONITOR v3 priv read VIEW-ALL access ACL-SNMP
+snmp-server user netops GRP-MONITOR v3 auth sha AuthPass2026 priv aes 128 PrivPass2026
 snmp-server host 10.0.0.2 version 3 priv netops
 ```
 
 ✅ **Checkpoint B — đọc và xác nhận mức bảo mật:**
 ```
 R1# show snmp user
-User name: ⭐ netops
+User name: netops
 Engine ID: 800000090300...
 storage-type: nonvolatile        active
-⭐ Authentication Protocol: SHA           ← có xác thực
-⭐ Privacy Protocol: AES128               ← ⭐ CÓ mã hóa → đây là authPriv ✅
+Authentication Protocol: SHA           ← có xác thực
+Privacy Protocol: AES128               ← CÓ mã hóa → đây là authPriv ✅
 Group-name: GRP-MONITOR
 
 R1# show snmp group
-groupname: ⭐ GRP-MONITOR      security model: ⭐ v3 priv
+groupname: GRP-MONITOR      security model: v3 priv
 readview : VIEW-ALL           writeview: <no writeview>
-⭐ row status: active     access-list: ACL-SNMP
+row status: active     access-list: ACL-SNMP
 
 R1# show snmp host
-Notification host: 10.0.0.2   udp-port: ⭐ 162   type: trap
-user: netops   security model: ⭐ v3 priv
+Notification host: 10.0.0.2   udp-port: 162   type: trap
+user: netops   security model: v3 priv
 ```
 
 > 💡 ⭐ **Thử bỏ phần `priv` khi tạo user** (`... v3 auth sha AuthPass2026`) rồi `show snmp user` →
@@ -1432,13 +1432,13 @@ user: netops   security model: ⭐ v3 priv
 !═══ R1 ═══
 !─── ① RECORD ───
 flow record FR-LAB
- ⭐ match ipv4 source address
- ⭐ match ipv4 destination address
- ⭐ match ipv4 protocol
- ⭐ match transport source-port
- ⭐ match transport destination-port
- ⭐ collect counter bytes
- ⭐ collect counter packets
+ match ipv4 source address
+ match ipv4 destination address
+ match ipv4 protocol
+ match transport source-port
+ match transport destination-port
+ collect counter bytes
+ collect counter packets
  collect interface output
  collect timestamp sys-uptime first
  collect timestamp sys-uptime last
@@ -1452,15 +1452,15 @@ flow exporter FE-LAB
 !
 !─── ③ MONITOR ───
 flow monitor FM-LAB
- ⭐ record FR-LAB
- ⭐ exporter FE-LAB
- ⭐ cache timeout active 60
- ⭐ cache timeout inactive 15
+ record FR-LAB
+ exporter FE-LAB
+ cache timeout active 60
+ cache timeout inactive 15
 !
 !─── ④ ÁP LÊN INTERFACE ───
 interface GigabitEthernet0/0
- ⭐ ip flow monitor FM-LAB input
- ⭐ ip flow monitor FM-LAB output
+ ip flow monitor FM-LAB input
+ ip flow monitor FM-LAB output
 ```
 
 **Bước C2 — Sinh nhiều loại traffic khác nhau:**
@@ -1477,7 +1477,7 @@ R2# ping 1.1.1.1 repeat 40 source Loopback0
 R1# show flow monitor FM-LAB cache format table
 ```
 ```
-IPV4 SRC ADDR  IPV4 DST ADDR  TRNS SRC PORT  TRNS DST PORT  IP PROT  ⭐ bytes  ⭐ pkts
+IPV4 SRC ADDR  IPV4 DST ADDR  TRNS SRC PORT  TRNS DST PORT  IP PROT  bytes  pkts
 =============  =============  =============  =============  =======  ========  ======
 10.0.0.1       10.0.0.2                   0              0        1      5000      50
 10.0.0.1       10.0.0.2                   0              0        1     42000      30
@@ -1494,12 +1494,12 @@ IPV4 SRC ADDR  IPV4 DST ADDR  TRNS SRC PORT  TRNS DST PORT  IP PROT  ⭐ bytes  
 ⭐ Đếm số flow hiện tại:
 ```
 R1# show flow monitor FM-LAB cache | include Current
-  ⭐ Current entries: 5
+  Current entries: 5
 ```
 ⭐ Giờ **bỏ bớt một key field** và xem số flow thay đổi:
 ```
 R1(config)# flow record FR-LAB
-R1(config-flow-record)# ⭐ no match transport source-port
+R1(config-flow-record)# no match transport source-port
 R1# clear flow monitor FM-LAB cache
 R1# ping 10.0.0.2 repeat 20
 R1# telnet 10.0.0.2 80
@@ -1513,18 +1513,18 @@ R1# show flow monitor FM-LAB cache | include Current
 ✅ **Checkpoint C4 — kiểm tra sức khỏe cache và exporter:**
 ```
 R1# show flow monitor FM-LAB statistics
-  ⭐ Current entries: 3
+  Current entries: 3
   High Watermark:   12
   Flows added:      48
-  ⭐ Flows aged:      45
-    - Active timeout   (60 secs)   ⭐ 6
+  Flows aged:      45
+    - Active timeout   (60 secs)   6
     - Inactive timeout (15 secs)   39
-    ⭐ - Emergency aged             0        ← ⭐ PHẢI là 0
+    - Emergency aged             0        ← PHẢI là 0
 !
 R1# show flow exporter FE-LAB statistics
-  ⭐ Packets sent: 24
+  Packets sent: 24
   Client: Flow Monitor FM-LAB
-    ⭐ Exporting flows to 10.0.0.2 (2055)
+    Exporting flows to 10.0.0.2 (2055)
 ```
 > 💡 ⭐ **`Emergency aged > 0`** = ⭐ **cache đầy, số liệu không tin được** → tăng `cache entries`
 > hoặc giảm số `match`.
@@ -1532,7 +1532,7 @@ R1# show flow exporter FE-LAB statistics
 **Bước C5 — ⭐ Quan sát `cache timeout active`:**
 ```
 R1(config)# flow monitor FM-LAB
-R1(config-flow-monitor)# ⭐ cache timeout active 1800      ! ⭐ về mặc định 30 phút
+R1(config-flow-monitor)# cache timeout active 1800      ! về mặc định 30 phút
 ```
 ⭐ Tạo một flow dài (`ping 10.0.0.2 repeat 10000`) rồi xem `show flow exporter ... statistics` —
 ⭐ **`Packets sent` gần như không tăng**, vì flow **chưa bị đẩy đi.**
@@ -1545,17 +1545,17 @@ R1(config-flow-monitor)# ⭐ cache timeout active 1800      ! ⭐ về mặc đ�
 
 ```
 !═══ SW1 ═══
-⭐ monitor session 1 source interface GigabitEthernet0/0 both
-⭐ monitor session 1 destination interface GigabitEthernet0/3
+monitor session 1 source interface GigabitEthernet0/0 both
+monitor session 1 destination interface GigabitEthernet0/3
 ```
 ```
 SW1# show monitor session 1
 Session 1
 ---------
-Type              : ⭐ Local Session
+Type              : Local Session
 Source Ports      :
-    ⭐ Both        : Gi0/0
-⭐ Destination Ports : Gi0/3
+    Both        : Gi0/0
+Destination Ports : Gi0/3
     Encapsulation : Native
 ```
 
@@ -1565,11 +1565,11 @@ Source Ports      :
 ⭐ **Sau khi cấu hình SPAN với destination = `Gi0/3`:**
 ```
 R2# ping 10.0.0.1
-🔴 .....                                  ← 🔴 MẤT MẠNG HOÀN TOÀN
+.....                                  ← MẤT MẠNG HOÀN TOÀN
 ```
 ```
 SW1# show interface Gi0/3 | include line protocol
-⭐ GigabitEthernet0/3 is up, line protocol is up       ← ⭐⭐ VẪN BÁO UP/UP!
+GigabitEthernet0/3 is up, line protocol is up       ← VẪN BÁO UP/UP!
 ```
 > 💡 🔴 ⭐⭐ **Đây là bài học đắt nhất của LAB D:** ⭐ **cổng vẫn `up/up`, đèn vẫn sáng,
 > `show interface` hoàn toàn sạch — nhưng thiết bị cắm vào đó MẤT MẠNG.**
@@ -1580,8 +1580,8 @@ SW1# show interface Gi0/3 | include line protocol
 ✅ **Checkpoint D2 — ⭐ SPAN theo VLAN và các biến thể:**
 ```
 SW1(config)# no monitor session 1
-SW1(config)# ⭐ monitor session 1 source vlan 10 rx
-SW1(config)# monitor session 1 destination interface Gi0/3 ⭐ encapsulation replicate
+SW1(config)# monitor session 1 source vlan 10 rx
+SW1(config)# monitor session 1 destination interface Gi0/3 encapsulation replicate
 SW1# show monitor session 1 detail | include VLANs|Encapsulation
 ```
 > 💡 ⭐ **`encapsulation replicate`** giữ nguyên **tag 802.1Q, CDP, STP BPDU** trong bản sao —
@@ -1589,17 +1589,17 @@ SW1# show monitor session 1 detail | include VLANs|Encapsulation
 
 ✅ **Checkpoint D3 — ⭐ RSPAN (nếu có 2 switch):**
 ```
-! ⭐ TRÊN CẢ HAI SWITCH:
+! TRÊN CẢ HAI SWITCH:
 vlan 999
  name RSPAN
- ⭐ remote-span
+ remote-span
 !
-! ⭐ Switch nguồn:
+! Switch nguồn:
 monitor session 1 source interface Gi0/0 both
-⭐ monitor session 1 destination remote vlan 999
+monitor session 1 destination remote vlan 999
 !
-! ⭐ Switch đích:
-⭐ monitor session 2 source remote vlan 999
+! Switch đích:
+monitor session 2 source remote vlan 999
 monitor session 2 destination interface Gi0/3
 ```
 > 💡 🔴 ⭐ **Thử BỎ `remote-span` trên một switch** → ⭐ **RSPAN ngừng hoạt động**,
@@ -1613,14 +1613,14 @@ monitor session 2 destination interface Gi0/3
 ```
 !═══ R1 ═══
 ip sla 10
- ⭐ icmp-echo 10.0.0.2 source-interface GigabitEthernet0/0
- ⭐ frequency 5
- ⭐ timeout 500
- ⭐ threshold 200
+ icmp-echo 10.0.0.2 source-interface GigabitEthernet0/0
+ frequency 5
+ timeout 500
+ threshold 200
  tag "R2-health"
-⭐ ip sla schedule 10 life forever start-time now
+ip sla schedule 10 life forever start-time now
 !
-⭐ track 1 ip sla 10 reachability
+track 1 ip sla 10 reachability
  delay down 10 up 30
 ```
 
@@ -1628,15 +1628,15 @@ ip sla 10
 ```
 R1# show ip sla statistics 10
 IPSLA operation id: 10
-    ⭐ Latest RTT: 4 milliseconds
-    ⭐ Latest operation return code: OK
-    ⭐ Number of successes: 24
+    Latest RTT: 4 milliseconds
+    Latest operation return code: OK
+    Number of successes: 24
     Number of failures: 0
 
 R1# show track 1
 Track 1
-  ⭐ IP SLA 10 reachability
-  ⭐ Reachability is Up                 ← ✅
+  IP SLA 10 reachability
+  Reachability is Up                 ← ✅
     3 changes, last change 00:02:14
 ```
 
@@ -1645,21 +1645,21 @@ Track 1
 R1(config)# ip sla 11
 R1(config-ip-sla)# icmp-echo 10.0.0.2
 R1(config-ip-sla)# exit
-!  ⭐ CỐ Ý KHÔNG gõ "ip sla schedule 11 ..."
+!  CỐ Ý KHÔNG gõ "ip sla schedule 11 ..."
 R1# show ip sla statistics 11
 ```
 ```
 IPSLA operation id: 11
-	🔴 ⭐ Operation has not been scheduled
+	Operation has not been scheduled
 ```
 > 💡 🔴 ⭐⭐ **Đây là lỗi số 1 với IP SLA.** ⭐ Operation nằm đầy đủ trong config,
 > ⭐ **`show run` trông hoàn toàn đúng — nhưng nó KHÔNG BAO GIỜ CHẠY.**
 
 **Bước E3 — ⭐⭐ Test failover thật:**
 ```
-R1(config)# ip route 2.2.2.2 255.255.255.255 10.0.0.2 ⭐ track 1
+R1(config)# ip route 2.2.2.2 255.255.255.255 10.0.0.2 track 1
 R1# show ip route 2.2.2.2 | include via
-   ⭐ * 10.0.0.2                          ← route CÓ trong bảng
+   * 10.0.0.2                          ← route CÓ trong bảng
 ```
 ⭐ **Giờ "cắt" đường** — shutdown interface phía R2:
 ```
@@ -1669,12 +1669,12 @@ R2(config-if)# shutdown
 ⭐ Chờ ~15 giây rồi xem trên R1:
 ```
 R1# show track 1
-  ⭐ Reachability is ⭐ Down               ← ⭐ track đã phát hiện
+  Reachability is Down               ← track đã phát hiện
 R1# show ip route 2.2.2.2
-   🔴 % Network not in table              ← ⭐⭐ ROUTE ĐÃ TỰ BỊ GỠ
+   % Network not in table              ← ROUTE ĐÃ TỰ BỊ GỠ
 R1# show ip sla statistics 10 | include return code|failures
-    ⭐ Latest operation return code: ⭐ Timeout
-    ⭐ Number of failures: 3
+    Latest operation return code: Timeout
+    Number of failures: 3
 ```
 > 💡 ⭐⭐ **Bạn vừa thấy chuỗi hoàn chỉnh: IP SLA phát hiện → track đổi trạng thái → route bị gỡ.**
 > ⭐ Đây chính là cơ chế **floating static failover** ở [Module-03](Module-03-IP-Routing-Nen-tang.md),
@@ -1684,29 +1684,29 @@ R1# show ip sla statistics 10 | include return code|failures
 
 **Bước E4 — ⭐⭐ udp-jitter với Responder (phần hay nhất LAB E):**
 ```
-!═══ ⭐ TRÊN R2 (đầu đích) ═══
-⭐ ip sla responder
+!═══ TRÊN R2 (đầu đích) ═══
+ip sla responder
 
-!═══ ⭐ TRÊN R1 (đầu nguồn) ═══
+!═══ TRÊN R1 (đầu nguồn) ═══
 ip sla 20
- ⭐ udp-jitter 10.0.0.2 5000 ⭐ codec g711alaw
+ udp-jitter 10.0.0.2 5000 codec g711alaw
  frequency 30
- ⭐ tos 184                              ! ⭐ DSCP EF (Module-09!)
+ tos 184                              ! DSCP EF (Module-09!)
  tag "VoIP-quality"
-⭐ ip sla schedule 20 life forever start-time now
+ip sla schedule 20 life forever start-time now
 ```
 ⭐ Chờ ~2 phút rồi xem:
 ```
 R1# show ip sla statistics 20
 ```
 ```
-    ⭐ Number of RTT: 1000     RTT Min/Avg/Max: 2/4/18 milliseconds
-    ⭐ Latency one-way SD: Min/Avg/Max: 1/2/9
-    ⭐ Latency one-way DS: Min/Avg/Max: 1/2/8
-    ⭐⭐ Source to Destination Jitter Min/Avg/Max: 0/1/6
-    ⭐⭐ Destination to Source Jitter Min/Avg/Max: 0/1/5
-    ⭐ Packet Loss SD: 0    Packet Loss DS: 0
-    ⭐⭐ MOS score: 4.39
+    Number of RTT: 1000     RTT Min/Avg/Max: 2/4/18 milliseconds
+    Latency one-way SD: Min/Avg/Max: 1/2/9
+    Latency one-way DS: Min/Avg/Max: 1/2/8
+    Source to Destination Jitter Min/Avg/Max: 0/1/6
+    Destination to Source Jitter Min/Avg/Max: 0/1/5
+    Packet Loss SD: 0    Packet Loss DS: 0
+    MOS score: 4.39
 ```
 ✅ **Checkpoint E4 — ⭐ đối chiếu với ngưỡng VoIP ([Module-09 §8.1](Module-09-Architecture-va-QoS.md)):**
 
@@ -1722,13 +1722,13 @@ R1# show ip sla statistics 20
 
 ✅ **Checkpoint E5 — ⭐ chứng minh vai trò của Responder:**
 ```
-R2(config)# ⭐ no ip sla responder
+R2(config)# no ip sla responder
 R1# clear ip sla statistics 20
 ```
 ⭐ Chờ 1 phút:
 ```
 R1# show ip sla statistics 20 | include return code
-    ⭐ Latest operation return code: 🔴 Timeout
+    Latest operation return code: Timeout
 ```
 > 💡 ⭐⭐ **`udp-jitter` KHÔNG chạy được nếu thiếu Responder.** ⭐ So sánh với `ip sla 10` (icmp-echo)
 > vẫn chạy bình thường — ⭐ **đó là khác biệt "cần Responder" vs "không cần".**
@@ -1743,24 +1743,24 @@ R1# show ip sla statistics 20 | include return code
 
 ```
 !═══ ① CHUẨN BỊ AN TOÀN — làm TRƯỚC khi bật debug ═══
-R1(config)# ⭐ no logging console
-R1(config)# ⭐ logging buffered 128000 debugging
-R1# ⭐ clear logging
-R1# show processes cpu sorted | exclude 0.00      ! ⭐ CPU đang bao nhiêu?
+R1(config)# no logging console
+R1(config)# logging buffered 128000 debugging
+R1# clear logging
+R1# show processes cpu sorted | exclude 0.00      ! CPU đang bao nhiêu?
 
-!═══ ② ⭐⭐ ACL LỌC — chỉ quan tâm traffic giữa 2 địa chỉ ═══
+!═══ ② ACL LỌC — chỉ quan tâm traffic giữa 2 địa chỉ ═══
 R1(config)# access-list 199 permit icmp host 10.0.0.1 host 10.0.0.2
-R1(config)# ⭐ access-list 199 permit icmp host 10.0.0.2 host 10.0.0.1   ! ⭐ NHỚ CHIỀU VỀ
+R1(config)# access-list 199 permit icmp host 10.0.0.2 host 10.0.0.1   ! NHỚ CHIỀU VỀ
 
 !═══ ③ BẬT DEBUG CÓ ĐIỀU KIỆN ═══
-R1# ⭐ debug ip packet 199 detail
-R1# ⭐ show debugging
+R1# debug ip packet 199 detail
+R1# show debugging
    Generic IP:
-     ⭐ IP packet debugging is on for access list 199
+     IP packet debugging is on for access list 199
 
 !═══ ④ TÁI HIỆN — CHỈ VÀI GIÂY ═══
 R1# ping 10.0.0.2 repeat 3
-R1# ⭐⭐ undebug all                    ! ⭐ TẮT NGAY
+R1# undebug all                    ! TẮT NGAY
 
 !═══ ⑤ ĐỌC TỪ BUFFER — thoải mái ═══
 R1# show logging | include IP: s=
@@ -1768,16 +1768,16 @@ R1# show logging | include IP: s=
 
 ✅ **Checkpoint F1:**
 ```
-⭐ IP: s=10.0.0.1 (local), d=10.0.0.2 (GigabitEthernet0/0), len 100, sending
-⭐ IP: s=10.0.0.2 (GigabitEthernet0/0), d=10.0.0.1 (GigabitEthernet0/0), len 100, rcvd 3
+IP: s=10.0.0.1 (local), d=10.0.0.2 (GigabitEthernet0/0), len 100, sending
+IP: s=10.0.0.2 (GigabitEthernet0/0), d=10.0.0.1 (GigabitEthernet0/0), len 100, rcvd 3
 ```
 
 ✅ **Checkpoint F2 — 🔴 ⭐⭐ tái hiện bẫy CEF (§8.3):**
 ```
-! ⭐ Ping XUYÊN QUA router (không phải tới router) — traffic này do CEF xử lý
+! Ping XUYÊN QUA router (không phải tới router) — traffic này do CEF xử lý
 R2# ping 1.1.1.1 source 2.2.2.2 repeat 5
 R1# show logging | include IP: s=2.2.2.2
-   ⭐ (TRỐNG — hoặc rất ít dòng)
+   (TRỐNG — hoặc rất ít dòng)
 ```
 > 💡 🔴 ⭐⭐ **`debug ip packet` CHỈ thấy gói được PROCESS-SWITCHED.**
 > ⭐ Traffic đi xuyên qua router được **CEF (fast path)** xử lý → ⭐ **KHÔNG hiện trong debug.**
@@ -1790,22 +1790,22 @@ R1# show logging | include IP: s=2.2.2.2
 
 ✅ **Checkpoint F3 — ⭐ `debug condition`:**
 ```
-R1# ⭐ debug condition interface GigabitEthernet0/0
+R1# debug condition interface GigabitEthernet0/0
 R1# debug ip packet detail
 R1# show debug condition
-   ⭐ Condition 1: interface Gi0/0 (1 flags triggered)
+   Condition 1: interface Gi0/0 (1 flags triggered)
 R1# undebug all
-R1# ⭐ no debug condition all
+R1# no debug condition all
 ```
 
 ✅ **Checkpoint F4 — 🔴 ⭐ hiểu vì sao console nguy hiểm (làm CẨN THẬN):**
 ```
-R1(config)# ⭐ logging console debugging       ! 🔴 bật lại console ở mức 7
+R1(config)# logging console debugging       ! bật lại console ở mức 7
 R1# debug ip packet
 R1# ping 10.0.0.2 repeat 100 size 1400
-   ⭐ → quan sát console bị TRÀN, router phản hồi CHẬM HẲN
-R1# ⭐ u all                                    ! ⭐ tắt ngay
-R1(config)# ⭐ no logging console               ! ⭐ trả về an toàn
+   → quan sát console bị TRÀN, router phản hồi CHẬM HẲN
+R1# u all                                    ! tắt ngay
+R1(config)# no logging console               ! trả về an toàn
 ```
 > 💡 🔴 ⭐⭐ **Đó mới chỉ là `debug ip packet` với 100 gói.** ⭐ Hình dung `debug all`
 > trên router production có 10.000 gói/giây. ⭐ **Đây là lý do quy trình §8.2 tồn tại.**
@@ -1816,29 +1816,29 @@ R1(config)# ⭐ no logging console               ! ⭐ trả về an toàn
 
 ```
 R1# ping 10.0.0.2 df-bit size 1500
-!!!!!                                    ⭐ OK (Ethernet MTU 1500)
+!!!!!                                    OK (Ethernet MTU 1500)
 
 R1# ping 10.0.0.2 df-bit size 1501
-🔴 .....                                  ← 🔴 vượt MTU
+.....                                  ← vượt MTU
 
-! ⭐⭐ CHẾ ĐỘ SWEEP — router tự tìm ngưỡng
+! CHẾ ĐỘ SWEEP — router tự tìm ngưỡng
 R1# ping
 Protocol [ip]: 
 Target IP address: 10.0.0.2
 Repeat count [5]: 1
 Datagram size [100]: 
 Timeout in seconds [2]: 1
-⭐ Extended commands [n]: y
+Extended commands [n]: y
 Source address or interface: 
 Type of service [0]: 
-⭐ Set DF bit in IP header? [no]: y
+Set DF bit in IP header? [no]: y
 Validate reply data? [no]: 
 Data pattern [0xABCD]: 
 Loose, Strict, Record, Timestamp, Verbose[none]: 
-⭐ Sweep range of sizes [n]: y
-⭐ Sweep min size [36]: 1480
-⭐ Sweep max size [18024]: 1520
-⭐ Sweep interval [1]: 4
+Sweep range of sizes [n]: y
+Sweep min size [36]: 1480
+Sweep max size [18024]: 1520
+Sweep interval [1]: 4
 ```
 ✅ **Checkpoint G:** ⭐ **Output cho thấy chính xác kích thước nào bắt đầu FAIL.**
 ⭐ Nếu bạn dựng GRE tunnel từ Module-08 và ping qua nó → ⭐ **ngưỡng sẽ là 1476 (1500 − 24).**
@@ -1962,58 +1962,58 @@ trên đường không?"* — ⭐ **đây chính là thứ mà `traceroute` KHÔ
 ### 17.1 ⭐ Hộp lệnh vạn năng
 
 ```
-═══ ⭐ THỜI GIAN (làm trước mọi thứ) ═══
-show clock detail                         ! ⭐ "Time source is NTP"? có dấu * không?
+═══ THỜI GIAN (làm trước mọi thứ) ═══
+show clock detail                         ! "Time source is NTP"? có dấu * không?
 show ntp status | include synchronized|stratum
 show ntp associations
 
-═══ ⭐⭐ SYSLOG ═══
-⭐ show logging                            ! ⭐⭐ cấu hình + toàn bộ buffer
+═══ SYSLOG ═══
+show logging                            ! cấu hình + toàn bộ buffer
 show logging | include %LINK|%LINEPROTO
 show logging | include Trap logging|Buffer logging|dropped
-show logging count                        ! ⭐ đếm theo facility
-clear logging                             ! ⭐ xóa trước khi tái hiện
+show logging count                        ! đếm theo facility
+clear logging                             ! xóa trước khi tái hiện
 terminal monitor / terminal no monitor
 
-═══ ⭐ SNMP ═══
+═══ SNMP ═══
 show snmp                                 ! thống kê chung
-⭐ show snmp user                          ! ⭐ v3: auth/priv protocol
-⭐ show snmp group                         ! view + security level + ACL
+show snmp user                          ! v3: auth/priv protocol
+show snmp group                         ! view + security level + ACL
 show snmp host                            ! gửi trap/inform đi đâu
 show snmp view / show snmp engineID
 
-═══ ⭐⭐ NETFLOW ═══
-⭐⭐ show flow monitor <FM> cache format table    ! ⭐⭐ XEM FLOW — lệnh hay nhất
-⭐ show flow monitor <FM> statistics             ! ⭐ Emergency aged?
+═══ NETFLOW ═══
+show flow monitor <FM> cache format table    ! XEM FLOW — lệnh hay nhất
+show flow monitor <FM> statistics             ! Emergency aged?
 show flow monitor <FM>
 show flow record <FR>
-⭐ show flow exporter <FE> statistics            ! ⭐ Packets sent có tăng không
+show flow exporter <FE> statistics            ! Packets sent có tăng không
 show flow interface <intf>
 clear flow monitor <FM> cache
 
-═══ ⭐⭐ SPAN ═══
-⭐ show monitor session all
+═══ SPAN ═══
+show monitor session all
 show monitor session <n> detail
-show vlan remote-span                     ! ⭐ RSPAN VLAN
+show vlan remote-span                     ! RSPAN VLAN
 show interface <dst-port> | include line protocol
 
-═══ ⭐⭐ IP SLA ═══
-show ip sla configuration <id>            ! ⭐ có lịch chưa
-⭐ show ip sla statistics <id>             ! ⭐⭐ return code + số liệu
+═══ IP SLA ═══
+show ip sla configuration <id>            ! có lịch chưa
+show ip sla statistics <id>             ! return code + số liệu
 show ip sla statistics aggregated <id>
 show ip sla summary
-⭐ show track <n>                          ! ⭐ trạng thái + ai dùng nó
-show ip sla responder                     ! ⭐ trên đầu đích
+show track <n>                          ! trạng thái + ai dùng nó
+show ip sla responder                     ! trên đầu đích
 clear ip sla statistics <id>
 
-═══ ⭐⭐ DEBUG ═══
-⭐ show debugging                          ! ⭐ đang bật gì
+═══ DEBUG ═══
+show debugging                          ! đang bật gì
 show debug condition
-⭐⭐ undebug all   (u all)                  ! ⭐⭐ HỌC THUỘC
-show processes cpu sorted | exclude 0.00  ! ⭐ kiểm tra TRƯỚC khi debug
+undebug all   (u all)                  ! HỌC THUỘC
+show processes cpu sorted | exclude 0.00  ! kiểm tra TRƯỚC khi debug
 show processes cpu history
 
-═══ ⭐ NETCONF/RESTCONF (§10) ═══
+═══ NETCONF/RESTCONF (§10) ═══
 show netconf-yang sessions
 show platform software yang-management process
 ```
@@ -2050,28 +2050,28 @@ show platform software yang-management process
 ### 17.3 ⭐ Quy trình chẩn đoán "người dùng kêu mạng chậm" — dùng đủ 5 giác quan
 
 ```
-① ⭐ THỜI GIAN CÓ ĐÚNG KHÔNG?
+① THỜI GIAN CÓ ĐÚNG KHÔNG?
       show clock detail (mọi thiết bị liên quan)
-      → ⭐ sai giờ thì mọi bước sau đều không đối chiếu được
+      → sai giờ thì mọi bước sau đều không đối chiếu được
 
-② ⭐ ĐÃ XẢY RA CHUYỆN GÌ?               → ⭐ SYSLOG
+② ĐÃ XẢY RA CHUYỆN GÌ?               → SYSLOG
       show logging | include %LINK|%LINEPROTO|%OSPF|%TUN
       → có flap? có ai đổi config (%SYS-5-CONFIG_I)?
 
-③ ⭐ THIẾT BỊ CÓ KHỎE KHÔNG?            → ⭐ SNMP / show
+③ THIẾT BỊ CÓ KHỎE KHÔNG?            → SNMP / show
       show processes cpu sorted · show interface | include rate|drops
       → CPU cao? interface có drop/error?
 
-④ ⭐⭐ AI ĐANG ĂN BĂNG THÔNG?           → ⭐⭐ NETFLOW
+④ AI ĐANG ĂN BĂNG THÔNG?           → NETFLOW
       show flow monitor <FM> cache format table
-      → ⭐ ĐÂY thường là chỗ tìm ra thủ phạm
+      → ĐÂY thường là chỗ tìm ra thủ phạm
 
-⑤ ⭐ CHẤT LƯỢNG ĐƯỜNG CÓ ĐẠT KHÔNG?     → ⭐ IP SLA
+⑤ CHẤT LƯỢNG ĐƯỜNG CÓ ĐẠT KHÔNG?     → IP SLA
       show ip sla statistics
       → RTT/jitter/loss có vượt ngưỡng 150/30/1 không?
 
-⑥ ⭐ VẪN CHƯA RA?                        → ⭐ SPAN + Wireshark (soi chi tiết)
-      hoặc ⭐ conditional debug (xem router xử lý gói thế nào)
+⑥ VẪN CHƯA RA?                        → SPAN + Wireshark (soi chi tiết)
+      hoặc conditional debug (xem router xử lý gói thế nào)
 ```
 
 > ⭐⭐ **Nguyên tắc: đi từ RẺ đến ĐẮT.** ⭐ Syslog và NetFlow **đang chạy sẵn, không tốn gì thêm.**

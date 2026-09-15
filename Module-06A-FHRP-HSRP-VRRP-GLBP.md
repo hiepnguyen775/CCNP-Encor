@@ -38,7 +38,7 @@
 ### 2.1 FHRP giải quyết vấn đề gì
 
 ```
-   KHÔNG CÓ FHRP                          ⭐ CÓ FHRP
+   KHÔNG CÓ FHRP                          CÓ FHRP
    ─────────────                          ─────────
    PC: default gateway = 10.1.1.1         PC: default gateway = 10.1.1.1 (VIRTUAL IP)
                                                         │
@@ -49,7 +49,7 @@
       │  R1 chết →     │                     └────┬────┘
       │  PC MẤT MẠNG   │                    Virtual IP .1 + Virtual MAC
       │  (phải sửa tay │                    → R1 chết, R2 tiếp nhận
-      │   gateway trên │                      ⭐ PC KHÔNG BIẾT GÌ
+      │   gateway trên │                      PC KHÔNG BIẾT GÌ
       │   TỪNG PC)     │
 ```
 
@@ -150,7 +150,7 @@ INITIAL ──▶ LEARN ──▶ LISTEN ──▶ SPEAK ──▶ STANDBY ─�
 
 ```
 interface Vlan10
- standby version 2                       ! ⭐ phải đặt TRƯỚC khi cấu hình group > 255
+ standby version 2                       ! phải đặt TRƯỚC khi cấu hình group > 255
  standby 10 ip 10.1.10.1
 ```
 ⚠️ **Đổi version = HSRP reset** → có ngắt ngắn. Và ⭐ **cả 2 router phải cùng version**.
@@ -161,16 +161,16 @@ interface Vlan10
 interface Vlan10
  ip address 10.1.10.2 255.255.255.0
  !
- standby version 2                                    ! ⭐ nên dùng v2
- standby 10 ip 10.1.10.1                              ! ⭐ Virtual IP
+ standby version 2                                    ! nên dùng v2
+ standby 10 ip 10.1.10.1                              ! Virtual IP
  standby 10 priority 110                              ! CAO thắng (default 100)
- standby 10 preempt                                   ! 🔴 PHẢI GÕ — mặc định TẮT!
- standby 10 preempt delay minimum 60                  ! ⭐ chờ 60s sau reboot mới preempt
+ standby 10 preempt                                   ! PHẢI GÕ — mặc định TẮT!
+ standby 10 preempt delay minimum 60                  ! chờ 60s sau reboot mới preempt
  standby 10 timers 1 3                                ! hello 1s / hold 3s
- standby 10 timers msec 200 msec 750                  ! ⭐ hoặc millisecond
- standby 10 authentication md5 key-string MyHsrpKey   ! ⭐ MD5
+ standby 10 timers msec 200 msec 750                  ! hoặc millisecond
+ standby 10 authentication md5 key-string MyHsrpKey   ! MD5
  standby 10 name VLAN10-GW                            ! tên (tiện quản lý)
- standby 10 track 1 decrement 30                      ! ⭐ object tracking
+ standby 10 track 1 decrement 30                      ! object tracking
 ```
 
 ⭐ **`preempt delay minimum`** — cực quan trọng ở production:
@@ -180,8 +180,8 @@ Nếu preempt ngay → nó thành Active mà **chưa có route** → ⭐ **black
 
 **Kiểm tra:**
 ```
-show standby                              ! ⭐ chi tiết mọi group
-show standby brief                        ! ⭐ bảng gọn — dùng nhiều nhất
+show standby                              ! chi tiết mọi group
+show standby brief                        ! bảng gọn — dùng nhiều nhất
 show standby Vlan10 10
 show standby all
 debug standby                             ! ⚠️ chỉ lab
@@ -207,7 +207,7 @@ Vlan10 - Group 10 (version 2)
   State is Active
     2 state changes, last state change 00:05:12
   Virtual IP address is 10.1.10.1
-  Active virtual MAC address is 0000.0c9f.f00a           ← ⭐ vMAC (HSRPv2, group 10)
+  Active virtual MAC address is 0000.0c9f.f00a           ← vMAC (HSRPv2, group 10)
     Local virtual MAC address is 0000.0c9f.f00a (v2 default)
   Hello time 3 sec, hold time 10 sec
     Next hello sent in 1.024 secs
@@ -216,7 +216,7 @@ Vlan10 - Group 10 (version 2)
   Active router is local
   Standby router is 10.1.10.3, priority 100 (expires in 9.056 sec)
   Priority 110 (configured 110)
-    Track object 1 state Up decrement 30                 ← ⭐ tracking
+    Track object 1 state Up decrement 30                 ← tracking
   Group name is "VLAN10-GW" (cfgd)
 ```
 
@@ -249,7 +249,7 @@ INITIALIZE ──▶ BACKUP ──▶ MASTER
 ! ═══ Cú pháp CỔ ĐIỂN (VRRPv2, hay xuất hiện trong đề) ═══
 interface Vlan10
  ip address 10.1.10.2 255.255.255.0
- vrrp 10 ip 10.1.10.1                                  ! ⭐ Virtual IP
+ vrrp 10 ip 10.1.10.1                                  ! Virtual IP
  vrrp 10 priority 110
  vrrp 10 preempt                                        ! (mặc định đã BẬT)
  vrrp 10 timers advertise 1
@@ -258,7 +258,7 @@ interface Vlan10
  vrrp 10 description VLAN10-GW
 
 ! ═══ Cú pháp MỚI (VRRPv3, hỗ trợ IPv6) ═══
-fhrp version vrrp v3                                    ! ⭐ global
+fhrp version vrrp v3                                    ! global
 !
 interface Vlan10
  vrrp 10 address-family ipv4
@@ -278,9 +278,9 @@ interface Vlan10
 **Kiểm tra:**
 ```
 show vrrp                                 ! chi tiết
-show vrrp brief                           ! ⭐ bảng gọn
+show vrrp brief                           ! bảng gọn
 show vrrp interface Vlan10
-show fhrp verbose                          ! ⭐ mọi FHRP trên router
+show fhrp verbose                          ! mọi FHRP trên router
 debug vrrp all                             ! ⚠️ chỉ lab
 ```
 
@@ -303,7 +303,7 @@ GLBP cho ⭐ **tối đa 4 router cùng forward** trong **cùng một group**.
 #### Cơ chế — AVG và AVF
 
 ```
-                    ⭐ AVG (Active Virtual Gateway) — 1 per group
+                    AVG (Active Virtual Gateway) — 1 per group
                     Nhiệm vụ: TRẢ LỜI ARP cho Virtual IP
                               nhưng trả về vMAC KHÁC NHAU cho từng host
                               
@@ -312,7 +312,7 @@ GLBP cho ⭐ **tối đa 4 router cùng forward** trong **cùng một group**.
    PC3 ARP "10.1.1.1?" ──▶ AVG trả: vMAC1 ──▶ PC3 dùng R1
    PC4 ARP "10.1.1.1?" ──▶ AVG trả: vMAC2 ──▶ PC4 dùng R2
    
-   ⭐ AVF (Active Virtual Forwarder) — tối đa 4/group, mỗi cái 1 vMAC
+   AVF (Active Virtual Forwarder) — tối đa 4/group, mỗi cái 1 vMAC
 ```
 
 | Vai | Số lượng | Nhiệm vụ |
@@ -336,8 +336,8 @@ interface Vlan10
  glbp 10 ip 10.1.10.1
  glbp 10 priority 110                        ! bầu AVG
  glbp 10 preempt
- glbp 10 load-balancing round-robin          ! ⭐ chỉ AVG quyết định
- glbp 10 weighting 100 lower 80 upper 90     ! ⭐ weight + ngưỡng cho AVF
+ glbp 10 load-balancing round-robin          ! chỉ AVG quyết định
+ glbp 10 weighting 100 lower 80 upper 90     ! weight + ngưỡng cho AVF
  glbp 10 weighting track 1 decrement 30
  glbp 10 authentication md5 key-string MyGlbpKey
 ```
@@ -345,7 +345,7 @@ interface Vlan10
 **Kiểm tra:**
 ```
 show glbp
-show glbp brief                            ! ⭐ thấy cả AVG và từng AVF
+show glbp brief                            ! thấy cả AVG và từng AVF
 show glbp Vlan10 10
 ```
 
@@ -399,14 +399,14 @@ Một host với traffic khổng lồ vẫn chỉ dùng 1 router. Và ⭐ **Cisc
 ```
 ! ═══ 1. IP SLA — ping THẬT một đích trên Internet qua ĐÚNG uplink ═══
 ip sla 1
- icmp-echo 8.8.8.8 source-interface GigabitEthernet0/1    ! ⭐ source-interface BẮT BUỘC
+ icmp-echo 8.8.8.8 source-interface GigabitEthernet0/1    ! source-interface BẮT BUỘC
  frequency 5
  timeout 2000
-ip sla schedule 1 life forever start-time now              ! ⭐ KHÔNG ĐƯỢC QUÊN
+ip sla schedule 1 life forever start-time now              ! KHÔNG ĐƯỢC QUÊN
 
 ! ═══ 2. Track object ═══
 track 1 ip sla 1 reachability
- delay down 3 up 10                                        ! ⭐ chống flapping
+ delay down 3 up 10                                        ! chống flapping
 
 ! (bổ sung) Track cả interface uplink
 track 2 interface GigabitEthernet0/1 line-protocol
@@ -421,7 +421,7 @@ interface Vlan10
  standby 10 ip 10.1.10.1
  standby 10 priority 110
  standby 10 preempt
- standby 10 track 10 decrement 30            ! ⭐ track fail → priority 110-30 = 80
+ standby 10 track 10 decrement 30            ! track fail → priority 110-30 = 80
 ```
 
 ⭐ **Cơ chế:** track `Down` → priority giảm **110 − 30 = 80** → thấp hơn R2 (100)
@@ -438,7 +438,7 @@ Priority R1 = 110 · Priority R2 = 100
 decrement = 5   → 110-5  = 105 > 100 → ❌ KHÔNG failover
 decrement = 10  → 110-10 = 100 = 100 → ⚠️ TIE (không đảm bảo)
 decrement = 20  → 110-20 =  90 < 100 → ✅ Failover
-decrement = 30  → 110-30 =  80 < 100 → ✅ Failover (⭐ có biên an toàn)
+decrement = 30  → 110-30 =  80 < 100 → ✅ Failover (có biên an toàn)
 ```
 
 ⭐ **Công thức:** `decrement > (priority_của_tôi − priority_của_router_kia)`.
@@ -446,9 +446,9 @@ Nên để **dư biên** — trong ví dụ trên, chọn 20–30 thay vì đún
 
 **Kiểm tra:**
 ```
-show track                                  ! ⭐ mọi track object
+show track                                  ! mọi track object
 show track 1
-show ip sla statistics 1                    ! ⭐ return code, successes
+show ip sla statistics 1                    ! return code, successes
 show standby Vlan10 10 | include Track|Priority
 show standby brief
 ```
@@ -463,7 +463,7 @@ Track 1
   Latest operation return code: OK
   Latest RTT (millisecs) 24
   Tracked by:
-    HSRP Vlan10 10                           ← ⭐ xác nhận HSRP đang dùng track này
+    HSRP Vlan10 10                           ← xác nhận HSRP đang dùng track này
 ```
 
 ---
@@ -803,9 +803,9 @@ R1# show standby GigabitEthernet0/0.10 10
 GigabitEthernet0/0.10 - Group 10 (version 2)
   State is Active
   Virtual IP address is 10.1.10.1
-  Active virtual MAC address is 0000.0c9f.f00a           ← ⭐ vMAC
+  Active virtual MAC address is 0000.0c9f.f00a           ← vMAC
   Hello time 3 sec, hold time 10 sec
-  Preemption disabled                                     ← ⭐ TẮT!
+  Preemption disabled                                     ← TẮT!
   Active router is local
   Standby router is 10.1.10.3, priority 100
   Priority 110 (configured 110)
@@ -818,7 +818,7 @@ GigabitEthernet0/0.10 - Group 10 (version 2)
 **Xem trên PC1:**
 ```
 PC1> arp
-! 00:00:0c:9f:f0:0a  10.1.10.1  expires in ...        ← ⭐ vMAC, không phải MAC R1
+! 00:00:0c:9f:f0:0a  10.1.10.1  expires in ...        ← vMAC, không phải MAC R1
 PC1> ping 8.8.8.8
 ! ✅ thành công
 PC1> trace 8.8.8.8
@@ -855,13 +855,13 @@ R2 (priority 100) ⭐ **vẫn là Active**.
 ```
 R1(config)# interface GigabitEthernet0/0.10
 R1(config-subif)#  standby 10 preempt
-R1(config-subif)#  standby 10 preempt delay minimum 30       ! ⭐ chống black hole
+R1(config-subif)#  standby 10 preempt delay minimum 30       ! chống black hole
 R1(config-subif)# exit
 R1(config)# interface GigabitEthernet0/0.20
 R1(config-subif)#  standby 20 preempt
 R1(config-subif)#  standby 20 preempt delay minimum 30
 
-! ⭐ R2 CŨNG PHẢI bật preempt (để tracking ở bước 3 hoạt động)
+! R2 CŨNG PHẢI bật preempt (để tracking ở bước 3 hoạt động)
 R2(config)# interface GigabitEthernet0/0.10
 R2(config-subif)#  standby 10 preempt
 R2(config-subif)#  standby 10 preempt delay minimum 30
@@ -930,7 +930,7 @@ R2# show logging | include HSRP
 R1(config-subif)# no shutdown
 ! chờ ổn định (30s preempt delay)
 !
-! ⭐ Đặt timer nhanh — PHẢI đặt CẢ 2 ROUTER
+! Đặt timer nhanh — PHẢI đặt CẢ 2 ROUTER
 R1(config-subif)# standby 10 timers msec 200 msec 750
 R2(config)# interface GigabitEthernet0/0.10
 R2(config-subif)# standby 10 timers msec 200 msec 750
@@ -1007,7 +1007,7 @@ R1(config-ip-sla)#  icmp-echo 8.8.8.8 source-interface GigabitEthernet0/1
 R1(config-ip-sla-echo)#  frequency 5
 R1(config-ip-sla-echo)#  timeout 2000
 R1(config-ip-sla-echo)# exit
-R1(config)# ip sla schedule 1 life forever start-time now      ! ⭐ ĐỪNG QUÊN
+R1(config)# ip sla schedule 1 life forever start-time now      ! ĐỪNG QUÊN
 !
 ! Track 1: IP SLA (ping thật)
 R1(config)# track 1 ip sla 1 reachability
@@ -1022,7 +1022,7 @@ R1(config-track)# exit
 R1(config)# track 3 ip route 0.0.0.0 0.0.0.0 reachability
 R1(config-track)# exit
 !
-! ⭐ Track 10: kết hợp CẢ BA bằng boolean AND
+! Track 10: kết hợp CẢ BA bằng boolean AND
 R1(config)# track 10 list boolean and
 R1(config-track)#  object 1
 R1(config-track)#  object 2
@@ -1078,7 +1078,7 @@ IPSLA operation id: 1
 Latest operation return code: OK
 Number of successes: 18
 Number of failures: 0
-Operation time to live: Forever                    ← ⭐ đúng
+Operation time to live: Forever                    ← đúng
 ```
 
 ```
@@ -1115,7 +1115,7 @@ Track 10
     object 2 Up
     object 3 Up
   Tracked by:
-    HSRP GigabitEthernet0/0.10 10                  ← ⭐ HSRP đang dùng
+    HSRP GigabitEthernet0/0.10 10                  ← HSRP đang dùng
     HSRP GigabitEthernet0/0.20 20
 ```
 ⭐ **`Tracked by: HSRP ...`** xác nhận liên kết đã đúng.
@@ -1320,9 +1320,9 @@ R2# show vrrp interface GigabitEthernet0/0.20
 GigabitEthernet0/0.20 - Group 20
   State is Master
   Virtual IP address is 10.1.20.1
-  Virtual MAC address is 0000.5e00.0114                  ← ⭐ vMAC VRRP
+  Virtual MAC address is 0000.5e00.0114                  ← vMAC VRRP
   Advertisement interval is 1.000 sec
-  Preemption enabled                                      ← ⭐ BẬT mặc định
+  Preemption enabled                                      ← BẬT mặc định
   Priority is 110
     Track object 10 state Up decrement 30
   Master Router is 10.1.20.3 (local), priority is 110
@@ -1398,7 +1398,7 @@ Làm tương tự R2 (priority 110).
 
 ```
 R2# show vrrp
-R2# show fhrp verbose                       ! ⭐ xem MỌI FHRP trên router
+R2# show fhrp verbose                       ! xem MỌI FHRP trên router
 ```
 
 ---
@@ -1449,7 +1449,7 @@ Thêm PC2, PC3 vào VLAN 30, rồi trên mỗi PC:
 PC2> arp
 ! 00:07:b4:00:1e:01  10.1.30.1        ← AVF 1 (R1)
 PC3> arp
-! 00:07:b4:00:1e:02  10.1.30.1        ← ⭐ AVF 2 (R2) — vMAC KHÁC!
+! 00:07:b4:00:1e:02  10.1.30.1        ← AVF 2 (R2) — vMAC KHÁC!
 ```
 ⭐ **Cùng một Virtual IP `10.1.30.1` nhưng 2 PC nhận 2 vMAC khác nhau**
 → PC2 đi qua R1, PC3 đi qua R2 → ⭐ **cả 2 router cùng forward**.
@@ -1462,7 +1462,7 @@ và 2 PC nhận 2 vMAC khác nhau cho cùng 1 VIP.
 ### Bước 6 — 🚀 Authentication & bảo mật FHRP
 
 ```
-! ⭐ HSRP MD5 — phải khớp CẢ 2 ROUTER
+! HSRP MD5 — phải khớp CẢ 2 ROUTER
 R1(config)# interface GigabitEthernet0/0.10
 R1(config-subif)#  standby 10 authentication md5 key-string HsrpS3cret2026
 R2(config)# interface GigabitEthernet0/0.10
@@ -1581,45 +1581,45 @@ R1(config-subif)#  ip access-group ACL-HSRP-PROTECT in
 
 ```
 ! ═══ HSRP ═══
-show standby brief                          ! ⭐⭐ LỆNH ĐẦU TIÊN — chú ý cột P (preempt)
+show standby brief                          ! LỆNH ĐẦU TIÊN — chú ý cột P (preempt)
 show standby                                ! chi tiết mọi group
-show standby <interface> <group>            ! ⭐ chi tiết 1 group: vMAC, timer, auth, track
+show standby <interface> <group>            ! chi tiết 1 group: vMAC, timer, auth, track
 show standby all
 show standby internal
 debug standby                               ! ⚠️ chỉ lab
 debug standby events                        ! ⚠️
-debug standby errors                        ! ⭐ hữu ích cho auth mismatch
+debug standby errors                        ! hữu ích cho auth mismatch
 
 ! ═══ VRRP ═══
-show vrrp brief                             ! ⭐ chú ý cột Pre (Y = preempt)
+show vrrp brief                             ! chú ý cột Pre (Y = preempt)
 show vrrp
 show vrrp interface <if>
-show fhrp verbose                           ! ⭐ MỌI FHRP trên router
+show fhrp verbose                           ! MỌI FHRP trên router
 debug vrrp all                              ! ⚠️
 
 ! ═══ GLBP ═══
-show glbp brief                             ! ⭐ thấy cả AVG (Fwd -) và AVF (Fwd 1,2..)
+show glbp brief                             ! thấy cả AVG (Fwd -) và AVF (Fwd 1,2..)
 show glbp
 show glbp <if> <group>
 
 ! ═══ TRACKING + IP SLA ═══
-show track                                  ! ⭐⭐ mọi object + "Tracked by"
+show track                                  ! mọi object + "Tracked by"
 show track <n>
 show track brief
-show ip sla summary                         ! ⭐
-show ip sla statistics <n>                  ! ⭐ return code, successes, time to live
+show ip sla summary                         ! 
+show ip sla statistics <n>                  ! return code, successes, time to live
 show ip sla configuration <n>
 debug track                                 ! ⚠️
 debug ip sla trace <n>                      ! ⚠️
 
 ! ═══ NỀN TẢNG (đừng bỏ) ═══
 show ip interface brief                     ! interface up?
-show interfaces trunk                       ! ⭐ VLAN có được trunk? (trên switch)
+show interfaces trunk                       ! VLAN có được trunk? (trên switch)
 show vlan brief
-show arp                                    ! ⭐ vMAC có đúng?
-show mac address-table | include 0000.0c    ! ⭐ vMAC học ở port nào (MAC flapping?)
+show arp                                    ! vMAC có đúng?
+show mac address-table | include 0000.0c    ! vMAC học ở port nào (MAC flapping?)
 show logging | include HSRP|VRRP|GLBP|TRACK|BADAUTH
-show ip route 0.0.0.0                       ! ⭐ router Active có đường ra?
+show ip route 0.0.0.0                       ! router Active có đường ra?
 ```
 
 ### 7.2 Bảng lỗi: triệu chứng → nguyên nhân → cách sửa
@@ -1650,31 +1650,31 @@ show ip route 0.0.0.0                       ! ⭐ router Active có đường ra
 ```
 0. LỆNH ĐẦU TIÊN
    show standby brief    (hoặc show vrrp brief / show glbp brief)
-   → Đọc: Grp · Pri · ⭐ CỘT P (preempt) · State · Active/Standby · Virtual IP
+   → Đọc: Grp · Pri · CỘT P (preempt) · State · Active/Standby · Virtual IP
         ↓
 1. STATE CÓ ĐÚNG NHƯ THIẾT KẾ?
-   ├─ Router priority cao mà là Standby  → ⭐ CỘT P TRỐNG? → thiếu `preempt`
-   ├─ CẢ 2 đều Active                    → ⭐ auth mismatch / L2 / trunk / encapsulation
+   ├─ Router priority cao mà là Standby  → CỘT P TRỐNG? → thiếu `preempt`
+   ├─ CẢ 2 đều Active                    → auth mismatch / L2 / trunk / encapsulation
    ├─ Standby = "unknown"                → không thấy neighbor → L2 / VLAN / ACL
    └─ State đúng → sang bước 2
         ↓
 2. CÓ TRACKING CHƯA?
    show standby <if> <grp> | include Track
-   ├─ KHÔNG có dòng Track → 🔴 HA GIẢ → cấu hình IP SLA + track
+   ├─ KHÔNG có dòng Track → HA GIẢ → cấu hình IP SLA + track
    └─ Có → sang bước 3
         ↓
 3. TRACKING CÓ HOẠT ĐỘNG?
    show track
    ├─ Không có "Tracked by: HSRP..."     → chưa gắn vào FHRP
-   ├─ Reachability Down ngay từ đầu       → ⭐ quên `ip sla schedule`?
+   ├─ Reachability Down ngay từ đầu       → quên `ip sla schedule`?
    │                                         show ip sla statistics <n> → time to live = 0?
-   ├─ Luôn Up dù uplink chết              → ⭐ thiếu `source-interface`
+   ├─ Luôn Up dù uplink chết              → thiếu `source-interface`
    └─ Up/Down đúng → sang bước 4
         ↓
 4. TRACK DOWN MÀ KHÔNG FAILOVER?
    show standby brief   (xem Pri SAU KHI giảm)
-   ├─ Pri sau giảm vẫn > router kia       → ⭐ decrement quá nhỏ
-   └─ Pri sau giảm < router kia           → ⭐ ROUTER KIA CÓ `preempt` KHÔNG?
+   ├─ Pri sau giảm vẫn > router kia       → decrement quá nhỏ
+   └─ Pri sau giảm < router kia           → ROUTER KIA CÓ `preempt` KHÔNG?
                                              (show standby brief TRÊN ROUTER KIA, cột P)
         ↓
 5. FAILOVER OK NHƯNG TRAFFIC VẪN CHẾT?
@@ -1715,7 +1715,7 @@ show standby brief
 ```
 interface Gi0/0.10
  standby 10 preempt
- standby 10 preempt delay minimum 60          ! ⭐ nên có luôn
+ standby 10 preempt delay minimum 60          ! nên có luôn
 ```
 
 ⚠️ **So sánh với VRRP:** VRRP có ⭐ **preempt BẬT mặc định** → cùng kịch bản,
@@ -1808,9 +1808,9 @@ Thiếu một trong hai = **vô ích hoàn toàn**.
 show standby brief
 ! Gi0/0.10    10   80  P Active  local  ...        ← priority ĐÃ giảm đúng
 
-! ⭐ Trên router B
+! Trên router B
 show standby brief
-! Gi0/0.10    10   100   Standby ...               ← ⭐ CỘT P TRỐNG!
+! Gi0/0.10    10   100   Standby ...               ← CỘT P TRỐNG!
 ```
 
 **Sửa:**
@@ -1890,7 +1890,7 @@ Uplink chết mà interface LAN vẫn `up` → ⭐ **HSRP thấy "mọi thứ �
 show standby brief
 ! Gi0/0.10    10   110 P Active  local  ...          ← vẫn Active
 show standby Gi0/0.10 10 | include Track
-! (TRỐNG — không có dòng Track)                      ← ⭐ ĐÂY LÀ VẤN ĐỀ
+! (TRỐNG — không có dòng Track)                      ← ĐÂY LÀ VẤN ĐỀ
 show ip route 0.0.0.0
 ! % Network not in table                              ← router Active không có đường ra
 ```
@@ -1900,10 +1900,10 @@ show ip route 0.0.0.0
 ```
 ! 1. IP SLA — ping THẬT một đích Internet qua ĐÚNG uplink
 ip sla 1
- icmp-echo 8.8.8.8 source-interface GigabitEthernet0/1     ! ⭐ source-interface BẮT BUỘC
+ icmp-echo 8.8.8.8 source-interface GigabitEthernet0/1     ! source-interface BẮT BUỘC
  frequency 5
  timeout 2000
-ip sla schedule 1 life forever start-time now               ! ⭐ ĐỪNG QUÊN
+ip sla schedule 1 life forever start-time now               ! ĐỪNG QUÊN
 
 ! 2. Track object — kết hợp nhiều điều kiện
 track 1 ip sla 1 reachability
@@ -1911,7 +1911,7 @@ track 1 ip sla 1 reachability
 track 2 interface GigabitEthernet0/1 line-protocol
 track 3 ip route 0.0.0.0 0.0.0.0 reachability
 !
-track 10 list boolean and                                   ! ⭐ AND cả 3
+track 10 list boolean and                                   ! AND cả 3
  object 1
  object 2
  object 3
@@ -1930,9 +1930,9 @@ interface GigabitEthernet0/0.10
 
 **Verify:**
 ```
-show track 10                    ! ⭐ "Tracked by: HSRP ..." phải có
+show track 10                    ! "Tracked by: HSRP ..." phải có
 show ip sla statistics 1         ! return code OK, time to live Forever
-show standby brief               ! ⭐ cột P có trên CẢ 2 router
+show standby brief               ! cột P có trên CẢ 2 router
 ```
 
 🧠 ⭐ ***"FHRP không có tracking = HA giả."*** Đây là lỗi thiết kế FHRP phổ biến nhất ở production.
@@ -1962,7 +1962,7 @@ vì nó nhận trách nhiệm **trước khi** sẵn sàng.
 ⭐ **Sửa:**
 ```
 interface Gi0/0.10
- standby 10 preempt delay minimum 90        ! ⭐ dài hơn thời gian hội tụ IGP/BGP
+ standby 10 preempt delay minimum 90        ! dài hơn thời gian hội tụ IGP/BGP
 ```
 
 ⭐ **Chọn giá trị bao nhiêu:** phải **dài hơn thời gian hội tụ routing** của mạng bạn.
@@ -1972,7 +1972,7 @@ interface Gi0/0.10
 **Các biến thể:**
 ```
 standby 10 preempt delay minimum 90        ! chờ 90 s sau khi interface up
-standby 10 preempt delay reload 120        ! ⭐ chờ 120 s sau khi ROUTER RELOAD
+standby 10 preempt delay reload 120        ! chờ 120 s sau khi ROUTER RELOAD
 standby 10 preempt delay sync 60           ! chờ đồng bộ (dùng với redundancy)
 ```
 
@@ -2011,7 +2011,7 @@ Mỗi router tưởng router kia đã chết → tự lên Active.
 ```
 SW1# show mac address-table | include 0000.0c
 !  10   0000.0c9f.f00a   DYNAMIC   Gi0/0        ← vMAC ở port R1
-!  10   0000.0c9f.f00a   DYNAMIC   Gi0/1        ← ⭐ VÀ ở port R2 → FLAPPING
+!  10   0000.0c9f.f00a   DYNAMIC   Gi0/1        ← VÀ ở port R2 → FLAPPING
 SW1# show logging | include MACFLAP
 %SW_MATM-4-MACFLAP_NOTIF: Host 0000.0c9f.f00a in vlan 10 is flapping between port Gi0/0 and port Gi0/1
 ```
@@ -2069,7 +2069,7 @@ Và ⭐ **Cisco độc quyền**.
 ```
 ! ═══ R1 ═══
 interface Gi0/0.10
- standby 10 priority 110              ! ⭐ Active VLAN 10
+ standby 10 priority 110              ! Active VLAN 10
  standby 10 preempt
 interface Gi0/0.20
  standby 20 priority 90               ! Standby VLAN 20
@@ -2080,7 +2080,7 @@ interface Gi0/0.10
  standby 10 priority 90               ! Standby VLAN 10
  standby 10 preempt
 interface Gi0/0.20
- standby 20 priority 110              ! ⭐ Active VLAN 20
+ standby 20 priority 110              ! Active VLAN 20
  standby 20 preempt
 ```
 
@@ -2122,15 +2122,15 @@ interface Gi0/0.20
 | Nhiều điểm quản lý | 1 IP, 1 config cho cả 2 chassis |
 
 ```
-   ═══ THIẾT KẾ CŨ ═══              ⭐ ═══ STACKWISE VIRTUAL ═══
+   ═══ THIẾT KẾ CŨ ═══              ═══ STACKWISE VIRTUAL ═══
 
    [SW-A]  [SW-B]                    ╔═══ 1 SWITCH LOGIC ═══╗
      │  ╳    │   ← STP block         ║  [SW-A] ═══ [SW-B]   ║
      └───┬───┘                       ╚═══════╦══════════════╝
      [Access]                                ║ MEC (không block)
    + cần HSRP giữa SW-A/SW-B              [Access]
-                                        ⭐ không cần HSRP
-                                        ⭐ không cần STP block
+                                        không cần HSRP
+                                        không cần STP block
 ```
 
 ⭐ **Ý nghĩa thiết kế:** đây là hướng campus hiện đại — **giảm độ phức tạp** thay vì

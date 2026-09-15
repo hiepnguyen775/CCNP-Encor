@@ -144,7 +144,7 @@ bgp asnotation dot                ! đổi cách hiển thị sang asdot
 
    3 router  →  3 phiên       ✅ OK
    10 router →  45 phiên      ⚠️ Bắt đầu khó
-   50 router →  1225 phiên    🔴 Không khả thi
+   50 router →  1225 phiên    Không khả thi
 ```
 
 **Hai giải pháp** (🟡 chỉ cần biết tên cho ENCOR):
@@ -173,7 +173,7 @@ bgp asnotation dot                ! đổi cách hiển thị sang asdot
 
 **Sửa — 2 cách:**
 ```
-! ⭐ Cách 1 (khuyến nghị): next-hop-self trên router biên
+! Cách 1 (khuyến nghị): next-hop-self trên router biên
 router bgp 65001
  neighbor 10.0.13.2 next-hop-self          ! R1 đổi next-hop thành IP của mình
 
@@ -202,7 +202,7 @@ show ip bgp 10.20.20.0
 ├────────────────────────────────────────────────────────────────────┤
 │ 2. BGP TABLE (BGP RIB)  "Mọi đường tôi biết tới mỗi đích"          │
 │    show ip bgp                                                     │
-│    → ⭐ Có thể có NHIỀU path cho 1 prefix. Chỉ 1 được chọn "best"  │
+│    → Có thể có NHIỀU path cho 1 prefix. Chỉ 1 được chọn "best"  │
 │       Adj-RIB-In  →  Local BGP RIB  →  Adj-RIB-Out                 │
 ├────────────────────────────────────────────────────────────────────┤
 │              │ chạy 13 bước Best Path Selection                    │
@@ -233,7 +233,7 @@ BGP **giữ lại mọi path** trong BGP table, và bạn **có thể xem hết*
 ```
 show ip bgp neighbors 10.0.12.2 received-routes     ! ⚠️ cần soft-reconfiguration inbound
 show ip bgp neighbors 10.0.12.2 routes              ! route đã qua policy
-show ip bgp neighbors 10.0.12.2 advertised-routes   ! ⭐ Adj-RIB-Out
+show ip bgp neighbors 10.0.12.2 advertised-routes   ! Adj-RIB-Out
 ```
 
 ### 2.5 ⭐ Sáu trạng thái neighbor
@@ -322,8 +322,8 @@ show ip bgp neighbors 10.0.12.2 | include Last reset|notification
 show ip bgp neighbors 10.0.12.2 | include refresh
 !  Route refresh: advertised and received(new)     ← ✅ hỗ trợ
 !
-clear ip bgp 10.0.12.2 soft in         ! ⭐ dùng route-refresh, KHÔNG reset phiên
-clear ip bgp 10.0.12.2                 ! 🔴 HARD RESET — đóng phiên TCP, gây downtime
+clear ip bgp 10.0.12.2 soft in         ! dùng route-refresh, KHÔNG reset phiên
+clear ip bgp 10.0.12.2                 ! HARD RESET — đóng phiên TCP, gây downtime
 ```
 
 ### 2.7 Timer
@@ -358,15 +358,15 @@ router bgp 65001
 ### 2.8 Cấu hình eBGP cơ bản
 
 ```
-router bgp 65001                                  ! ⭐ ASN CỦA MÌNH
- bgp router-id 1.1.1.1                            ! ⭐ nên gõ tay
- bgp log-neighbor-changes                         ! ⭐ log khi neighbor up/down
+router bgp 65001                                  ! ASN CỦA MÌNH
+ bgp router-id 1.1.1.1                            ! nên gõ tay
+ bgp log-neighbor-changes                         ! log khi neighbor up/down
  no bgp default ipv4-unicast                      ! (tùy chọn — xem §2.9)
  !
- neighbor 10.0.12.2 remote-as 65002               ! ⭐ ASN CỦA PEER
+ neighbor 10.0.12.2 remote-as 65002               ! ASN CỦA PEER
  neighbor 10.0.12.2 description ---> To AS65002 R2
  !
- network 10.1.1.0 mask 255.255.255.0              ! ⭐ quảng bá prefix
+ network 10.1.1.0 mask 255.255.255.0              ! quảng bá prefix
  network 1.1.1.1 mask 255.255.255.255
 ```
 
@@ -417,7 +417,7 @@ router bgp 65001
  neighbor 2001:DB8:0:12::2 remote-as 65002
  !
  address-family ipv4 unicast
-  neighbor 10.0.12.2 activate                    ! ⭐ bắt buộc
+  neighbor 10.0.12.2 activate                    ! bắt buộc
   network 10.1.1.0 mask 255.255.255.0
  exit-address-family
  !
@@ -436,8 +436,8 @@ router bgp 65001
 ! eBGP giữa 2 loopback (không kề nhau trực tiếp)
 router bgp 65001
  neighbor 2.2.2.2 remote-as 65002
- neighbor 2.2.2.2 ebgp-multihop 2                 ! ⭐ tăng TTL từ 1 lên 2
- neighbor 2.2.2.2 update-source Loopback0         ! ⭐ dùng loopback làm source
+ neighbor 2.2.2.2 ebgp-multihop 2                 ! tăng TTL từ 1 lên 2
+ neighbor 2.2.2.2 update-source Loopback0         ! dùng loopback làm source
 !
 ! Và phải có route tới loopback của peer:
 ip route 2.2.2.2 255.255.255.255 10.0.12.2
@@ -455,9 +455,9 @@ ip route 2.2.2.2 255.255.255.255 10.0.12.2
 
 ```
 router bgp 65001
- neighbor 10.0.12.2 password MyBgpS3cret          ! ⭐ MD5 cho phiên TCP
- neighbor 10.0.12.2 ttl-security hops 1           ⭐ ! GTSM — chỉ nhận gói TTL ≥ 254
- neighbor 10.0.12.2 maximum-prefix 100000 90      ! ⭐ chống nhận quá nhiều prefix
+ neighbor 10.0.12.2 password MyBgpS3cret          ! MD5 cho phiên TCP
+ neighbor 10.0.12.2 ttl-security hops 1           ! GTSM — chỉ nhận gói TTL ≥ 254
+ neighbor 10.0.12.2 maximum-prefix 100000 90      ! chống nhận quá nhiều prefix
 ```
 
 | Lệnh | Chống gì |
@@ -1033,13 +1033,13 @@ R3# show ip bgp
 **Lệnh xem có lọc:**
 ```
 show ip bgp                                      ! toàn bộ BGP table
-show ip bgp <prefix>                             ! ⭐ chi tiết 1 prefix + lý do best
-show ip bgp summary                              ! ⭐ neighbor
+show ip bgp <prefix>                             ! chi tiết 1 prefix + lý do best
+show ip bgp summary                              ! neighbor
 show ip bgp neighbors <ip> routes                ! route nhận từ peer đó (sau policy)
-show ip bgp neighbors <ip> advertised-routes     ! ⭐ route gửi cho peer đó
-show ip bgp regexp _65003_                       ! ⭐ route đi qua AS 65003
+show ip bgp neighbors <ip> advertised-routes     ! route gửi cho peer đó
+show ip bgp regexp _65003_                       ! route đi qua AS 65003
 show ip bgp regexp ^65002_                       ! route từ AS kề 65002
-show ip bgp regexp ^$                            ! ⭐ route sinh trong AS của mình
+show ip bgp regexp ^$                            ! route sinh trong AS của mình
 show ip bgp | include 10.3                       ! grep
 show ip bgp paths                                ! danh sách AS-path
 show ip bgp all summary                          ! mọi address family
@@ -1265,7 +1265,7 @@ Trying 10.0.12.2, 179 ...
 ```
 R2# show access-lists 100
 Extended IP access list 100
-    10 deny tcp any any eq bgp (12 matches)         ← ⭐ counter tăng!
+    10 deny tcp any any eq bgp (12 matches)         ← counter tăng!
     20 permit ip any any (45 matches)
 ```
 
@@ -1341,7 +1341,7 @@ R1# show ip bgp | include 10.1.0.0
 **Chẩn đoán:**
 ```
 R1# show ip route 10.1.0.0 255.255.0.0
-% Subnet not in table                                ← ⭐ RIB không có /16
+% Subnet not in table                                ← RIB không có /16
 R1# show ip route | include 10.1
 C        10.1.1.0/24 is directly connected, Loopback1
 L        10.1.1.1/32 is directly connected, Loopback1
@@ -1355,7 +1355,7 @@ C        10.1.2.0/24 is directly connected, Loopback2
 R1(config-router)# no network 10.1.0.0 mask 255.255.0.0
 R1(config-router)# network 10.1.1.0 mask 255.255.255.0
 
-! ⭐ Cách 2: tạo static route Null0 để "có hàng trong kho"
+! Cách 2: tạo static route Null0 để "có hàng trong kho"
 R1(config)# ip route 10.1.0.0 255.255.0.0 Null0
 R1(config)# router bgp 65001
 R1(config-router)#  network 10.1.0.0 mask 255.255.0.0
@@ -1410,7 +1410,7 @@ R1# show ip bgp summary | begin Neighbor
 
 ```
 R1# show ip bgp neighbors 3.3.3.3 | include Local host
-  Local host: 10.0.12.1, Local port: 0            ← ⭐ source SAI
+  Local host: 10.0.12.1, Local port: 0            ← source SAI
 ```
 
 **Sửa:** đặt lại `update-source Loopback0`.
@@ -1570,14 +1570,14 @@ R1# clear ip bgp 10.0.12.2
 
 **⭐ Soft reset vs Hard reset:**
 ```
-! ⭐ SOFT (dùng route-refresh, KHÔNG đóng phiên TCP)
+! SOFT (dùng route-refresh, KHÔNG đóng phiên TCP)
 clear ip bgp 10.0.12.2 soft in            ! xin peer gửi lại route (sau khi đổi inbound policy)
 clear ip bgp 10.0.12.2 soft out           ! gửi lại route cho peer (sau khi đổi outbound policy)
 clear ip bgp * soft
 
-! 🔴 HARD (đóng phiên TCP — GÂY DOWNTIME)
+! HARD (đóng phiên TCP — GÂY DOWNTIME)
 clear ip bgp 10.0.12.2
-clear ip bgp *                            ! 🔴 reset MỌI phiên — không bao giờ trên production
+clear ip bgp *                            ! reset MỌI phiên — không bao giờ trên production
 ```
 
 **Kiểm tra route-refresh có hỗ trợ:**
@@ -1592,7 +1592,7 @@ R1(config-router)# neighbor 10.0.12.2 soft-reconfiguration inbound
 ```
 ⭐ Sau đó mới dùng được:
 ```
-R1# show ip bgp neighbors 10.0.12.2 received-routes      ! ⭐ Adj-RIB-In thật
+R1# show ip bgp neighbors 10.0.12.2 received-routes      ! Adj-RIB-In thật
 ```
 ⚠️ Tốn RAM (lưu 2 bản copy) — chỉ dùng khi cần.
 
@@ -1688,25 +1688,25 @@ R1# show ip bgp neighbors 10.0.12.2 received-routes      ! ⭐ Adj-RIB-In thật
 
 ```
 ! ═══ BẢNG 1: NEIGHBOR ═══
-show ip bgp summary                              ! ⭐⭐ LỆNH ĐẦU TIÊN LUÔN
+show ip bgp summary                              ! LỆNH ĐẦU TIÊN LUÔN
 show ip bgp summary | begin Neighbor             ! chỉ phần bảng neighbor
 show ip bgp neighbors                             ! chi tiết mọi neighbor
-show ip bgp neighbors <ip>                        ! ⭐ chi tiết 1 neighbor
-show ip bgp neighbors <ip> | include Last reset|notification    ! ⭐⭐ LÝ DO RESET
-show ip bgp neighbors <ip> | include Local host|Foreign host    ! ⭐ source IP thật
+show ip bgp neighbors <ip>                        ! chi tiết 1 neighbor
+show ip bgp neighbors <ip> | include Last reset|notification    ! LÝ DO RESET
+show ip bgp neighbors <ip> | include Local host|Foreign host    ! source IP thật
 show ip bgp neighbors <ip> | include state|up for|dropped
 show ip bgp neighbors <ip> | include Address family|Route refresh
 
 ! ═══ BẢNG 2: BGP TABLE ═══
-show ip bgp                                       ! ⭐ toàn bộ BGP table
-show ip bgp <prefix>                              ! ⭐⭐ MỌI path + LÝ DO best
+show ip bgp                                       ! toàn bộ BGP table
+show ip bgp <prefix>                              ! MỌI path + LÝ DO best
 show ip bgp <prefix> <mask>
 show ip bgp neighbors <ip> routes                 ! route nhận từ peer (sau policy)
-show ip bgp neighbors <ip> advertised-routes      ! ⭐ route GỬI cho peer
+show ip bgp neighbors <ip> advertised-routes      ! route GỬI cho peer
 show ip bgp neighbors <ip> received-routes        ! ⚠️ cần soft-reconfiguration inbound
-show ip bgp rib-failure                           ! ⭐ path 'r' và lý do
+show ip bgp rib-failure                           ! path 'r' và lý do
 show ip bgp paths                                  ! danh sách AS-path
-show ip bgp regexp ^$                             ! ⭐ route sinh trong AS mình
+show ip bgp regexp ^$                             ! route sinh trong AS mình
 show ip bgp regexp _65003_                        ! route đi qua AS 65003
 show ip bgp regexp ^65002_                        ! route từ AS kề 65002
 
@@ -1715,25 +1715,25 @@ show ip route bgp
 show ip route <prefix>                            ! AD 20 (eBGP) hay 200 (iBGP)?
 
 ! ═══ NỀN TẢNG (đừng bỏ) ═══
-show ip route <neighbor-ip>                       ! ⭐ có route tới neighbor?
-ping <neighbor-ip>                                ! ⭐ L3 thông?
-telnet <neighbor-ip> 179                          ! ⭐⭐ TCP 179 thông?
+show ip route <neighbor-ip>                       ! có route tới neighbor?
+ping <neighbor-ip>                                ! L3 thông?
+telnet <neighbor-ip> 179                          ! TCP 179 thông?
 show access-lists                                 ! ACL chặn 179?
 show tcp brief                                     ! phiên TCP 179 đang mở?
-show logging | include BGP|BADAUTH|MAXPFX|TCP     ! ⭐ log nói thẳng nguyên nhân
+show logging | include BGP|BADAUTH|MAXPFX|TCP     ! log nói thẳng nguyên nhân
 
 ! ═══ RESET ═══
-clear ip bgp <ip> soft in                         ! ⭐ route-refresh, KHÔNG downtime
+clear ip bgp <ip> soft in                         ! route-refresh, KHÔNG downtime
 clear ip bgp <ip> soft out
-clear ip bgp <ip>                                 ! 🔴 hard reset
-clear ip bgp *                                    ! 🔴🔴 KHÔNG DÙNG TRÊN PRODUCTION
+clear ip bgp <ip>                                 ! hard reset
+clear ip bgp *                                    ! KHÔNG DÙNG TRÊN PRODUCTION
 
 ! ═══ DEBUG (⚠️ chỉ lab) ═══
 debug ip bgp                                       ! sự kiện chung
 debug ip bgp <ip>                                  ! 1 neighbor
 debug ip bgp events
 debug ip bgp updates                               ! ⚠️ RẤT nhiều output
-debug ip tcp transactions                          ! ⭐ xem TCP 179 lên/xuống
+debug ip tcp transactions                          ! xem TCP 179 lên/xuống
 undebug all
 ```
 
@@ -1771,12 +1771,12 @@ undebug all
         ↓
 1. PHIÊN CHƯA ESTABLISHED?
    ├─ Idle   → ping <neighbor-ip>
-   │           ├─ FAIL → ⭐ vấn đề ROUTING (không có route tới neighbor)
+   │           ├─ FAIL → vấn đề ROUTING (không có route tới neighbor)
    │           └─ OK   → show ip bgp nei <ip> | inc Last reset
    │                     → "bad AS number"? password? shutdown?
    │
-   ├─ Active → ⭐⭐ telnet <neighbor-ip> 179
-   │           ├─ FAIL → ⭐ TCP 179 BỊ CHẶN (ACL/firewall)
+   ├─ Active → telnet <neighbor-ip> 179
+   │           ├─ FAIL → TCP 179 BỊ CHẶN (ACL/firewall)
    │           └─ OK   → show ip bgp nei <ip> | inc Local host
    │                     → source IP sai? thiếu update-source?
    │
@@ -1790,14 +1790,14 @@ undebug all
         ↓
 3. CÓ PREFIX NHƯNG KHÔNG VÀO RIB?
    show ip bgp <prefix>
-   ├─ Không có `*`  → ⭐ NEXT-HOP UNREACHABLE → show ip route <next-hop>
+   ├─ Không có `*`  → NEXT-HOP UNREACHABLE → show ip route <next-hop>
    ├─ Có `*` không `>` → path khác best hơn (đọc lý do trong output)
-   ├─ Có `r`        → ⭐ RIB-FAILURE → show ip bgp rib-failure
+   ├─ Có `r`        → RIB-FAILURE → show ip bgp rib-failure
    └─ Có `*>`       → ✅ vào RIB → show ip route <prefix>
         ↓
 4. PREFIX MÌNH MUỐN QUẢNG BÁ KHÔNG XUẤT HIỆN?
-   ⭐ show ip route <prefix> <mask>
-   ├─ "% Subnet not in table" → ⭐ network statement KHÔNG KHỚP
+   show ip route <prefix> <mask>
+   ├─ "% Subnet not in table" → network statement KHÔNG KHỚP
    │                             → dùng đúng mask, hoặc ip route ... Null0
    └─ Có trong RIB → kiểm tra filter outbound · show ip bgp nei <peer> advertised-routes
 ```
@@ -1875,7 +1875,7 @@ RIB chỉ có `10.1.1.0/24`, `10.1.2.0/24` — **không có** `10.1.0.0/16` → 
 **Chẩn đoán:**
 ```
 show ip route 10.1.0.0 255.255.0.0
-! % Subnet not in table                        ← ⭐ đây là câu trả lời
+! % Subnet not in table                        ← đây là câu trả lời
 show ip route | include 10.1
 ! C  10.1.1.0/24 is directly connected, Loopback1
 ! C  10.1.2.0/24 is directly connected, Loopback2
@@ -1989,7 +1989,7 @@ router bgp 65002
  network 10.2.2.0 mask 255.255.255.0        ! đúng mask có trong RIB!
 
 ! 3. filter thiếu catch-all
-ip prefix-list PL-IN seq 100 permit 0.0.0.0/0 le 32     ! ⭐ catch-all
+ip prefix-list PL-IN seq 100 permit 0.0.0.0/0 le 32     ! catch-all
 ! rồi: clear ip bgp 10.0.12.2 soft in
 ```
 
@@ -2059,12 +2059,12 @@ Cần những gì? Thiếu mỗi cái thì kẹt state nào?
 
 ```
 ! Trên R1 (AS 65001)
-ip route 3.3.3.3 255.255.255.255 10.0.12.2          ! ⭐ 1. Route tới loopback peer
+ip route 3.3.3.3 255.255.255.255 10.0.12.2          ! 1. Route tới loopback peer
 !
 router bgp 65001
  neighbor 3.3.3.3 remote-as 65003
- neighbor 3.3.3.3 ebgp-multihop 2                    ! ⭐ 2. Tăng TTL (mặc định eBGP = 1)
- neighbor 3.3.3.3 update-source Loopback0            ! ⭐ 3. Source = loopback
+ neighbor 3.3.3.3 ebgp-multihop 2                    ! 2. Tăng TTL (mặc định eBGP = 1)
+ neighbor 3.3.3.3 update-source Loopback0            ! 3. Source = loopback
 
 ! Trên R3 (AS 65003) — đối xứng
 ip route 1.1.1.1 255.255.255.255 10.0.23.1
@@ -2104,13 +2104,13 @@ Khi nào dùng cái nào?
 
 **Các biến thể:**
 ```
-clear ip bgp <ip> soft in            ! ⭐ đổi INBOUND policy → xin peer gửi lại
-clear ip bgp <ip> soft out           ! ⭐ đổi OUTBOUND policy → gửi lại cho peer
+clear ip bgp <ip> soft in            ! đổi INBOUND policy → xin peer gửi lại
+clear ip bgp <ip> soft out           ! đổi OUTBOUND policy → gửi lại cho peer
 clear ip bgp <ip> soft               ! cả hai chiều
 clear ip bgp * soft                  ! soft cho mọi peer
 !
-clear ip bgp <ip>                    ! 🔴 hard reset 1 peer
-clear ip bgp *                       ! 🔴🔴 hard reset MỌI peer — KHÔNG BAO GIỜ trên production
+clear ip bgp <ip>                    ! hard reset 1 peer
+clear ip bgp *                       ! hard reset MỌI peer — KHÔNG BAO GIỜ trên production
 ```
 
 **Điều kiện để `soft in` hoạt động:** peer phải hỗ trợ **route-refresh capability**:
@@ -2126,7 +2126,7 @@ router bgp 65001
 ```
 Bù lại, khi bật nó thì dùng được:
 ```
-show ip bgp neighbors 10.0.12.2 received-routes       ! ⭐ Adj-RIB-In thật (trước policy)
+show ip bgp neighbors 10.0.12.2 received-routes       ! Adj-RIB-In thật (trước policy)
 ```
 
 🔴 **Cảnh báo production:** `clear ip bgp *` trên router biên Internet = **mất toàn bộ

@@ -538,19 +538,19 @@ reload                               ! ⚠️ PHẢI RELOAD mới có tác dụn
                      ▲    └──────┬───────┘
                      │           │
               ┌──────┴───────────┴──────┐
-     CORE     │   Core SW (L3)          │   ⭐ TCAM: bảng FIB LỚN (nhiều route)
-              │   Cat9500 / 9600        │   ⭐ ACL: gần như KHÔNG có (giữ cho nhanh)
-              └────┬───────────────┬────┘   ⭐ CEF: bắt buộc, ECMP nhiều đường
+     CORE     │   Core SW (L3)          │   TCAM: bảng FIB LỚN (nhiều route)
+              │   Cat9500 / 9600        │   ACL: gần như KHÔNG có (giữ cho nhanh)
+              └────┬───────────────┬────┘   CEF: bắt buộc, ECMP nhiều đường
                    │               │
         ┌──────────┴───┐     ┌─────┴────────┐
-DISTRO  │ Dist SW (L3) │     │ Dist SW (L3) │  ⭐ TCAM: CHIA ĐÔI gánh nặng —
+DISTRO  │ Dist SW (L3) │     │ Dist SW (L3) │  TCAM: CHIA ĐÔI gánh nặng —
         │  Cat9400     │     │  Cat9400     │     vừa FIB (route) vừa ACL (policy)
-        └──┬────────┬──┘     └──────────────┘  🔴 ĐÂY LÀ CHỖ TCAM HAY HẾT NHẤT
+        └──┬────────┬──┘     └──────────────┘  ĐÂY LÀ CHỖ TCAM HAY HẾT NHẤT
            │        │
      ┌─────┴──┐  ┌──┴─────┐
-ACCESS│Acc SW │  │ Acc SW │    ⭐ CAM: bảng MAC lớn (nhiều máy cắm vào)
-     │Cat9200│  │Cat9200 │    ⭐ TCAM: ít route, nhưng nhiều ACL 802.1X/dACL
-     └───┬───┘  └────┬───┘    ⭐ SDM template: ưu tiên MAC, không ưu tiên route
+ACCESS│Acc SW │  │ Acc SW │    CAM: bảng MAC lớn (nhiều máy cắm vào)
+     │Cat9200│  │Cat9200 │    TCAM: ít route, nhưng nhiều ACL 802.1X/dACL
+     └───┬───┘  └────┬───┘    SDM template: ưu tiên MAC, không ưu tiên route
          │           │
        PC/IP Phone/AP
 ```
@@ -627,7 +627,7 @@ Core chỉ cần FIB (không ACL). Access chỉ cần CAM lớn (ít route).
 ```
 ! Bật routing trên switch L3
 configure terminal
- ip routing                          ! ⭐ thiếu dòng này thì SVI vô dụng
+ ip routing                          ! thiếu dòng này thì SVI vô dụng
 
 ! SVI
  interface Vlan10
@@ -636,7 +636,7 @@ configure terminal
 
 ! Routed port
  interface GigabitEthernet1/0/24
-  no switchport                      ! ⭐ biến thành port L3
+  no switchport                      ! biến thành port L3
   ip address 10.0.0.1 255.255.255.252
   no shutdown
 end
@@ -709,10 +709,10 @@ end
 ```
 ! === CEF ===
 show ip cef summary                          ! CEF bật chưa, bao nhiêu prefix
-show ip cef                                  ! ⭐ toàn bộ FIB
+show ip cef                                  ! toàn bộ FIB
 show ip cef <prefix> detail                  ! chi tiết 1 prefix
-show ip cef exact-route <src> <dst>          ! ⭐ flow này đi đường nào
-show adjacency detail                        ! ⭐ thông tin L2 rewrite
+show ip cef exact-route <src> <dst>          ! flow này đi đường nào
+show adjacency detail                        ! thông tin L2 rewrite
 show cef interface Gi0/0                     ! CEF trên interface + load-sharing mode
 show ip interface Gi0/0 | include CEF        ! CEF bật ở interface chưa
 
@@ -722,7 +722,7 @@ show ip cef <ip>                             ! FIB nói gì
 ! → Nếu 2 cái LỆCH NHAU = có vấn đề nghiêm trọng (CEF inconsistency)
 
 ! === CPU / Punt ===
-show processes cpu sorted | exclude 0.00     ! ⭐ CPU đang làm gì
+show processes cpu sorted | exclude 0.00     ! CPU đang làm gì
 show processes cpu history                   ! đồ thị CPU theo thời gian
 show interfaces | include rate|packets input ! interface nào đang bị dội
 

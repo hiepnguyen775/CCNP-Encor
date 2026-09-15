@@ -86,22 +86,22 @@
 
 ```
    ┌─────────────────── AP (Lightweight) ───────────────────┐
-   │  ⭐ REAL-TIME — phải xong trong micro-giây             │
+   │  REAL-TIME — phải xong trong micro-giây             │
    │  · Beacon & Probe Response                             │
-   │  · ⭐ ACK cho frame nhận được                          │
+   │  · ACK cho frame nhận được                          │
    │  · Điều khiển truy nhập môi trường (CSMA/CA, backoff)  │
    │  · Mã hóa / giải mã frame (AES-CCMP)                   │
    │  · Frame queueing theo QoS · retransmission            │
    │  · Đo & báo cáo RF (RSSI, noise, rogue)                │
    └───────────────────────────┬────────────────────────────┘
-                               │  ⭐ CAPWAP tunnel
+                               │  CAPWAP tunnel
    ┌───────────────────────────┴────────────────────────────┐
-   │  WLC — ⭐ NON-REAL-TIME — có thể chậm vài ms           │
-   │  · ⭐ Xác thực & liên lạc RADIUS (802.1X)              │
-   │  · ⭐ Association / Reassociation (quản lý client DB)  │
-   │  · ⭐ Quản lý key bảo mật                              │
-   │  · ⭐ RRM: chọn channel & công suất (DCA/TPC)          │
-   │  · ⭐ Quyết định roaming & mobility tunnel             │
+   │  WLC — NON-REAL-TIME — có thể chậm vài ms           │
+   │  · Xác thực & liên lạc RADIUS (802.1X)              │
+   │  · Association / Reassociation (quản lý client DB)  │
+   │  · Quản lý key bảo mật                              │
+   │  · RRM: chọn channel & công suất (DCA/TPC)          │
+   │  · Quyết định roaming & mobility tunnel             │
    │  · Chính sách QoS, ACL, VLAN mapping                   │
    │  · Bridging ra mạng có dây (nếu central switching)     │
    └────────────────────────────────────────────────────────┘
@@ -162,10 +162,10 @@
 ```
      [ Lightweight AP ]                              [ WLC ]
             │                                           │
-            │═══ ⭐ CONTROL  ── UDP 5246 ── DTLS LUÔN BẬT ═══│
+            │═══ CONTROL  ── UDP 5246 ── DTLS LUÔN BẬT ═══│
             │      (join, config, RRM, thống kê, key)       │
             │                                           │
-            │═══ ⭐ DATA     ── UDP 5247 ── DTLS TÙY CHỌN ══│
+            │═══ DATA     ── UDP 5247 ── DTLS TÙY CHỌN ══│
             │      (traffic thật của client, đã bọc lại)    │
 ```
 
@@ -184,10 +184,10 @@
 
 ```
   Frame gốc của client (tối đa 1500 byte)
-            ↓  ⭐ AP bọc thêm CAPWAP + UDP + IP + Ethernet (~48 byte)
-  Gói đi trên mạng có dây  =  1500 + ~48  =  ⭐ ~1548 byte
+            ↓  AP bọc thêm CAPWAP + UDP + IP + Ethernet (~48 byte)
+  Gói đi trên mạng có dây  =  1500 + ~48  =  ~1548 byte
             ↓
-  🔴 Nếu đường đi (WAN/tunnel/firewall) chỉ cho MTU 1400
+  Nếu đường đi (WAN/tunnel/firewall) chỉ cho MTU 1400
      → phải phân mảnh, hoặc bị DROP
 ```
 
@@ -208,32 +208,32 @@
 ### 3.4 ⭐⭐ AP JOIN PROCESS — 6 giai đoạn, học thuộc thứ tự
 
 ```
-  ① ⭐ AP BOOT & LẤY IP
+  ① AP BOOT & LẤY IP
      └─ DHCP (phổ biến) hoặc IP tĩnh gõ qua console
         ⚠️ Không có IP  →  KHÔNG BAO GIỜ join được. Đây là chỗ hỏng thường gặp nhất.
 
-  ② ⭐⭐ DISCOVERY  — "Có WLC nào ngoài kia không?"
-     └─ AP gửi CAPWAP Discovery Request theo ⭐ 5 CÁCH (xem §3.5)
+  ② DISCOVERY  — "Có WLC nào ngoài kia không?"
+     └─ AP gửi CAPWAP Discovery Request theo 5 CÁCH (xem §3.5)
      └─ Mọi WLC nhận được đều trả CAPWAP Discovery Response
-     └─ ⭐ AP GOM tất cả response thành một DANH SÁCH ỨNG VIÊN
+     └─ AP GOM tất cả response thành một DANH SÁCH ỨNG VIÊN
 
-  ③ ⭐⭐ SELECTION  — "Chọn WLC nào trong danh sách?"
-     └─ Áp dụng ⭐ thứ tự ưu tiên (xem §3.6)
+  ③ SELECTION  — "Chọn WLC nào trong danh sách?"
+     └─ Áp dụng thứ tự ưu tiên (xem §3.6)
 
-  ④ ⭐ DTLS + JOIN
-     └─ Bắt tay DTLS trên UDP 5246 (⭐ xác thực bằng CHỨNG THƯ SỐ trong AP và WLC)
+  ④ DTLS + JOIN
+     └─ Bắt tay DTLS trên UDP 5246 (xác thực bằng CHỨNG THƯ SỐ trong AP và WLC)
      └─ Gửi Join Request → nhận Join Response
-     ⚠️ ⭐ Sai thời gian hệ thống (NTP!) → chứng thư "chưa hiệu lực/hết hạn" → JOIN HỎNG
+     ⚠️ Sai thời gian hệ thống (NTP!) → chứng thư "chưa hiệu lực/hết hạn" → JOIN HỎNG
 
-  ⑤ ⭐ KIỂM TRA IMAGE
+  ⑤ KIỂM TRA IMAGE
      └─ Version AP == version WLC?
         ├─ Khớp  → sang bước ⑥
-        └─ ⭐ Lệch → AP TẢI IMAGE từ WLC → ⭐ TỰ REBOOT → quay lại bước ①
-           (⭐ lần join đầu tiên có thể mất 5–10 phút vì lý do này — KHÔNG phải lỗi)
+        └─ Lệch → AP TẢI IMAGE từ WLC → TỰ REBOOT → quay lại bước ①
+           (lần join đầu tiên có thể mất 5–10 phút vì lý do này — KHÔNG phải lỗi)
 
-  ⑥ ⭐ TẢI CONFIG → vào trạng thái RUN
+  ⑥ TẢI CONFIG → vào trạng thái RUN
      └─ AP nhận: tên AP, mode (§07A-5), channel/power, danh sách WLAN, tag (§7)
-     └─ ⭐ AP bắt đầu phát sóng. Chỉ đến ĐÂY client mới thấy SSID.
+     └─ AP bắt đầu phát sóng. Chỉ đến ĐÂY client mới thấy SSID.
 ```
 
 ⭐ **Bốn điểm hay bị hỏi:**
@@ -270,16 +270,16 @@
 ip dhcp pool VLAN100-AP
  network 10.100.0.0 255.255.255.0
  default-router 10.100.0.1
- domain-name cty.local                        ! ⭐ cần cho phương án DNS (option 15)
- option 43 hex f104.0a0a.0a05                 ! ⭐⭐ WLC = 10.10.10.5
+ domain-name cty.local                        ! cần cho phương án DNS (option 15)
+ option 43 hex f104.0a0a.0a05                 ! WLC = 10.10.10.5
 !
-! ⭐ CÁCH ĐỌC chuỗi hex:
+! CÁCH ĐỌC chuỗi hex:
 !    f1   = sub-option 241 (danh sách WLC của Cisco)
 !    04   = độ dài  (4 byte = 1 địa chỉ IP)
 !    0a0a.0a05 = 10.10.10.5   (0a=10, 0a=10, 0a=10, 05=5)
 !
-! ⭐ Hai WLC (10.10.10.5 và 10.10.10.6):
- option 43 hex f108.0a0a.0a05.0a0a.0a06       ! ⭐ 08 = 8 byte = 2 IP
+! Hai WLC (10.10.10.5 và 10.10.10.6):
+ option 43 hex f108.0a0a.0a05.0a0a.0a06       ! 08 = 8 byte = 2 IP
 ```
 
 ⭐ **Quy tắc tính độ dài:** `len = 4 × số WLC` → 1 WLC = `04`, 2 WLC = `08`, 3 WLC = `0C`.
@@ -292,9 +292,9 @@ ip dhcp pool VLAN100-AP
 ```
 ! Trên DNS server, tạo bản ghi A:
 CISCO-CAPWAP-CONTROLLER.cty.local.     IN  A   10.10.10.5
-CISCO-CAPWAP-CONTROLLER.cty.local.     IN  A   10.10.10.6     ! ⭐ nhiều bản ghi = nhiều WLC
+CISCO-CAPWAP-CONTROLLER.cty.local.     IN  A   10.10.10.6     ! nhiều bản ghi = nhiều WLC
 
-! ⭐ ĐIỀU KIỆN BẮT BUỘC: AP phải nhận được DOMAIN NAME và DNS SERVER từ DHCP
+! ĐIỀU KIỆN BẮT BUỘC: AP phải nhận được DOMAIN NAME và DNS SERVER từ DHCP
 !    → DHCP phải có: option 15 (domain-name) + option 6 (dns-server)
 ```
 
@@ -308,23 +308,23 @@ AP không biết ghép hậu tố nào → không phân giải được → khô
 > ⭐ AP đã có danh sách WLC trả lời Discovery. ⭐ **Bây giờ chọn theo đúng thứ tự này:**
 
 ```
-  ① ⭐⭐ PRIMARY controller  (tên đã cấu hình trên AP)
+  ① PRIMARY controller  (tên đã cấu hình trên AP)
         ├─ Có trong danh sách và còn chỗ?  →  JOIN ✅
         └─ Không                            →  ②
 
-  ② ⭐ SECONDARY controller
+  ② SECONDARY controller
         └─ Không  →  ③
 
-  ③ ⭐ TERTIARY controller
+  ③ TERTIARY controller
         └─ Không  →  ④
 
-  ④ ⭐ MASTER controller
+  ④ MASTER controller
         (WLC được đánh dấu "master" — nhận MỌI AP mới chưa được gán primary)
         └─ Không có master  →  ⑤
 
-  ⑤ ⭐⭐ LEAST-LOADED controller
-        = ⭐ WLC còn NHIỀU CHỖ TRỐNG NHẤT (excess AP capacity lớn nhất)
-        ⭐ KHÔNG phải "ít AP nhất" — mà là "còn dư nhiều nhất so với sức chứa"
+  ⑤ LEAST-LOADED controller
+        = WLC còn NHIỀU CHỖ TRỐNG NHẤT (excess AP capacity lớn nhất)
+        KHÔNG phải "ít AP nhất" — mà là "còn dư nhiều nhất so với sức chứa"
 ```
 
 > 🔴 ⭐⭐ **Bẫy ở bước ⑤:** *"AP sẽ join WLC có ít AP nhất"* — **SAI**.
@@ -366,9 +366,9 @@ ap name AP-TANG3-01 controller secondary WLC-HQ-02 10.10.10.6
 ```
    Client  ~~~~  [ AP - Local mode ]                    [ WLC ]           [ Mạng có dây ]
                        │                                   │                     │
-                       │══ ⭐ CAPWAP data tunnel (5247) ═══│                     │
+                       │══ CAPWAP data tunnel (5247) ═══│                     │
                        │                                   ├─────────────────────┤
-                       │                                   ⭐ Ở ĐÂY traffic mới
+                       │                                   Ở ĐÂY traffic mới
                        │                                     được "đổ" ra VLAN đích
 ```
 
@@ -408,11 +408,11 @@ ap name AP-TANG3-01 controller secondary WLC-HQ-02 10.10.10.6
 ```
    ═══ CHI NHÁNH ═══                    WAN                 ═══ HQ ═══
                                                                 
-   Client ~~~ [ AP FlexConnect ]═══ ⭐ CAPWAP CONTROL (5246) ═══[ WLC ]
+   Client ~~~ [ AP FlexConnect ]═══ CAPWAP CONTROL (5246) ═══[ WLC ]
                      │                (chỉ quản lý, rất ít băng thông)
                      │
-                     └──► ⭐ DATA đổ THẲNG ra switch chi nhánh (local switching)
-                              ⭐ KHÔNG chạy về HQ
+                     └──► DATA đổ THẲNG ra switch chi nhánh (local switching)
+                              KHÔNG chạy về HQ
 ```
 
 ### 5.2 ⭐⭐ Hai trục lựa chọn — bảng phải hiểu
@@ -464,13 +464,13 @@ ap name AP-TANG3-01 controller secondary WLC-HQ-02 10.10.10.6
 ### 5.4 ⭐ Cấu hình FlexConnect — những điểm bắt buộc
 
 ```
-! ═══ ⭐ ĐIỀU KIỆN 1: PORT SWITCH CỦA AP PHẢI LÀ TRUNK ═══
+! ═══ ĐIỀU KIỆN 1: PORT SWITCH CỦA AP PHẢI LÀ TRUNK ═══
 !   (khác với Local mode chỉ cần access port!)
 interface GigabitEthernet1/0/10
  description AP-CHINHANH-01
  switchport mode trunk
- switchport trunk native vlan 100          ! ⭐ VLAN quản lý AP = NATIVE (không tag)
- switchport trunk allowed vlan 100,20,30   ! ⭐ 100=mgmt AP, 20/30 = VLAN của client
+ switchport trunk native vlan 100          ! VLAN quản lý AP = NATIVE (không tag)
+ switchport trunk allowed vlan 100,20,30   ! 100=mgmt AP, 20/30 = VLAN của client
  spanning-tree portfast trunk
 ```
 
@@ -479,20 +479,20 @@ interface GigabitEthernet1/0/10
 > nhưng ⭐ **client có IP sai hoặc không có IP** (vì VLAN client không được cho qua).
 
 ```
-! ═══ ⭐ ĐIỀU KIỆN 2: VLAN MAPPING trên WLC (C9800 - Flex Profile) ═══
+! ═══ ĐIỀU KIỆN 2: VLAN MAPPING trên WLC (C9800 - Flex Profile) ═══
 wireless profile flex FLEX-CHINHANH-HN
  native-vlan-id 100
  vlan-name VLAN-NHANVIEN
   vlan-id 20
  vlan-name VLAN-KHACH
   vlan-id 30
- ! ⭐ Local auth / backup RADIUS khi mất WAN:
+ ! Local auth / backup RADIUS khi mất WAN:
  local-auth ap eap-fast
 !
 ! ═══ Gắn Flex Profile vào Site Tag, rồi gán Site Tag cho AP ═══
 wireless tag site SITE-CHINHANH-HN
  flex-profile FLEX-CHINHANH-HN
- no local-site                              ! ⭐⭐ DÒNG NÀY BẬT FLEXCONNECT
+ no local-site                              ! DÒNG NÀY BẬT FLEXCONNECT
 ```
 
 > 🔴 ⭐⭐ **`no local-site` — dòng dễ quên nhất trên C9800.**
@@ -552,36 +552,36 @@ wireless tag site SITE-CHINHANH-HN
    [WLC-A]──AP1  ← client                 [WLC-A]──AP1
    [WLC-B]──AP2                           [WLC-B]──AP2  ← client
    
-   ⭐ VLAN 20 trên CẢ HAI WLC (cùng subnet 10.0.20.0/24)
-   → Bản ghi client được ⭐ CHUYỂN HẲN từ WLC-A sang WLC-B
-   → ⭐ WLC-A xóa bản ghi. Client giữ IP vì subnet không đổi.
-   → ⭐ KHÔNG cần tunnel.
+   VLAN 20 trên CẢ HAI WLC (cùng subnet 10.0.20.0/24)
+   → Bản ghi client được CHUYỂN HẲN từ WLC-A sang WLC-B
+   → WLC-A xóa bản ghi. Client giữ IP vì subnet không đổi.
+   → KHÔNG cần tunnel.
 ```
 
 #### ⭐⭐ Sơ đồ Layer 3 roam — ANCHOR / FOREIGN
 
 ```
    Client có IP 10.0.20.55 (từ VLAN 20 của WLC-A)
-   Client đi sang vùng của WLC-B — nhưng ⭐ WLC-B chỉ có VLAN 30 (10.0.30.0/24)
+   Client đi sang vùng của WLC-B — nhưng WLC-B chỉ có VLAN 30 (10.0.30.0/24)
 
-   🔴 Nếu không làm gì → client phải đổi IP → ⭐ ĐỨT hết session TCP, rớt cuộc gọi
+   Nếu không làm gì → client phải đổi IP → ĐỨT hết session TCP, rớt cuộc gọi
 
-   ⭐⭐ GIẢI PHÁP: MOBILITY TUNNEL
+   GIẢI PHÁP: MOBILITY TUNNEL
 
-        [ WLC-A = ⭐ ANCHOR ]                      [ WLC-B = ⭐ FOREIGN ]
+        [ WLC-A = ANCHOR ]                      [ WLC-B = FOREIGN ]
          (nơi client "sinh ra")                     (nơi client đang đứng)
          giữ VLAN 20 / 10.0.20.0/24                       │
                     │                                     │
-                    │◄══ ⭐ MOBILITY TUNNEL ═════════════►│
+                    │◄══ MOBILITY TUNNEL ═════════════►│
                     │      UDP 16666 (control)            │
                     │      UDP 16667 (data)               │
                     │                                    AP2
                     │                                     │
-              ra mạng có dây                         ~~~ client (vẫn 10.0.20.55) ⭐
-              ⭐ với IP GỐC 10.0.20.55
+              ra mạng có dây                         ~~~ client (vẫn 10.0.20.55) 
+              với IP GỐC 10.0.20.55
 
-   ⭐ Traffic của client: AP2 → WLC-B (foreign) → ⭐ TUNNEL → WLC-A (anchor) → mạng
-   ⭐ Với thế giới bên ngoài, client vẫn "ở" trên WLC-A. IP không đổi. Session không đứt.
+   Traffic của client: AP2 → WLC-B (foreign) → TUNNEL → WLC-A (anchor) → mạng
+   Với thế giới bên ngoài, client vẫn "ở" trên WLC-A. IP không đổi. Session không đứt.
 ```
 
 | Vai trò | ⭐ Nghĩa |
@@ -603,7 +603,7 @@ wireless tag site SITE-CHINHANH-HN
 | ⭐⭐ **Port mobility tunnel** | ⭐ **UDP 16666** (control, được DTLS) · ⭐ **UDP 16667** (data). *(AireOS đời cũ dùng **EoIP — IP protocol 97**)* |
 
 ```
-! ⭐ Kiểm tra trên C9800
+! Kiểm tra trên C9800
 show wireless mobility summary
 show wireless mobility peer ip <ip>
 ```
@@ -620,9 +620,9 @@ show wireless mobility peer ip <ip>
    ═══ CAMPUS (vùng tin cậy) ═══           ═══ DMZ ═══         Internet
                                                                   
    Client-khách ~~~ AP ─── [ WLC-Campus ]══ tunnel ══[ WLC-DMZ ]────►
-                            ⭐ FOREIGN                ⭐ ANCHOR
+                            FOREIGN                ANCHOR
                                                           │
-                            ⭐ Traffic khách KHÔNG BAO GIỜ
+                            Traffic khách KHÔNG BAO GIỜ
                               chạm vào mạng nội bộ campus
 ```
 
@@ -668,10 +668,10 @@ chứ không phải do roam.
 ```
    Client đi từ AP1 sang AP2:
    
-   AP1: RSSI −78 dBm  (rất tệ, tốc độ 6 Mbps)      ← ⭐ client VẪN BÁM
+   AP1: RSSI −78 dBm  (rất tệ, tốc độ 6 Mbps)      ← client VẪN BÁM
    AP2: RSSI −45 dBm  (tuyệt vời, tốc độ 800 Mbps) ← client phớt lờ
    
-   🔴 ⭐ Hậu quả: client đó chậm, VÀ ⭐ nó chiếm airtime rất lâu cho mỗi gói
+   Hậu quả: client đó chậm, VÀ nó chiếm airtime rất lâu cho mỗi gói
       → làm chậm CẢ CELL của AP1 (Module-07A §3.4)
 ```
 
@@ -696,7 +696,7 @@ chứ không phải do roam.
 ```
    ┌─────────────────┐     ┌──────────────────┐
    │  WLAN Profile   │     │  Policy Profile  │
-   │  · SSID (tên)   │     │  · ⭐ VLAN       │
+   │  · SSID (tên)   │     │  · VLAN       │
    │  · Bảo mật      │     │  · ACL / QoS     │
    │  · Radio band   │     │  · Central/Local │
    │  · 11r/k/v      │     │    switching     │
@@ -704,11 +704,11 @@ chứ không phải do roam.
             └──────────┬────────────┘
                        ▼
               ┌─────────────────┐
-              │ ⭐ POLICY TAG   │  ← "SSID này chạy với chính sách kia"
+              │ POLICY TAG   │  ← "SSID này chạy với chính sách kia"
               └────────┬────────┘
                        │
    ┌─────────────────┐ │ ┌──────────────┐   ┌─────────────┐
-   │ ⭐ SITE TAG     │ │ │ ⭐ RF TAG    │   │             │
+   │ SITE TAG     │ │ │ RF TAG    │   │             │
    │ · AP Join Prof. │ │ │ · RF profile │   │             │
    │ · Flex Profile  │ │ │   2.4/5/6GHz │   │             │
    │ · local-site?   │ │ └──────┬───────┘   │             │
@@ -716,11 +716,11 @@ chứ không phải do roam.
             └──────────┼────────┘           │             │
                        ▼                                  │
                  ┌───────────┐                            │
-                 │  ⭐  AP   │ ◄──── 3 tag được GÁN cho AP │
+                 │   AP   │ ◄──── 3 tag được GÁN cho AP │
                  └───────────┘                            │
                        │                                  │
                        ▼                                  │
-                ⭐ AP phát SSID  ◄────────────────────────┘
+                AP phát SSID  ◄────────────────────────┘
 ```
 
 | Tag | Chứa gì | ⭐ Trả lời câu hỏi |
@@ -749,16 +749,16 @@ wlan WLAN-NHANVIEN 1 CTY-CORP
  security wpa psk set-key ascii 0 MatKhauRatDai2026
  security wpa wpa2
  security wpa wpa2 ciphers aes
- security ft                              ! ⭐ bật 802.11r (fast transition)
- security pmf optional                    ! ⭐ 802.11w
- no shutdown                              ! ⭐⭐ RẤT HAY QUÊN
+ security ft                              ! bật 802.11r (fast transition)
+ security pmf optional                    ! 802.11w
+ no shutdown                              ! RẤT HAY QUÊN
 
 ! ═══ ② Policy Profile — VLAN + hành vi ═══
 wireless profile policy POL-NHANVIEN
- vlan 20                                  ! ⭐ VLAN client đổ vào
- central switching                        ! ⭐ (hoặc: no central switching → FlexConnect local)
+ vlan 20                                  ! VLAN client đổ vào
+ central switching                        ! (hoặc: no central switching → FlexConnect local)
  central authentication
- no shutdown                              ! ⭐⭐ CŨNG RẤT HAY QUÊN
+ no shutdown                              ! CŨNG RẤT HAY QUÊN
 
 ! ═══ ③ Policy Tag — buộc ① với ② ═══
 wireless tag policy TAG-POL-HQ
@@ -774,7 +774,7 @@ ap 00aa.bbcc.ddee                          ! MAC ethernet của AP
 show wlan summary
 show wireless profile policy summary
 show wireless tag policy summary
-show ap tag summary                        ! ⭐ AP nào đang dùng tag nào
+show ap tag summary                        ! AP nào đang dùng tag nào
 show ap summary
 ```
 
@@ -853,37 +853,37 @@ show ap summary
 
 ```
   ⑥ UPSTREAM / DỊCH VỤ    "Có IP rồi mà không ra Internet?"
-     └─ Routing, ACL, firewall, DNS, NAT, proxy   →  ⭐ ĐÂY LÀ MẠNG CÓ DÂY, không phải Wi-Fi
+     └─ Routing, ACL, firewall, DNS, NAT, proxy   →  ĐÂY LÀ MẠNG CÓ DÂY, không phải Wi-Fi
                               ▲
-  ⑤ ⭐ IP / DHCP           "Đã xác thực xong mà không có IP?"
+  ⑤ IP / DHCP           "Đã xác thực xong mà không có IP?"
      └─ DHCP scope cạn · VLAN sai · DHCP relay thiếu · VLAN không có trên trunk
                               ▲
-  ④ ⭐⭐ XÁC THỰC          "Associate được rồi mà bị đá ra?"
+  ④ XÁC THỰC          "Associate được rồi mà bị đá ra?"
      └─ Sai PSK · RADIUS không tới được · chứng thư hết hạn · PMF mismatch · sai EAP type
                               ▲
-  ③ ⭐ WLAN CONFIG        "Thấy SSID nhưng không kết nối được?"
+  ③ WLAN CONFIG        "Thấy SSID nhưng không kết nối được?"
      └─ WLAN shutdown · Policy Profile shutdown · Tag chưa gán · WLAN ID > 16 với default tag
                               ▲
-  ② ⭐ AP ↔ WLC           "Không thấy SSID nào cả?"
+  ② AP ↔ WLC           "Không thấy SSID nào cả?"
      └─ AP chưa join: IP? discovery? DTLS/giờ? image? MTU? tag?
                               ▲
-  ① ⭐⭐ RF (Layer 1)      "Sóng có tới không, có sạch không?"
+  ① RF (Layer 1)      "Sóng có tới không, có sạch không?"
      └─ RSSI ≥ −67? SNR ≥ 20–25? Noise? CCI/ACI? Channel DFS? Band client hỗ trợ?
-        ⭐ → Toàn bộ Module-07A
+        → Toàn bộ Module-07A
 ```
 
 ### 9.2 ⭐⭐ Trạng thái client — dừng ở đâu là biết lỗi ở đâu
 
 ```
-  ⭐ Idle → Associating → ⭐ Authenticating (L2) → ⭐ IP Learn / DHCP → (Web Auth) → ⭐ RUN
+  Idle → Associating → Authenticating (L2) → IP Learn / DHCP → (Web Auth) → RUN
      │          │                  │                      │                │           │
      │          │                  │                      │                │           └─ ✅ OK
      │          │                  │                      │                └─ Kẹt: ACL pre-auth
      │          │                  │                      │                        chặn DNS?
-     │          │                  │                      └─ ⭐ Kẹt: DHCP/VLAN/trunk
-     │          │                  └─ ⭐⭐ Kẹt: sai PSK · RADIUS · chứng thư · PMF
+     │          │                  │                      └─ Kẹt: DHCP/VLAN/trunk
+     │          │                  └─ Kẹt: sai PSK · RADIUS · chứng thư · PMF
      │          └─ Kẹt: WLAN config · tag · AP quá tải · client bị loại
-     └─ ⭐ Không thấy client ở đây → ⭐ vấn đề TẦNG 1 (RF) hoặc client không thấy SSID
+     └─ Không thấy client ở đây → vấn đề TẦNG 1 (RF) hoặc client không thấy SSID
 ```
 
 > 🔴 ⭐⭐ **Đây là công cụ chẩn đoán mạnh nhất bạn có.** Câu hỏi đầu tiên **luôn** là:
@@ -937,49 +937,49 @@ show ap summary
 ### 9.4 ⭐ Bộ lệnh troubleshoot
 
 ```
-═══ ⭐⭐ CATALYST 9800 (IOS-XE) — dùng cái này là chính ═══
-show ap summary                                  ! ⭐ AP nào up, mode gì, bao nhiêu client
+═══ CATALYST 9800 (IOS-XE) — dùng cái này là chính ═══
+show ap summary                                  ! AP nào up, mode gì, bao nhiêu client
 show ap uptime                                   ! AP nào vừa reboot
-show ap tag summary                              ! ⭐⭐ AP đang dùng policy/site/rf tag nào
-show ap join stats summary                       ! ⭐ AP nào join hỏng
-show ap join stats detailed <mac-ethernet>       ! ⭐⭐ HỎNG Ở BƯỚC NÀO của quá trình join
-show wlan summary                                ! ⭐ WLAN nào tồn tại, enable chưa
+show ap tag summary                              ! AP đang dùng policy/site/rf tag nào
+show ap join stats summary                       ! AP nào join hỏng
+show ap join stats detailed <mac-ethernet>       ! HỎNG Ở BƯỚC NÀO của quá trình join
+show wlan summary                                ! WLAN nào tồn tại, enable chưa
 show wlan id <n>                                 ! chi tiết một WLAN
-show wireless profile policy summary             ! ⭐ Policy Profile & trạng thái
+show wireless profile policy summary             ! Policy Profile & trạng thái
 show wireless tag policy detailed <tag>          ! tag này map WLAN nào với policy nào
-show wireless client summary                     ! ⭐ danh sách client
-show wireless client mac-address <mac> detail    ! ⭐⭐ LỆNH QUAN TRỌNG NHẤT
+show wireless client summary                     ! danh sách client
+show wireless client mac-address <mac> detail    ! LỆNH QUAN TRỌNG NHẤT
                                                  !   → State, RSSI, SNR, AP, VLAN, IP, policy
-show wireless client mac-address <mac> mobility history   ! ⭐ lịch sử roam của client
-show wireless mobility summary                   ! ⭐⭐ peer mobility Up hay Down
-show wireless stats client delete reasons        ! ⭐ vì sao client bị xóa
+show wireless client mac-address <mac> mobility history   ! lịch sử roam của client
+show wireless mobility summary                   ! peer mobility Up hay Down
+show wireless stats client delete reasons        ! vì sao client bị xóa
 show ap dot11 5ghz summary                       ! channel, Tx power từng AP
-show ap auto-rf dot11 5ghz                       ! ⭐ noise, interference, load — dữ liệu RRM
+show ap auto-rf dot11 5ghz                       ! noise, interference, load — dữ liệu RRM
 
-! ⭐⭐ RadioActive Trace — theo dấu MỘT client qua toàn bộ quá trình:
+! RadioActive Trace — theo dấu MỘT client qua toàn bộ quá trình:
 debug wireless mac <H.H.H> internal
    ... (tái hiện lỗi) ...
 no debug wireless mac <H.H.H> internal
-   → sinh file /bootflash/ra_trace_MAC_*.txt   ⭐ đọc file này thấy TỪNG BƯỚC client làm gì
+   → sinh file /bootflash/ra_trace_MAC_*.txt   đọc file này thấy TỪNG BƯỚC client làm gì
 
 ═══ AIREOS (WLC đời cũ) ═══
 show ap summary
 show ap join stats summary all
 show client summary
-show client detail <mac>              ! ⭐ tương đương lệnh detail của C9800
+show client detail <mac>              ! tương đương lệnh detail của C9800
 show mobility summary
-debug client <mac>                    ! ⭐ theo dấu 1 client
+debug client <mac>                    ! theo dấu 1 client
 
-═══ ⭐ TRÊN SWITCH nối AP (rất hay bị bỏ qua!) ═══
-show power inline <interface>         ! ⭐ PoE có đủ không
+═══ TRÊN SWITCH nối AP (rất hay bị bỏ qua!) ═══
+show power inline <interface>         ! PoE có đủ không
 show interface <intf> status          ! up/down, speed
-show interface trunk                  ! ⭐⭐ VLAN nào thật sự được phép qua (FlexConnect!)
+show interface trunk                  ! VLAN nào thật sự được phép qua (FlexConnect!)
 show mac address-table interface <intf>
-show cdp neighbors detail             ! ⭐ nhìn thấy AP model, IP
+show cdp neighbors detail             ! nhìn thấy AP model, IP
 
-═══ ⭐ TRÊN CLIENT (Module-07A §11.1) ═══
+═══ TRÊN CLIENT (Module-07A §11.1) ═══
 netsh wlan show interfaces
-netsh wlan show wlanreport            ! ⭐ lịch sử roam & lý do rớt
+netsh wlan show wlanreport            ! lịch sử roam & lý do rớt
 ```
 
 > 🔴 ⭐⭐ **Nếu chỉ nhớ được 3 lệnh:**
@@ -1025,10 +1025,10 @@ Bạn có địa chỉ nhà ở Quận 1 (⭐ **IP gốc**). Bạn chuyển tạ
 
 ```
    Chuỗi 1 — AP có kết nối được với WLC không?
-       IP → Discovery → Select → DTLS → Image → Config → ⭐ AP "UP"
+       IP → Discovery → Select → DTLS → Image → Config → AP "UP"
 
    Chuỗi 2 — WLC có BẢO AP phát gì không?
-       WLAN Profile + Policy Profile → Policy Tag → ⭐ GÁN TAG CHO AP
+       WLAN Profile + Policy Profile → Policy Tag → GÁN TAG CHO AP
 ```
 
 ⭐ **Chuỗi 1 đúng mà chuỗi 2 sai** → AP hiện `Registered/Up` trên WLC,
@@ -1318,21 +1318,21 @@ thực ra là **cấu hình, VLAN, hoặc mạng có dây** — ⭐ **đây là 
 ### 14.2 ⭐ Quy trình 60 giây — khi có người báo "Wi-Fi hỏng"
 
 ```
-① ⭐ HỎI: "MỘT người hay NHIỀU người? MỘT chỗ hay KHẮP NƠI? Từ khi nào?"
+① HỎI: "MỘT người hay NHIỀU người? MỘT chỗ hay KHẮP NƠI? Từ khi nào?"
       · 1 người, 1 máy      → client (driver, năng lực, cấu hình máy)
-      · 1 khu vực           → ⭐ AP đó (join? channel? RF?)
-      · toàn bộ             → ⭐ WLC / RADIUS / DHCP / mạng lõi
-      · "từ sau khi đổi X"  → ⭐ chính X là thủ phạm — kiểm tra trước tiên
+      · 1 khu vực           → AP đó (join? channel? RF?)
+      · toàn bộ             → WLC / RADIUS / DHCP / mạng lõi
+      · "từ sau khi đổi X"  → chính X là thủ phạm — kiểm tra trước tiên
 
-② ⭐⭐ show wireless client mac-address <mac> detail | include State
-      → ⭐ CLIENT DỪNG Ở TRẠNG THÁI NÀO?  (§9.2 — bước quyết định nhất)
+② show wireless client mac-address <mac> detail | include State
+      → CLIENT DỪNG Ở TRẠNG THÁI NÀO?  (§9.2 — bước quyết định nhất)
 
-③ ⭐ Theo trạng thái đó, nhảy đúng tầng trong 6 tầng (§9.1)
+③ Theo trạng thái đó, nhảy đúng tầng trong 6 tầng (§9.1)
 
-④ ⭐ Nếu client không xuất hiện trong danh sách → quay lại TẦNG ① (RF) hoặc ② (AP join)
-      show ap summary  +  ⭐ show ap tag summary
+④ Nếu client không xuất hiện trong danh sách → quay lại TẦNG ① (RF) hoặc ② (AP join)
+      show ap summary  +  show ap tag summary
 
-⑤ ⭐ Nếu nghi VLAN/IP → ⭐ ĐI XEM SWITCH, không ngồi soi WLC
+⑤ Nếu nghi VLAN/IP → ĐI XEM SWITCH, không ngồi soi WLC
       show interface trunk  ·  show vlan  ·  show ip dhcp binding
 ```
 

@@ -55,7 +55,7 @@
 ### 1.1 ⭐ Xử lý trước vấn đề crypto trên vIOS
 
 ```
-! ⭐ KIỂM TRA TRƯỚC KHI LÀM BƯỚC IPsec — gõ trên R1:
+! KIỂM TRA TRƯỚC KHI LÀM BƯỚC IPsec — gõ trên R1:
 R1(config)# crypto isakmp policy 10
 ```
 
@@ -82,13 +82,13 @@ R1(config)# crypto isakmp policy 10
    ┌─────┬─────┬─────┐                  ┌─────┬─────┐
    │ VM  │ VM  │ VM  │                  │ VM  │ VM  │
    ├─────┴─────┴─────┤                  ├─────┴─────┤
-   │  ⭐ HYPERVISOR  │                  │ HYPERVISOR│
+   │  HYPERVISOR  │                  │ HYPERVISOR│
    ├─────────────────┤                  ├───────────┴──────┐
-   │   PHẦN CỨNG     │                  │  ⭐ HỆ ĐIỀU HÀNH │
+   │   PHẦN CỨNG     │                  │  HỆ ĐIỀU HÀNH │
    └─────────────────┘                  ├──────────────────┤
                                          │   PHẦN CỨNG      │
-   ⭐ Chạy THẲNG trên phần cứng          └──────────────────┘
-                                         ⭐ Chạy TRÊN một OS khác
+   Chạy THẲNG trên phần cứng          └──────────────────┘
+                                         Chạy TRÊN một OS khác
 ```
 
 | | ⭐ **Type 1 (bare metal / native)** | ⭐ **Type 2 (hosted)** |
@@ -137,11 +137,11 @@ R1(config)# crypto isakmp policy 10
         │    │vNIC      │vNIC      │vNIC                           │
         │    └────┬─────┴────┬─────┘                               │
         │      ┌──┴──────────┴──┐                                  │
-        │      │  ⭐ vSWITCH    │  (phần mềm, chạy trong hypervisor)│
+        │      │  vSWITCH    │  (phần mềm, chạy trong hypervisor)│
         │      └────────┬───────┘                                  │
-        │            ⭐ uplink (pNIC vật lý)                        │
+        │            uplink (pNIC vật lý)                        │
         └────────────────┼─────────────────────────────────────────┘
-                         │  ⭐ thường là TRUNK 802.1Q
+                         │  thường là TRUNK 802.1Q
                  ┌───────┴────────┐
                  │ SWITCH VẬT LÝ  │
                  └────────────────┘
@@ -212,17 +212,17 @@ R1(config)# crypto isakmp policy 10
         ═══ MỘT ROUTER VẬT LÝ ═══
 
    ┌──────────────────────────────────────┐
-   │  ⭐ VRF "KHACH-A"                    │   Gi0/1 ──► 10.10.10.0/24
+   │  VRF "KHACH-A"                    │   Gi0/1 ──► 10.10.10.0/24
    │  · bảng route riêng                  │
    │  · OSPF process riêng                │
    ├──────────────────────────────────────┤
-   │  ⭐ VRF "KHACH-B"                    │   Gi0/2 ──► 10.10.10.0/24  ⭐ TRÙNG IP!
+   │  VRF "KHACH-B"                    │   Gi0/2 ──► 10.10.10.0/24  TRÙNG IP!
    │  · bảng route riêng                  │
    ├──────────────────────────────────────┤
-   │  ⭐ GLOBAL routing table (mặc định)  │   Gi0/0 ──► ra Internet
+   │  GLOBAL routing table (mặc định)  │   Gi0/0 ──► ra Internet
    └──────────────────────────────────────┘
 
-   ⭐⭐ Ba bảng route hoàn toàn ĐỘC LẬP. Không thấy nhau. Trùng IP vẫn OK.
+   Ba bảng route hoàn toàn ĐỘC LẬP. Không thấy nhau. Trùng IP vẫn OK.
 ```
 
 | ⭐ Đặc điểm | Chi tiết |
@@ -255,10 +255,10 @@ ip vrf KHACH-A
  rd 65001:1
 !
 interface GigabitEthernet0/1
- ip vrf forwarding KHACH-A          ! ⭐ chú ý có chữ "ip" ở đầu
+ ip vrf forwarding KHACH-A          ! chú ý có chữ "ip" ở đầu
  ip address 10.10.10.1 255.255.255.0
 
-! ═══════ ⭐⭐ CÚ PHÁP MỚI (multiprotocol — IPv4 + IPv6) ═══════
+! ═══════ CÚ PHÁP MỚI (multiprotocol — IPv4 + IPv6) ═══════
 vrf definition KHACH-A
  rd 65001:1
  !
@@ -269,7 +269,7 @@ vrf definition KHACH-A
  exit-address-family
 !
 interface GigabitEthernet0/1
- vrf forwarding KHACH-A             ! ⭐ KHÔNG có chữ "ip" ở đầu
+ vrf forwarding KHACH-A             ! KHÔNG có chữ "ip" ở đầu
  ip address 10.10.10.1 255.255.255.0
 ```
 
@@ -293,22 +293,22 @@ interface GigabitEthernet0/1
 ip route vrf KHACH-A 0.0.0.0 0.0.0.0 10.10.10.254
 ip route vrf KHACH-A 192.168.50.0 255.255.255.0 10.10.10.254
 
-! ═══ ⭐ OSPF trong VRF — process RIÊNG cho mỗi VRF ═══
-router ospf 10 vrf KHACH-A                  ! ⭐ chú ý từ khóa "vrf"
+! ═══ OSPF trong VRF — process RIÊNG cho mỗi VRF ═══
+router ospf 10 vrf KHACH-A                  ! chú ý từ khóa "vrf"
  router-id 1.1.1.1
  network 10.10.10.0 0.0.0.255 area 0
 !
-router ospf 20 vrf KHACH-B                  ! ⭐ process khác, VRF khác
+router ospf 20 vrf KHACH-B                  ! process khác, VRF khác
  router-id 1.1.1.2
- network 10.10.10.0 0.0.0.255 area 0        ! ⭐ CÙNG mạng — không xung đột!
+ network 10.10.10.0 0.0.0.255 area 0        ! CÙNG mạng — không xung đột!
 
-! ═══ ⭐ EIGRP trong VRF (named mode) ═══
+! ═══ EIGRP trong VRF (named mode) ═══
 router eigrp CTY
  address-family ipv4 unicast vrf KHACH-A autonomous-system 100
   network 10.10.10.0 0.0.0.255
  exit-address-family
 
-! ═══ ⭐ BGP trong VRF ═══
+! ═══ BGP trong VRF ═══
 router bgp 65001
  address-family ipv4 vrf KHACH-A
   neighbor 10.10.10.254 remote-as 65100
@@ -319,16 +319,16 @@ router bgp 65001
 ### 3.4 ⭐⭐ Verify VRF — mọi lệnh show/ping/traceroute cũng phải khai VRF
 
 ```
-show vrf                                    ! ⭐ liệt kê VRF + interface thuộc về nó
-show vrf detail                             ! ⭐ chi tiết RD, address-family
-show ip route vrf KHACH-A                   ! ⭐⭐ bảng route CỦA RIÊNG VRF đó
-show ip route                               ! ⭐ bảng GLOBAL — sẽ KHÔNG thấy route của VRF
+show vrf                                    ! liệt kê VRF + interface thuộc về nó
+show vrf detail                             ! chi tiết RD, address-family
+show ip route vrf KHACH-A                   ! bảng route CỦA RIÊNG VRF đó
+show ip route                               ! bảng GLOBAL — sẽ KHÔNG thấy route của VRF
 show ip interface brief vrf KHACH-A
 show ip protocols vrf KHACH-A
 show ip arp vrf KHACH-A
 show ip cef vrf KHACH-A
 
-! ⭐⭐ PING & TRACEROUTE — BẮT BUỘC khai vrf, nếu không nó dùng bảng GLOBAL
+! PING & TRACEROUTE — BẮT BUỘC khai vrf, nếu không nó dùng bảng GLOBAL
 ping vrf KHACH-A 10.10.10.100
 traceroute vrf KHACH-A 10.10.10.100
 telnet 10.10.10.100 /vrf KHACH-A
@@ -387,10 +387,10 @@ DNS server / Internet gateway), có 3 cách:
 ```
    TRƯỚC KHI BỌC:      [ IP gốc: 10.1.1.5 → 10.2.2.5 ][ dữ liệu ]
 
-   ⭐ SAU KHI BỌC GRE:
+   SAU KHI BỌC GRE:
    [ IP mới: 203.0.113.1 → 203.0.113.2 ][ GRE 4B ][ IP gốc ][ dữ liệu ]
      └─ 20 byte ─┘                        └ 4B ┘
-     ⭐ TỔNG OVERHEAD = 24 BYTE
+     TỔNG OVERHEAD = 24 BYTE
 ```
 
 | ⭐ Đặc điểm của GRE | Chi tiết |
@@ -413,17 +413,17 @@ DNS server / Internet gateway), có 3 cách:
 ! ═══════════ TRÊN R1 (site A) ═══════════
 interface Tunnel0
  description GRE toi Site-B
- ip address 172.16.0.1 255.255.255.252     ! ⭐ mạng RIÊNG của tunnel (không phải mạng LAN)
- tunnel source GigabitEthernet0/0          ! ⭐ interface (hoặc IP) phía WAN của MÌNH
- tunnel destination 203.0.113.2            ! ⭐ IP PUBLIC của đầu kia
- tunnel mode gre ip                        ! ⭐ mặc định — không gõ cũng được
- keepalive 10 3                            ! ⭐ nên bật: gửi mỗi 10s, mất 3 lần thì down
+ ip address 172.16.0.1 255.255.255.252     ! mạng RIÊNG của tunnel (không phải mạng LAN)
+ tunnel source GigabitEthernet0/0          ! interface (hoặc IP) phía WAN của MÌNH
+ tunnel destination 203.0.113.2            ! IP PUBLIC của đầu kia
+ tunnel mode gre ip                        ! mặc định — không gõ cũng được
+ keepalive 10 3                            ! nên bật: gửi mỗi 10s, mất 3 lần thì down
 !
 ! ═══════════ TRÊN R2 (site B) ═══════════
 interface Tunnel0
- ip address 172.16.0.2 255.255.255.252     ! ⭐ cùng subnet /30 với đầu kia
+ ip address 172.16.0.2 255.255.255.252     ! cùng subnet /30 với đầu kia
  tunnel source GigabitEthernet0/0
- tunnel destination 203.0.113.1            ! ⭐ ĐẢO NGƯỢC lại
+ tunnel destination 203.0.113.1            ! ĐẢO NGƯỢC lại
  keepalive 10 3
 ```
 
@@ -439,14 +439,14 @@ interface Tunnel0
 ### 4.3 🔴 ⭐⭐ BẪY LỚN NHẤT CỦA GRE — Recursive Routing
 
 ```
-   🔴 KỊCH BẢN GÂY LỖI:
+   KỊCH BẢN GÂY LỖI:
 
    ① Tunnel0 lên, R1 chạy OSPF QUA tunnel với R2
-   ② ⭐ Ai đó advertise luôn mạng WAN (203.0.113.0/24) vào OSPF đang chạy qua tunnel
-   ③ R1 học được route tới 203.0.113.2  ...  ⭐ QUA CHÍNH TUNNEL0
+   ② Ai đó advertise luôn mạng WAN (203.0.113.0/24) vào OSPF đang chạy qua tunnel
+   ③ R1 học được route tới 203.0.113.2  ...  QUA CHÍNH TUNNEL0
    ④ Nhưng để gửi gói qua Tunnel0, R1 phải biết đường tới 203.0.113.2
-   ⑤ ⭐⭐ VÒNG LẶP: "muốn đi tới đích, phải đi qua tunnel; muốn qua tunnel, phải biết đường tới đích"
-   ⑥ ⭐ Router phát hiện và TỰ TẮT tunnel:
+   ⑤ VÒNG LẶP: "muốn đi tới đích, phải đi qua tunnel; muốn qua tunnel, phải biết đường tới đích"
+   ⑥ Router phát hiện và TỰ TẮT tunnel:
 
    %TUN-5-RECURDOWN: Tunnel0 temporarily disabled due to recursive routing
 ```
@@ -467,8 +467,8 @@ interface Tunnel0
 
 ```
    MTU vật lý 1500
-   ⭐ − 24 byte GRE            → tunnel IP MTU = 1476
-   ⭐ − 52 byte nữa nếu có IPsec → ~1400 là con số an toàn thực tế
+   − 24 byte GRE            → tunnel IP MTU = 1476
+   − 52 byte nữa nếu có IPsec → ~1400 là con số an toàn thực tế
 ```
 
 | 🔴 Triệu chứng kinh điển | Giải thích |
@@ -477,10 +477,10 @@ interface Tunnel0
 | ⭐ "Trang web load một nửa rồi đứng" | ⭐ **Dấu hiệu nhận dạng MTU số 1** |
 
 ```
-! ⭐⭐ CÁCH SỬA CHUẨN — gõ CẢ HAI DÒNG, TRÊN CẢ HAI ĐẦU:
+! CÁCH SỬA CHUẨN — gõ CẢ HAI DÒNG, TRÊN CẢ HAI ĐẦU:
 interface Tunnel0
- ip mtu 1400                    ! ⭐ giới hạn kích thước gói IP qua tunnel
- ip tcp adjust-mss 1360         ! ⭐⭐ DÒNG QUAN TRỌNG NHẤT
+ ip mtu 1400                    ! giới hạn kích thước gói IP qua tunnel
+ ip tcp adjust-mss 1360         ! DÒNG QUAN TRỌNG NHẤT
 ```
 
 | Lệnh | Làm gì |
@@ -497,22 +497,22 @@ interface Tunnel0
 ### 4.5 ⭐ Verify GRE
 
 ```
-show interface tunnel0                     ! ⭐ up/up? MTU bao nhiêu? có drop không?
+show interface tunnel0                     ! up/up? MTU bao nhiêu? có drop không?
 show ip interface brief | include Tunnel
-show ip route                              ! ⭐ có route nào trỏ qua Tunnel0 không
-ping 172.16.0.2                            ! ⭐ ping đầu kia của tunnel
-ping 172.16.0.2 df-bit size 1400           ! ⭐⭐ test MTU thật của tunnel
+show ip route                              ! có route nào trỏ qua Tunnel0 không
+ping 172.16.0.2                            ! ping đầu kia của tunnel
+ping 172.16.0.2 df-bit size 1400           ! test MTU thật của tunnel
 debug tunnel                               ! ⚠️ chỉ dùng trong lab
 ```
 
 ⭐ **Đọc `show interface tunnel0` — 4 dòng cần nhìn:**
 ```
-Tunnel0 is up, line protocol is up          ⭐ "up/up" = OK (nhưng chưa chắc thông!)
+Tunnel0 is up, line protocol is up          "up/up" = OK (nhưng chưa chắc thông!)
   Internet address is 172.16.0.1/30
-  MTU 17916 bytes, BW 100 Kbit/sec          ⭐ MTU của interface tunnel
-  ⭐ Tunnel source 203.0.113.1 (GigabitEthernet0/0), destination 203.0.113.2
+  MTU 17916 bytes, BW 100 Kbit/sec          MTU của interface tunnel
+  Tunnel source 203.0.113.1 (GigabitEthernet0/0), destination 203.0.113.2
   Tunnel protocol/transport GRE/IP
-  ⭐ Tunnel transport MTU 1476 bytes         ⭐ ← 1500 − 24. ĐÂY mới là con số quan trọng
+  Tunnel transport MTU 1476 bytes         ← 1500 − 24. ĐÂY mới là con số quan trọng
   Keepalive set (10 sec), retries 3
 ```
 
@@ -556,16 +556,16 @@ Tunnel0 is up, line protocol is up          ⭐ "up/up" = OK (nhưng chưa chắ
 ### 5.3 ⭐⭐ Hai phase của IKE
 
 ```
-   ⭐ PHASE 1 (IKE SA / ISAKMP SA)  ── UDP 500 ──  "Xây một đường hầm AN TOÀN để ĐÀM PHÁN"
+   PHASE 1 (IKE SA / ISAKMP SA)  ── UDP 500 ──  "Xây một đường hầm AN TOÀN để ĐÀM PHÁN"
       · Xác thực lẫn nhau (PSK hoặc chứng thư)
       · Trao đổi khóa Diffie-Hellman
-      · ⭐ Kết quả: một kênh mã hóa để nói chuyện tiếp
+      · Kết quả: một kênh mã hóa để nói chuyện tiếp
       · Chế độ: Main mode (6 gói, an toàn hơn) / Aggressive mode (3 gói, nhanh hơn)
                           ↓
-   ⭐ PHASE 2 (IPsec SA)             ── Quick mode ──  "Thỏa thuận đường hầm CHỞ DỮ LIỆU"
+   PHASE 2 (IPsec SA)             ── Quick mode ──  "Thỏa thuận đường hầm CHỞ DỮ LIỆU"
       · Chốt transform-set (mã hóa + hash)
-      · Chốt "traffic nào được đi qua" (⭐ interesting traffic / proxy ID)
-      · ⭐ Kết quả: 2 SA MỘT CHIỀU (một vào, một ra) → ⭐ dữ liệu bắt đầu chảy
+      · Chốt "traffic nào được đi qua" (interesting traffic / proxy ID)
+      · Kết quả: 2 SA MỘT CHIỀU (một vào, một ra) → dữ liệu bắt đầu chảy
 ```
 
 ⭐⭐ **NĂM THAM SỐ CỦA PHASE 1 PHẢI KHỚP TUYỆT ĐỐI GIỮA HAI ĐẦU:**
@@ -606,9 +606,9 @@ crypto isakmp key MatKhauChungRatDai address 203.0.113.2
 
 ! ═══ ② PHASE 2 — transform-set ═══
 crypto ipsec transform-set TSET esp-aes 256 esp-sha256-hmac
- mode tunnel                                  ! ⭐ IPsec thuần → TUNNEL mode
+ mode tunnel                                  ! IPsec thuần → TUNNEL mode
 !
-! ═══ ③ ⭐ INTERESTING TRAFFIC — traffic nào được mã hóa ═══
+! ═══ ③ INTERESTING TRAFFIC — traffic nào được mã hóa ═══
 ip access-list extended VPN-TRAFFIC
  permit ip 10.1.0.0 0.0.255.255 10.2.0.0 0.0.255.255
 !
@@ -618,7 +618,7 @@ crypto map CMAP 10 ipsec-isakmp
  set transform-set TSET
  match address VPN-TRAFFIC
 !
-! ═══ ⑤ ⭐ ÁP LÊN INTERFACE WAN — hay quên nhất ═══
+! ═══ ⑤ ÁP LÊN INTERFACE WAN — hay quên nhất ═══
 interface GigabitEthernet0/0
  crypto map CMAP
 ```
@@ -634,17 +634,17 @@ interface GigabitEthernet0/0
 ### 5.5 ⭐ Vài lệnh cấu hình phụ hay gặp
 
 ```
-! ⭐ Loại trừ traffic VPN khỏi NAT (⭐ CỰC KỲ hay quên — Module-06B!)
+! Loại trừ traffic VPN khỏi NAT (CỰC KỲ hay quên — Module-06B!)
 ip access-list extended NAT-ACL
- deny   ip 10.1.0.0 0.0.255.255 10.2.0.0 0.0.255.255    ! ⭐ DENY traffic VPN TRƯỚC
+ deny   ip 10.1.0.0 0.0.255.255 10.2.0.0 0.0.255.255    ! DENY traffic VPN TRƯỚC
  permit ip 10.1.0.0 0.0.255.255 any                     ! rồi mới NAT phần còn lại
 !
 ip nat inside source list NAT-ACL interface Gi0/0 overload
 
-! ⭐ Bật/tắt NAT-T (thường mặc định đã bật)
+! Bật/tắt NAT-T (thường mặc định đã bật)
 crypto isakmp nat-traversal 20
 
-! ⭐ Dead Peer Detection — phát hiện đầu kia chết
+! Dead Peer Detection — phát hiện đầu kia chết
 crypto isakmp keepalive 10 3 periodic
 ```
 
@@ -688,30 +688,30 @@ crypto isakmp policy 10
 !
 crypto isakmp key MatKhauChungRatDai address 203.0.113.2
 
-! ─── ② Phase 2: transform-set + ⭐ TRANSPORT MODE ───
+! ─── ② Phase 2: transform-set + TRANSPORT MODE ───
 crypto ipsec transform-set TSET esp-aes 256 esp-sha256-hmac
- mode transport                              ! ⭐⭐ GRE over IPsec → TRANSPORT
+ mode transport                              ! GRE over IPsec → TRANSPORT
 !
-! ─── ③ ⭐ IPsec PROFILE (thay cho crypto map) ───
+! ─── ③ IPsec PROFILE (thay cho crypto map) ───
 crypto ipsec profile IPSEC-PROF
  set transform-set TSET
 
-! ─── ④ ⭐⭐ Gắn profile vào TUNNEL, không gắn vào interface vật lý ───
+! ─── ④ Gắn profile vào TUNNEL, không gắn vào interface vật lý ───
 interface Tunnel0
  ip address 172.16.0.1 255.255.255.252
- ip mtu 1400                                 ! ⭐ nhớ MTU
- ip tcp adjust-mss 1360                      ! ⭐⭐ nhớ MSS
+ ip mtu 1400                                 ! nhớ MTU
+ ip tcp adjust-mss 1360                      ! nhớ MSS
  tunnel source GigabitEthernet0/0
  tunnel destination 203.0.113.2
  tunnel mode gre ip
- tunnel protection ipsec profile IPSEC-PROF  ! ⭐⭐ DÒNG THẦN KỲ
+ tunnel protection ipsec profile IPSEC-PROF  ! DÒNG THẦN KỲ
  keepalive 10 3
 
 ! ─── ⑤ OSPF chạy QUA tunnel (chỉ advertise LAN, KHÔNG advertise WAN) ───
 router ospf 1
- network 172.16.0.0 0.0.0.3 area 0           ! ⭐ mạng tunnel
- network 10.1.0.0 0.0.255.255 area 0         ! ⭐ LAN site A
- ! 🔴 ⭐ TUYỆT ĐỐI KHÔNG advertise 203.0.113.0/24 vào đây (recursive routing! §4.3)
+ network 172.16.0.0 0.0.0.3 area 0           ! mạng tunnel
+ network 10.1.0.0 0.0.255.255 area 0         ! LAN site A
+ ! TUYỆT ĐỐI KHÔNG advertise 203.0.113.0/24 vào đây (recursive routing! §4.3)
 
 ! ─── ⑥ Route tới đầu kia bằng underlay (static/default ra ISP) ───
 ip route 0.0.0.0 0.0.0.0 203.0.113.254
@@ -728,37 +728,37 @@ ip route 0.0.0.0 0.0.0.0 203.0.113.254
 ### 6.3 ⭐⭐ Verify GRE over IPsec — theo đúng thứ tự này
 
 ```
-! ─── ⭐ BƯỚC 1: Underlay có thông không? ───
-ping 203.0.113.2                        ! ⭐ Không thông → dừng lại, sửa routing/ISP trước
+! ─── BƯỚC 1: Underlay có thông không? ───
+ping 203.0.113.2                        ! Không thông → dừng lại, sửa routing/ISP trước
 
-! ─── ⭐⭐ BƯỚC 2: PHASE 1 lên chưa? ───
+! ─── BƯỚC 2: PHASE 1 lên chưa? ───
 show crypto isakmp sa
    dst           src           state     conn-id status
-   203.0.113.2   203.0.113.1   ⭐ QM_IDLE   1001  ACTIVE
-   ⭐⭐ "QM_IDLE" = Phase 1 ĐÃ XONG và đang chờ. ⭐ ĐÂY LÀ TRẠNG THÁI TỐT.
-   🔴 "MM_NO_STATE" / "MM_KEY_EXCH" = Phase 1 ĐANG HỎNG → sai PSK hoặc lệch policy
+   203.0.113.2   203.0.113.1   QM_IDLE   1001  ACTIVE
+   "QM_IDLE" = Phase 1 ĐÃ XONG và đang chờ. ĐÂY LÀ TRẠNG THÁI TỐT.
+   "MM_NO_STATE" / "MM_KEY_EXCH" = Phase 1 ĐANG HỎNG → sai PSK hoặc lệch policy
 
-! ─── ⭐⭐ BƯỚC 3: PHASE 2 lên chưa, và CÓ ĐANG CHẢY DỮ LIỆU không? ───
+! ─── BƯỚC 3: PHASE 2 lên chưa, và CÓ ĐANG CHẢY DỮ LIỆU không? ───
 show crypto ipsec sa
    local  ident (addr/mask/prot/port): (203.0.113.1/255.255.255.255/47/0)
-                                                                    ⭐ 47 = GRE
-   ⭐⭐ #pkts encaps: 152, #pkts encrypt: 152      ← PHẢI TĂNG khi bạn ping
-   ⭐⭐ #pkts decaps: 149, #pkts decrypt: 149      ← PHẢI TĂNG
-   ⭐ #send errors 0, #recv errors 0
+                                                                    47 = GRE
+   #pkts encaps: 152, #pkts encrypt: 152      ← PHẢI TĂNG khi bạn ping
+   #pkts decaps: 149, #pkts decrypt: 149      ← PHẢI TĂNG
+   #send errors 0, #recv errors 0
 
-! ─── ⭐ BƯỚC 4: Tóm tắt nhanh ───
+! ─── BƯỚC 4: Tóm tắt nhanh ───
 show crypto session
 show crypto session detail
-   Session status: ⭐ UP-ACTIVE
+   Session status: UP-ACTIVE
    IKEv1 SA: ... Active
    IPSEC FLOW: permit 47 host 203.0.113.1 host 203.0.113.2
-     Active SAs: 2, origin: ⭐ crypto map / tunnel protection
+     Active SAs: 2, origin: crypto map / tunnel protection
 
-! ─── ⭐ BƯỚC 5: Tunnel & routing ───
+! ─── BƯỚC 5: Tunnel & routing ───
 show interface tunnel0
-show ip ospf neighbor                   ! ⭐ neighbor qua tunnel phải FULL
-show ip route ospf                      ! ⭐ có học được LAN của site kia không
-ping 10.2.1.1 source 10.1.1.1           ! ⭐ ping từ LAN sang LAN — bài test cuối cùng
+show ip ospf neighbor                   ! neighbor qua tunnel phải FULL
+show ip route ospf                      ! có học được LAN của site kia không
+ping 10.2.1.1 source 10.1.1.1           ! ping từ LAN sang LAN — bài test cuối cùng
 ```
 
 > 🔴 ⭐⭐ **Bảng chẩn đoán nhanh — thuộc bảng này là troubleshoot được IPsec:**
@@ -828,16 +828,16 @@ ping 10.2.1.1 source 10.1.1.1           ! ⭐ ping từ LAN sang LAN — bài te
       [ ITR ]                                            [ ETR ]
      RLOC 1.1.1.1                                      RLOC 2.2.2.2
         │                                                    │
-        │  ⓪ ⭐ ETR ĐĂNG KÝ TRƯỚC: "10.2.2.0/24 → RLOC 2.2.2.2"  ──►[ MS ]
+        │  ⓪ ETR ĐĂNG KÝ TRƯỚC: "10.2.2.0/24 → RLOC 2.2.2.2"  ──►[ MS ]
         │
         │  ① Host A gửi gói tới 10.2.2.20 → tới ITR
-        │  ② ⭐ ITR xem Map-Cache: chưa có
-        │  ③ ⭐ ITR gửi MAP-REQUEST tới [ MR ] ──► MR chuyển tới MS ──► MS chuyển tới ETR
-        │  ④ ⭐ ETR trả MAP-REPLY thẳng về ITR: "10.2.2.0/24 ở RLOC 2.2.2.2"
-        │  ⑤ ⭐ ITR LƯU VÀO MAP-CACHE (lần sau khỏi hỏi)
-        │  ⑥ ⭐⭐ ITR BỌC gói:  [IP: 1.1.1.1→2.2.2.2][UDP 4341][IP gốc: 10.1.1.10→10.2.2.20]
+        │  ② ITR xem Map-Cache: chưa có
+        │  ③ ITR gửi MAP-REQUEST tới [ MR ] ──► MR chuyển tới MS ──► MS chuyển tới ETR
+        │  ④ ETR trả MAP-REPLY thẳng về ITR: "10.2.2.0/24 ở RLOC 2.2.2.2"
+        │  ⑤ ITR LƯU VÀO MAP-CACHE (lần sau khỏi hỏi)
+        │  ⑥ ITR BỌC gói:  [IP: 1.1.1.1→2.2.2.2][UDP 4341][IP gốc: 10.1.1.10→10.2.2.20]
         │  ⑦ Gói đi qua mạng underlay bình thường
-        │  ⑧ ⭐ ETR MỞ GÓI, giao cho Host B
+        │  ⑧ ETR MỞ GÓI, giao cho Host B
         ▼
 ```
 
@@ -886,13 +886,13 @@ ping 10.2.1.1 source 10.1.1.1           ! ⭐ ping từ LAN sang LAN — bài te
 ### 8.2 ⭐⭐ VXLAN hoạt động thế nào
 
 ```
-   ⭐⭐ VXLAN = "MAC-in-UDP" — bọc frame Ethernet vào một gói UDP
+   VXLAN = "MAC-in-UDP" — bọc frame Ethernet vào một gói UDP
 
    Frame gốc:  [ Eth: MAC-A → MAC-B ][ IP ][ dữ liệu ]
-                            ↓ ⭐ VTEP bọc lại
-   [Eth ngoài][IP ngoài: VTEP1→VTEP2][⭐ UDP 4789][⭐ VXLAN 8B (có VNI 24-bit)][Frame gốc]
+                            ↓ VTEP bọc lại
+   [Eth ngoài][IP ngoài: VTEP1→VTEP2][UDP 4789][VXLAN 8B (có VNI 24-bit)][Frame gốc]
       14B          20B                   8B              8B
-   ⭐⭐ TỔNG OVERHEAD = 50 BYTE
+   TỔNG OVERHEAD = 50 BYTE
 ```
 
 | ⭐ Khái niệm | Nghĩa |
@@ -1017,11 +1017,11 @@ ping 10.2.1.1 source 10.1.1.1           ! ⭐ ping từ LAN sang LAN — bài te
    Lo10 │ 10.1.1.1/24 ┌──────┐ │ Gi0/0              │ Gi0/0 ┌──────┐       │ Lo10
    Lo20 │ 10.10.10.1  │  R1  │─┼─203.0.113.1        203.0.113.2─│  R2  │───┼─10.2.2.1/24
    Lo30 │ 10.10.10.1  │      │ │       ╲              ╱         └──────┘   │
-        │ (⭐ TRÙNG!) └──────┘ │        ╲            ╱                     │
+        │ (TRÙNG!) └──────┘ │        ╲            ╱                     │
         └──────────────────────┘         ╲          ╱                      └──────────────┘
                                       ┌───────────────┐
-                                      │    R-ISP      │  ⭐ đóng vai "Internet"
-                                      │ 203.0.113.254 │  ⭐ KHÔNG biết gì về 10.x
+                                      │    R-ISP      │  đóng vai "Internet"
+                                      │ 203.0.113.254 │  KHÔNG biết gì về 10.x
                                       └───────────────┘
 ```
 
@@ -1048,7 +1048,7 @@ ping 10.2.1.1 source 10.1.1.1           ! ⭐ ping từ LAN sang LAN — bài te
 ### Bước 0 — ⭐ Cấu hình nền (underlay)
 
 ```
-!═══════ R-ISP ═══════ (⭐ đóng vai Internet: CHỈ biết mạng public)
+!═══════ R-ISP ═══════ (đóng vai Internet: CHỈ biết mạng public)
 hostname R-ISP
 interface GigabitEthernet0/0
  ip address 203.0.113.254 255.255.255.0
@@ -1056,7 +1056,7 @@ interface GigabitEthernet0/0
 interface GigabitEthernet0/1
  ip address 203.0.113.253 255.255.255.0
  no shutdown
-! 🔴 ⭐ CỐ Ý KHÔNG cấu hình route nào tới 10.0.0.0/8
+! CỐ Ý KHÔNG cấu hình route nào tới 10.0.0.0/8
 !    → Chứng minh traffic 10.x chỉ đi được nhờ TUNNEL
 
 !═══════ R1 ═══════
@@ -1067,7 +1067,7 @@ interface GigabitEthernet0/0
 interface Loopback10
  ip address 10.1.1.1 255.255.255.0        ! LAN site A
 !
-ip route 0.0.0.0 0.0.0.0 203.0.113.254    ! ⭐ default ra "Internet"
+ip route 0.0.0.0 0.0.0.0 203.0.113.254    ! default ra "Internet"
 
 !═══════ R2 ═══════
 hostname R2
@@ -1087,7 +1087,7 @@ R1# ping 203.0.113.2
 
 R1# ping 10.2.2.1 source 10.1.1.1
 .....                                      ! ✅ ĐÚNG như mong đợi — PHẢI THẤT BẠI
-                                           ! ⭐ vì ISP không biết mạng 10.x
+                                           ! vì ISP không biết mạng 10.x
 ```
 > 💡 ⭐ **Vì sao bước này quan trọng:** bạn vừa **chứng minh xuất phát điểm**.
 > ⭐ Mọi thứ hoạt động sau đây **chỉ có thể là nhờ tunnel**, không phải nhờ may mắn.
@@ -1108,15 +1108,15 @@ vrf definition KHACH-B
  address-family ipv4
  exit-address-family
 !
-! ⭐⭐ HAI interface, CÙNG một dải IP, khác VRF
+! HAI interface, CÙNG một dải IP, khác VRF
 interface Loopback20
- vrf forwarding KHACH-A                   ! ⭐ GÁN VRF TRƯỚC
- ip address 10.10.10.1 255.255.255.0      ! ⭐ ĐẶT IP SAU
+ vrf forwarding KHACH-A                   ! GÁN VRF TRƯỚC
+ ip address 10.10.10.1 255.255.255.0      ! ĐẶT IP SAU
  description LAN cua KHACH-A
 !
 interface Loopback30
- vrf forwarding KHACH-B                   ! ⭐ VRF khác
- ip address 10.10.10.1 255.255.255.0      ! ⭐⭐ IP GIỐNG HỆT — VÀ NÓ CHẠY!
+ vrf forwarding KHACH-B                   ! VRF khác
+ ip address 10.10.10.1 255.255.255.0      ! IP GIỐNG HỆT — VÀ NÓ CHẠY!
  description LAN cua KHACH-B
 ```
 
@@ -1124,8 +1124,8 @@ interface Loopback30
 ```
 R1# show ip interface brief | include Loopback
 Loopback10   10.1.1.1     YES manual up  up
-Loopback20   10.10.10.1   YES manual up  up      ⭐
-Loopback30   10.10.10.1   YES manual up  up      ⭐⭐ CÙNG IP, KHÔNG BÁO LỖI!
+Loopback20   10.10.10.1   YES manual up  up      
+Loopback30   10.10.10.1   YES manual up  up      CÙNG IP, KHÔNG BÁO LỖI!
 ```
 
 > 💡 ⭐⭐ **Dừng lại và ngẫm 30 giây.** Trên một router bình thường, đặt cùng IP lên 2 interface sẽ báo:
@@ -1141,13 +1141,13 @@ R1# show vrf
   KHACH-B     65001:2       ipv4        Lo30
 
 R1# show ip route | include 10.10.10
-                                          ⭐ KHÔNG CÓ GÌ — global table không thấy
+                                          KHÔNG CÓ GÌ — global table không thấy
 
 R1# show ip route vrf KHACH-A | include 10.10.10
-C     10.10.10.0/24 is directly connected, Loopback20      ⭐ chỉ thấy của mình
+C     10.10.10.0/24 is directly connected, Loopback20      chỉ thấy của mình
 
 R1# show ip route vrf KHACH-B | include 10.10.10
-C     10.10.10.0/24 is directly connected, Loopback30      ⭐ cũng chỉ thấy của mình
+C     10.10.10.0/24 is directly connected, Loopback30      cũng chỉ thấy của mình
 ```
 
 ✅ **Checkpoint 1.3 — ⭐⭐ tái hiện BẪY SỐ 2 (bẫy quan trọng nhất của VRF):**
@@ -1155,12 +1155,12 @@ C     10.10.10.0/24 is directly connected, Loopback30      ⭐ cũng chỉ thấ
 R1# ping 10.10.10.1
 !!!!!            ! ⚠️ Thành công NHƯNG... nó ping vào đâu?
 
-! ⭐ Thử ping một địa chỉ KHÁC trong VRF, từ global:
+! Thử ping một địa chỉ KHÁC trong VRF, từ global:
 R1# ping 10.10.10.99
-.....            ! 🔴 THẤT BẠI
+.....            ! THẤT BẠI
 
 R1# ping vrf KHACH-A 10.10.10.99
-.....            ! (vẫn fail vì không có host thật, nhưng ⭐ hãy so sánh cách nó gửi gói)
+.....            ! (vẫn fail vì không có host thật, nhưng hãy so sánh cách nó gửi gói)
 ```
 > 💡 🔴 ⭐⭐ **Bài học:** ⭐ **quên `vrf` = đang dùng bảng global = KHÔNG BAO GIỜ tới được VRF.**
 > ⭐ Đây là nguyên nhân của 90% ca *"tôi cấu hình VRF rồi mà không ping được"*.
@@ -1168,13 +1168,13 @@ R1# ping vrf KHACH-A 10.10.10.99
 ✅ **Checkpoint 1.4 — ⭐ tái hiện BẪY SỐ 1 (mất IP khi gán VRF):**
 ```
 R1(config)# interface Loopback40
-R1(config-if)# ip address 192.168.99.1 255.255.255.0    ! ⭐ đặt IP TRƯỚC (cố ý làm sai)
-R1(config-if)# vrf forwarding KHACH-A                   ! ⭐ rồi mới gán VRF
+R1(config-if)# ip address 192.168.99.1 255.255.255.0    ! đặt IP TRƯỚC (cố ý làm sai)
+R1(config-if)# vrf forwarding KHACH-A                   ! rồi mới gán VRF
 
 % Interface Loopback40 IPv4 disabled and address(es) removed due to enabling VRF KHACH-A
 
 R1(config-if)# do show ip interface brief | include Loopback40
-Loopback40    ⭐ unassigned    YES unset  up  up         ⭐ IP ĐÃ BAY MẤT
+Loopback40    unassigned    YES unset  up  up         IP ĐÃ BAY MẤT
 ```
 > 💡 🔴 ⭐⭐ **Ghi ngay vào `SO-TAY-LOI.md`.** ⭐ Trên production, nếu bạn đang SSH qua interface đó
 > thì bạn **vừa tự cắt kết nối tới thiết bị**. ⭐ **Luôn: VRF trước, IP sau.**
@@ -1204,10 +1204,10 @@ interface Tunnel0
 ✅ **Checkpoint 2.1:**
 ```
 R1# show ip interface brief | include Tunnel
-Tunnel0   172.16.0.1   YES manual up  up      ⭐ up/up
+Tunnel0   172.16.0.1   YES manual up  up      up/up
 
 R1# ping 172.16.0.2
-!!!!!                                          ⭐ tunnel thông
+!!!!!                                          tunnel thông
 ```
 
 ✅ **Checkpoint 2.2 — ⭐ đọc thông số tunnel:**
@@ -1215,7 +1215,7 @@ R1# ping 172.16.0.2
 R1# show interface tunnel0 | include MTU|Tunnel source|transport
   MTU 17916 bytes, BW 100 Kbit/sec
   Tunnel source 203.0.113.1 (GigabitEthernet0/0), destination 203.0.113.2
-  ⭐ Tunnel transport MTU 1476 bytes         ← ⭐⭐ 1500 − 24 = GRE overhead
+  Tunnel transport MTU 1476 bytes         ← 1500 − 24 = GRE overhead
 ```
 > 💡 ⭐ **Con số 1476 là bằng chứng vật lý cho lý thuyết §4.1.** ⭐ Nhìn thấy nó một lần là nhớ mãi.
 
@@ -1223,9 +1223,9 @@ Giờ chạy **OSPF qua tunnel** để hai LAN thấy nhau:
 ```
 !═══════ R1 ═══════
 router ospf 1
- network 172.16.0.0 0.0.0.3 area 0        ! ⭐ mạng tunnel
- network 10.1.1.0 0.0.0.255 area 0        ! ⭐ LAN site A
- ! 🔴 ⭐ CHÚ Ý: KHÔNG có 203.0.113.0 ở đây!
+ network 172.16.0.0 0.0.0.3 area 0        ! mạng tunnel
+ network 10.1.1.0 0.0.0.255 area 0        ! LAN site A
+ ! CHÚ Ý: KHÔNG có 203.0.113.0 ở đây!
 
 !═══════ R2 ═══════
 router ospf 1
@@ -1237,13 +1237,13 @@ router ospf 1
 ```
 R1# show ip ospf neighbor
 Neighbor ID   Pri  State     Dead Time  Address      Interface
-2.2.2.2         0  FULL/  -  00:00:35   172.16.0.2   ⭐ Tunnel0
+2.2.2.2         0  FULL/  -  00:00:35   172.16.0.2   Tunnel0
 
 R1# show ip route ospf
-O   10.2.2.0/24 [110/1001] via 172.16.0.2, 00:01:12, ⭐ Tunnel0
+O   10.2.2.0/24 [110/1001] via 172.16.0.2, 00:01:12, Tunnel0
 
 R1# ping 10.2.2.1 source 10.1.1.1
-!!!!!                                    ⭐⭐ THÀNH CÔNG!
+!!!!!                                    THÀNH CÔNG!
 ```
 > 💡 ⭐⭐ **So sánh với Checkpoint 0** — cùng lệnh ping đó, lúc nãy **thất bại hoàn toàn**.
 > ⭐ **R-ISP vẫn KHÔNG hề biết gì về mạng 10.x** — nó chỉ thấy các gói IP giữa 203.0.113.1 và 203.0.113.2.
@@ -1252,7 +1252,7 @@ R1# ping 10.2.2.1 source 10.1.1.1
 ⭐ **Kiểm chứng thêm (rất đáng làm):**
 ```
 R-ISP# show ip route | include 10\.
-                                         ⭐ TRỐNG. ISP hoàn toàn không biết mạng 10.x
+                                         TRỐNG. ISP hoàn toàn không biết mạng 10.x
 ```
 
 ---
@@ -1262,9 +1262,9 @@ R-ISP# show ip route | include 10\.
 > ⭐ **Đây là bước giá trị nhất của cả LAB.** ⭐ **Đừng bỏ qua.** Lab hỏng dạy nhiều hơn lab chạy.
 
 ```
-! ⭐ Trên CẢ R1 VÀ R2 — cố ý advertise mạng WAN vào OSPF-qua-tunnel:
+! Trên CẢ R1 VÀ R2 — cố ý advertise mạng WAN vào OSPF-qua-tunnel:
 router ospf 1
- network 203.0.113.0 0.0.0.255 area 0     ! 🔴 ⭐ DÒNG GÂY THẢM HỌA
+ network 203.0.113.0 0.0.0.255 area 0     ! DÒNG GÂY THẢM HỌA
 ```
 
 ✅ **Checkpoint 3.1 — quan sát vụ nổ (chờ ~30–60 giây):**
@@ -1274,7 +1274,7 @@ router ospf 1
 %OSPF-5-ADJCHG: Process 1, Nbr 2.2.2.2 on Tunnel0 from FULL to DOWN
 %LINEPROTO-5-UPDOWN: Line protocol on Interface Tunnel0, changed state to up
 %TUN-5-RECURDOWN: Tunnel0 temporarily disabled due to recursive routing
-   ⭐⭐ ...LẶP MÃI. Đây là "tunnel flapping".
+   ...LẶP MÃI. Đây là "tunnel flapping".
 ```
 
 ✅ **Checkpoint 3.2 — nhìn vào NGUYÊN NHÂN (bắt lúc tunnel đang up):**
@@ -1282,34 +1282,34 @@ router ospf 1
 R1# show ip route 203.0.113.2
 Routing entry for 203.0.113.0/24
   Known via "ospf 1", distance 110, metric 1001
-  ⭐⭐  * 172.16.0.2, from 2.2.2.2, via Tunnel0      ← 🔴 NHÌN DÒNG NÀY!
+   * 172.16.0.2, from 2.2.2.2, via Tunnel0      ← NHÌN DÒNG NÀY!
 
-⭐ "Muốn tới 203.0.113.2 → đi qua Tunnel0"
-⭐ Nhưng Tunnel0 cần biết đường tới 203.0.113.2 để hoạt động
-⭐⭐ → VÒNG LẶP. Router phát hiện và tự tắt tunnel.
+"Muốn tới 203.0.113.2 → đi qua Tunnel0"
+Nhưng Tunnel0 cần biết đường tới 203.0.113.2 để hoạt động
+→ VÒNG LẶP. Router phát hiện và tự tắt tunnel.
 ```
 
 ✅ **Checkpoint 3.3 — sửa bằng CẢ HAI cách, hiểu vì sao mỗi cách có tác dụng:**
 
 ```
-! ⭐ CÁCH 1 (đúng nhất) — gỡ mạng WAN khỏi OSPF-qua-tunnel:
+! CÁCH 1 (đúng nhất) — gỡ mạng WAN khỏi OSPF-qua-tunnel:
 router ospf 1
  no network 203.0.113.0 0.0.0.255 area 0
 ```
 ```
-! ⭐ CÁCH 2 — static route AD thấp hơn "đè" lên OSPF:
+! CÁCH 2 — static route AD thấp hơn "đè" lên OSPF:
 ip route 203.0.113.2 255.255.255.255 203.0.113.254
-!    ⭐ AD 1  <  AD 110 của OSPF → static LUÔN THẮNG
-!    ⭐ Và /32 dài hơn /24 → longest-prefix cũng thắng (Module-03!)
+!    AD 1  <  AD 110 của OSPF → static LUÔN THẮNG
+!    Và /32 dài hơn /24 → longest-prefix cũng thắng (Module-03!)
 ```
 
 ✅ **Xác nhận đã ổn:**
 ```
 R1# show ip route 203.0.113.2
-   ⭐ phải trỏ ra GigabitEthernet0/0, KHÔNG được trỏ ra Tunnel0
+   phải trỏ ra GigabitEthernet0/0, KHÔNG được trỏ ra Tunnel0
 
 R1# show interface tunnel0 | include line protocol
-Tunnel0 is up, line protocol is up        ⭐ ổn định, không flap nữa
+Tunnel0 is up, line protocol is up        ổn định, không flap nữa
 ```
 
 > 💡 🔴 ⭐⭐ **Bài học một câu — ghi vào `SO-TAY-LOI.md`:**
@@ -1325,12 +1325,12 @@ R1# ping 172.16.0.2 df-bit size 1400
 !!!!!                                    ✅ qua được
 
 R1# ping 172.16.0.2 df-bit size 1476
-!!!!!                                    ✅ ⭐ vẫn qua — đây là ĐÚNG giới hạn
+!!!!!                                    ✅ vẫn qua — đây là ĐÚNG giới hạn
 
 R1# ping 172.16.0.2 df-bit size 1477
 Packet sent with the DF bit set
-.....                                    🔴 ⭐ THẤT BẠI
-   ⭐⭐ Bạn vừa TỰ TAY tìm ra con số 1476 = 1500 − 24 (GRE overhead)
+.....                                    THẤT BẠI
+   Bạn vừa TỰ TAY tìm ra con số 1476 = 1500 − 24 (GRE overhead)
 ```
 
 ✅ **Checkpoint 4.2 — áp cấu hình chuẩn (⭐ trên CẢ HAI đầu):**
@@ -1342,7 +1342,7 @@ interface Tunnel0
 ```
 R1# show interface tunnel0 | include MTU
   MTU 17916 bytes ...
-  ⭐ IP MTU 1400 bytes
+  IP MTU 1400 bytes
   Tunnel transport MTU 1476 bytes
 ```
 
@@ -1368,46 +1368,46 @@ crypto isakmp policy 10
 crypto isakmp key CCNP-ENCOR-2026 address 203.0.113.2
 !
 crypto ipsec transform-set TSET esp-aes 256 esp-sha256-hmac
- mode transport                                ! ⭐⭐ TRANSPORT cho GRE over IPsec
+ mode transport                                ! TRANSPORT cho GRE over IPsec
 !
 crypto ipsec profile IPSEC-PROF
  set transform-set TSET
 !
 interface Tunnel0
- tunnel protection ipsec profile IPSEC-PROF    ! ⭐⭐ dòng duy nhất cần thêm vào tunnel
+ tunnel protection ipsec profile IPSEC-PROF    ! dòng duy nhất cần thêm vào tunnel
 
 !═══════ TRÊN R2 ═══════ (giống hệt, chỉ đổi địa chỉ peer)
 crypto isakmp key CCNP-ENCOR-2026 address 203.0.113.1
-   ! ⭐ phần còn lại y hệt R1
+   ! phần còn lại y hệt R1
 ```
 
 ✅ **Checkpoint 5.1 — Phase 1:**
 ```
-R1# ping 172.16.0.2                       ! ⭐ tạo traffic để kích hoạt VPN
+R1# ping 172.16.0.2                       ! tạo traffic để kích hoạt VPN
 !!!!!
 
 R1# show crypto isakmp sa
 dst           src           state     conn-id status
-203.0.113.2   203.0.113.1   ⭐ QM_IDLE   1001  ACTIVE
-                            ⭐⭐ "QM_IDLE" = Phase 1 XONG. ĐÂY LÀ TRẠNG THÁI TỐT.
+203.0.113.2   203.0.113.1   QM_IDLE   1001  ACTIVE
+                            "QM_IDLE" = Phase 1 XONG. ĐÂY LÀ TRẠNG THÁI TỐT.
 ```
 
 ✅ **Checkpoint 5.2 — ⭐⭐ Phase 2 và bằng chứng dữ liệu đang được mã hóa:**
 ```
 R1# show crypto ipsec sa | include ident|encaps|decaps|encrypt|decrypt
-   local  ident (addr/mask/prot/port): (203.0.113.1/255.255.255.255/⭐ 47/0)
+   local  ident (addr/mask/prot/port): (203.0.113.1/255.255.255.255/47/0)
    remote ident (addr/mask/prot/port): (203.0.113.2/255.255.255.255/47/0)
-                                                                    ⭐⭐ 47 = GRE!
+                                                                    47 = GRE!
     #pkts encaps: 58, #pkts encrypt: 58
     #pkts decaps: 56, #pkts decrypt: 56
 
-! ⭐⭐ BÀI TEST QUYẾT ĐỊNH — ping rồi xem số có TĂNG không:
+! BÀI TEST QUYẾT ĐỊNH — ping rồi xem số có TĂNG không:
 R1# ping 10.2.2.1 source 10.1.1.1 repeat 20
 !!!!!!!!!!!!!!!!!!!!
 
 R1# show crypto ipsec sa | include encaps|decaps
-    #pkts encaps: ⭐ 78    (58 + 20)
-    #pkts decaps: ⭐ 76    (56 + 20)
+    #pkts encaps: 78    (58 + 20)
+    #pkts decaps: 76    (56 + 20)
 ```
 
 > 💡 ⭐⭐ **`encaps` và `decaps` CÙNG TĂNG = VPN thật sự đang chở dữ liệu.**
@@ -1418,17 +1418,17 @@ R1# show crypto ipsec sa | include encaps|decaps
 ```
 R1# show crypto session
 Interface: Tunnel0
-⭐ Session status: UP-ACTIVE
+Session status: UP-ACTIVE
 Peer: 203.0.113.2 port 500
   IKEv1 SA: local 203.0.113.1/500 remote 203.0.113.2/500 Active
   IPSEC FLOW: permit 47 host 203.0.113.1 host 203.0.113.2
-        Active SAs: 2, origin: ⭐ crypto map
+        Active SAs: 2, origin: crypto map
 ```
 
 ✅ **Checkpoint 5.3 — ⭐ OSPF vẫn chạy (đây là điều IPsec thuần không làm được):**
 ```
 R1# show ip ospf neighbor
-2.2.2.2   0  ⭐ FULL/  -  00:00:33  172.16.0.2  Tunnel0
+2.2.2.2   0  FULL/  -  00:00:33  172.16.0.2  Tunnel0
 ```
 > 💡 ⭐⭐ **Đây là câu trả lời sống động cho câu hỏi "vì sao phải GRE over IPsec".**
 > ⭐ Nếu dùng **IPsec thuần (crypto map)**, ⭐ **OSPF sẽ KHÔNG chạy được** vì multicast `224.0.0.5`
@@ -1450,8 +1450,8 @@ R1# ping 172.16.0.2
 ```
 R1# show crypto isakmp sa
 dst           src           state           conn-id status
-203.0.113.2   203.0.113.1   ⭐ MM_NO_STATE   1002  ACTIVE (deleted)
-                            🔴 ⭐⭐ "MM_NO_STATE" = PHASE 1 THẤT BẠI
+203.0.113.2   203.0.113.1   MM_NO_STATE   1002  ACTIVE (deleted)
+                            "MM_NO_STATE" = PHASE 1 THẤT BẠI
 ```
 > 💡 ⭐⭐ **Ghi nhớ cặp đối lập này — đề hỏi rất nhiều:**
 > ⭐ **`QM_IDLE` = Phase 1 THÀNH CÔNG** · 🔴 ⭐ **`MM_NO_STATE` / `MM_KEY_EXCH` = Phase 1 ĐANG HỎNG**
@@ -1461,7 +1461,7 @@ dst           src           state           conn-id status
 **Phá 2 — lệch transform-set:**
 ```
 R2(config)# crypto ipsec transform-set TSET esp-aes 128 esp-sha256-hmac
-!                                             ⭐ 128 thay vì 256
+!                                             128 thay vì 256
 R1# clear crypto sa
 ```
 ✅ **Quan sát:** ⭐ **Phase 1 vẫn `QM_IDLE` ✅ nhưng `show crypto ipsec sa` KHÔNG có SA nào active**,
@@ -1490,7 +1490,7 @@ interface Tunnel0
  ip address 172.16.0.1 255.255.255.252
  tunnel source GigabitEthernet0/0
  tunnel destination 203.0.113.2
- ⭐ tunnel vrf INTERNET              ! ⭐⭐ "hãy TÌM ĐƯỜNG tới destination trong VRF INTERNET"
+ tunnel vrf INTERNET              ! "hãy TÌM ĐƯỜNG tới destination trong VRF INTERNET"
 ```
 > ⭐⭐ **Phân biệt hai lệnh dễ lẫn — đề có thể hỏi:**
 > · ⭐ **`vrf forwarding X`** trên Tunnel0 = ⭐ **traffic BÊN TRONG tunnel thuộc VRF X** (overlay)
@@ -1501,10 +1501,10 @@ interface Tunnel0
 ### 11.2 🚀 ⭐ Route leaking giữa VRF và global
 
 ```
-! ⭐ Cho VRF KHACH-A đi ra Internet (bảng global)
-ip route vrf KHACH-A 0.0.0.0 0.0.0.0 203.0.113.254 ⭐ global
-!                                                   ⭐ từ khóa quan trọng
-! ⭐ Chiều về: từ global trỏ ngược vào VRF
+! Cho VRF KHACH-A đi ra Internet (bảng global)
+ip route vrf KHACH-A 0.0.0.0 0.0.0.0 203.0.113.254 global
+!                                                   từ khóa quan trọng
+! Chiều về: từ global trỏ ngược vào VRF
 ip route 10.10.10.0 255.255.255.0 Loopback20
 ```
 ✅ **Test:** `ping vrf KHACH-A 203.0.113.254` → phải thành công.
@@ -1517,7 +1517,7 @@ router ospf 100 vrf KHACH-A
  router-id 1.1.1.100
  network 10.10.10.0 0.0.0.255 area 0
 !
-show ip ospf 100                          ! ⭐ process riêng
+show ip ospf 100                          ! process riêng
 show ip route vrf KHACH-A ospf
 show ip ospf neighbor vrf KHACH-A
 ```
@@ -1610,39 +1610,39 @@ show ip ospf neighbor vrf KHACH-A
 
 ```
 ═══ VRF ═══
-show vrf                              ! ⭐ VRF nào tồn tại, interface nào thuộc nó
+show vrf                              ! VRF nào tồn tại, interface nào thuộc nó
 show vrf detail
-show ip route vrf <TEN>               ! ⭐⭐ bảng route CỦA VRF
+show ip route vrf <TEN>               ! bảng route CỦA VRF
 show ip interface brief vrf <TEN>
 show ip protocols vrf <TEN>
 show ip arp vrf <TEN>
-ping vrf <TEN> <ip>                   ! ⭐⭐ ĐỪNG QUÊN "vrf"
+ping vrf <TEN> <ip>                   ! ĐỪNG QUÊN "vrf"
 traceroute vrf <TEN> <ip>
 
 ═══ GRE ═══
-show interface tunnel0                ! ⭐ up/up? transport MTU? keepalive?
-show ip route <tunnel-destination>    ! ⭐⭐ CÓ trỏ qua Tunnel0 không? (recursive!)
-ping <tunnel-peer> df-bit size 1476   ! ⭐ test MTU thật
-show log | include TUN-5-RECURDOWN    ! ⭐ bằng chứng recursive routing
+show interface tunnel0                ! up/up? transport MTU? keepalive?
+show ip route <tunnel-destination>    ! CÓ trỏ qua Tunnel0 không? (recursive!)
+ping <tunnel-peer> df-bit size 1476   ! test MTU thật
+show log | include TUN-5-RECURDOWN    ! bằng chứng recursive routing
 debug tunnel                          ! ⚠️ chỉ trong lab
 
-═══ ⭐⭐ IPsec — theo ĐÚNG thứ tự này ═══
+═══ IPsec — theo ĐÚNG thứ tự này ═══
 ping <peer-public-ip>                 ! ① underlay có thông không
-show crypto isakmp sa                 ! ② ⭐ Phase 1: QM_IDLE = tốt
-show crypto ipsec sa                  ! ③ ⭐⭐ Phase 2: encaps/decaps CÓ TĂNG không
+show crypto isakmp sa                 ! ② Phase 1: QM_IDLE = tốt
+show crypto ipsec sa                  ! ③ Phase 2: encaps/decaps CÓ TĂNG không
 show crypto session detail            ! ④ tóm tắt
 show crypto map                       ! (nếu dùng crypto map)
 show crypto ipsec transform-set
-clear crypto isakmp                   ! ⭐ ép đàm phán lại Phase 1
-clear crypto sa                       ! ⭐ ép đàm phán lại Phase 2
-debug crypto isakmp                   ! ⚠️ ⭐ chỉ trong lab — rất nhiều output
+clear crypto isakmp                   ! ép đàm phán lại Phase 1
+clear crypto sa                       ! ép đàm phán lại Phase 2
+debug crypto isakmp                   ! ⚠️ chỉ trong lab — rất nhiều output
 debug crypto ipsec
 
-═══ ⭐ Nền tảng ═══
+═══ Nền tảng ═══
 show ip route
 show ip ospf neighbor
-show ip access-lists                  ! ⭐ ACL NAT có deny traffic VPN chưa
-show ip nat translations              ! ⭐ NAT có "ăn" mất traffic VPN không
+show ip access-lists                  ! ACL NAT có deny traffic VPN chưa
+show ip nat translations              ! NAT có "ăn" mất traffic VPN không
 ```
 
 ### 14.2 ⭐⭐ Bảng: triệu chứng → nguyên nhân → cách sửa
@@ -1670,12 +1670,12 @@ show ip nat translations              ! ⭐ NAT có "ăn" mất traffic VPN khô
 ### 14.3 ⭐ Quy trình troubleshoot GRE over IPsec — 6 bước
 
 ```
-① ⭐ UNDERLAY:   ping <peer-public-ip>            → không thông? sửa routing/ISP TRƯỚC
-② ⭐ PHASE 1:    show crypto isakmp sa            → QM_IDLE?  không → sai PSK / policy
-③ ⭐ PHASE 2:    show crypto ipsec sa             → có SA?    không → transform-set / ACL
-④ ⭐⭐ DỮ LIỆU:  encaps VÀ decaps CÓ TĂNG không?  → chỉ 1 chiều tăng → firewall / route ngược
-⑤ ⭐ TUNNEL:     show interface tunnel0           → up/up? có flap (recursive)?
-⑥ ⭐ ROUTING:    show ip ospf neighbor            → FULL? có học route của site kia không?
+① UNDERLAY:   ping <peer-public-ip>            → không thông? sửa routing/ISP TRƯỚC
+② PHASE 1:    show crypto isakmp sa            → QM_IDLE?  không → sai PSK / policy
+③ PHASE 2:    show crypto ipsec sa             → có SA?    không → transform-set / ACL
+④ DỮ LIỆU:  encaps VÀ decaps CÓ TĂNG không?  → chỉ 1 chiều tăng → firewall / route ngược
+⑤ TUNNEL:     show interface tunnel0           → up/up? có flap (recursive)?
+⑥ ROUTING:    show ip ospf neighbor            → FULL? có học route của site kia không?
                  ping <LAN-dich> source <LAN-nguon>
 ```
 > ⭐ **Đi đúng thứ tự này thì không bao giờ lạc.** ⭐ **Đừng nhảy vào `debug crypto` ở bước đầu** —
@@ -1830,7 +1830,7 @@ IP header nữa** → thừa 20 byte vô ích.
 ```
 interface Tunnel0
  ip mtu 1400
- ip tcp adjust-mss 1360         ! ⭐⭐ dòng quan trọng hơn
+ ip tcp adjust-mss 1360         ! dòng quan trọng hơn
 ```
 ⭐ **Phải đặt trên CẢ HAI đầu.**
 ⭐ **`adjust-mss` quan trọng hơn** vì nó khiến hai host **tự gửi gói nhỏ ngay từ đầu** → không cần phân mảnh

@@ -350,9 +350,9 @@ configure terminal
 spanning-tree mode mst
 !
 spanning-tree mst configuration
- name CAMPUS-01                    ! ⭐ giống nhau MỌI switch
- revision 1                            ! ⭐ giống nhau MỌI switch
- instance 1 vlan 10,30,50              ! ⭐ mapping giống nhau MỌI switch
+ name CAMPUS-01                    ! giống nhau MỌI switch
+ revision 1                            ! giống nhau MỌI switch
+ instance 1 vlan 10,30,50              ! mapping giống nhau MỌI switch
  instance 2 vlan 20,40,60
  exit
 !
@@ -431,13 +431,13 @@ Instance  Vlans mapped
 interface Gi0/1
  spanning-tree portfast
 
-! Dạng 2 — TRUNK port (⭐ dùng cho uplink tới hypervisor)
+! Dạng 2 — TRUNK port (dùng cho uplink tới hypervisor)
 interface Gi0/2
  spanning-tree portfast trunk
 
 ! Dạng 3 — bật mặc định cho MỌI access port (tiết kiệm công gõ)
 spanning-tree portfast default
-spanning-tree portfast bpduguard default      ! ⭐ đi kèm luôn
+spanning-tree portfast bpduguard default      ! đi kèm luôn
 ```
 
 > ⭐ **Điểm liên quan trực tiếp tới công việc của bạn:** port switch nối vào **host ảo hóa**
@@ -529,7 +529,7 @@ udld aggressive                  ! aggressive mode
 ! Per-interface — tác dụng cả copper
 interface Gi0/1
  udld port                       ! normal
- udld port aggressive            ! ⭐ aggressive
+ udld port aggressive            ! aggressive
 
 ! Kiểm tra
 show udld
@@ -684,7 +684,7 @@ Nếu 1 trong 6 thứ này lệch giữa các member port → port **không vào
 interface range GigabitEthernet0/1 - 2
  channel-group 1 mode active           ! chỉ gõ dòng này ở member port
 !
-interface Port-channel1                ! ⭐ mọi cấu hình khác gõ Ở ĐÂY
+interface Port-channel1                ! mọi cấu hình khác gõ Ở ĐÂY
  switchport trunk encapsulation dot1q
  switchport mode trunk
  switchport trunk allowed vlan 10,20,30
@@ -703,7 +703,7 @@ interface Port-channel1                ! ⭐ mọi cấu hình khác gõ Ở Đ�
 ```
 ! L3 EtherChannel
 interface range GigabitEthernet0/1 - 2
- no switchport                          ! ⭐ phải làm trên MEMBER trước
+ no switchport                          ! phải làm trên MEMBER trước
  channel-group 1 mode active
 !
 interface Port-channel1
@@ -817,12 +817,12 @@ Group  Port-channel  Protocol    Ports
 
 **Các lệnh kiểm tra khác:**
 ```
-show etherchannel summary                   ! ⭐ lệnh đầu tiên
+show etherchannel summary                   ! lệnh đầu tiên
 show etherchannel 1 detail                  ! chi tiết group 1
 show etherchannel 1 port-channel            ! thông tin port-channel
 show interfaces Port-channel1               ! như 1 interface thường
 show interfaces Port-channel1 etherchannel
-show lacp neighbor                          ! ⭐ thấy partner không?
+show lacp neighbor                          ! thấy partner không?
 show lacp counters                          ! LACP PDU gửi/nhận
 show pagp neighbor
 show etherchannel load-balance
@@ -953,7 +953,7 @@ vlan 10
 vlan 20
  name SERVERS
 vlan 999
- name NATIVE-UNUSED                        ! ⭐ native VLAN "rác"
+ name NATIVE-UNUSED                        ! native VLAN "rác"
 exit
 !
 line con 0
@@ -1129,7 +1129,7 @@ Hoặc toàn cục: `spanning-tree loopguard default`
 ```
 configure terminal
  udld aggressive                                       ! link fiber
- spanning-tree etherchannel guard misconfig            ! ⭐ chuẩn bị cho tuần 5
+ spanning-tree etherchannel guard misconfig            ! chuẩn bị cho tuần 5
  errdisable recovery cause bpduguard
  errdisable recovery cause udld
  errdisable recovery interval 300
@@ -1396,7 +1396,7 @@ Name                   Blocking Listening Learning Forwarding STP Active
 #### Bước 2 — Chuyển sang MST
 
 ```
-! ⭐ Làm GIỐNG NHAU trên CẢ 4 switch — không được sai 1 ký tự
+! Làm GIỐNG NHAU trên CẢ 4 switch — không được sai 1 ký tự
 configure terminal
 !
 spanning-tree mode mst
@@ -1846,7 +1846,7 @@ ip routing
 default interface range GigabitEthernet0/3 - 4
 !
 interface range GigabitEthernet0/3 - 4
- no switchport                          ! ⭐ TRƯỚC channel-group
+ no switchport                          ! TRƯỚC channel-group
  channel-group 2 mode active
  no shutdown
 !
@@ -1947,18 +1947,18 @@ SW-D1# show spanning-tree mst 1 | include Po2
 
 ```
 ! === STP tổng quan ===
-show spanning-tree summary                     ! ⭐ mode + guard nào bật
+show spanning-tree summary                     ! mode + guard nào bật
 show spanning-tree summary totals              ! đếm instance
-show spanning-tree vlan 10                     ! ⭐ chi tiết 1 VLAN
+show spanning-tree vlan 10                     ! chi tiết 1 VLAN
 show spanning-tree root                        ! ai là root từng VLAN
 show spanning-tree blockedports                ! port nào bị block
-show spanning-tree inconsistentports           ! ⭐ port bị guard chặn
+show spanning-tree inconsistentports           ! port bị guard chặn
 show spanning-tree interface Gi0/1 detail      ! chi tiết 1 port
-show spanning-tree detail | include occurr     ! ⭐ đếm topology change
+show spanning-tree detail | include occurr     ! đếm topology change
 
 ! === MST ===
-show spanning-tree mst configuration           ! ⭐ LỆNH ĐẦU TIÊN khi lỗi MST
-show spanning-tree mst configuration digest    ! ⭐ so sánh giữa các switch
+show spanning-tree mst configuration           ! LỆNH ĐẦU TIÊN khi lỗi MST
+show spanning-tree mst configuration digest    ! so sánh giữa các switch
 show spanning-tree mst                         ! mọi instance
 show spanning-tree mst 1                       ! 1 instance
 show spanning-tree mst interface Gi0/1
@@ -1967,16 +1967,16 @@ show spanning-tree mst | include Boun           ! port boundary
 ! === Guards / UDLD ===
 show spanning-tree interface Gi0/1 detail | include guard
 show errdisable recovery
-show interfaces status err-disabled            ! ⭐ port nào tắt + VÌ SAO
+show interfaces status err-disabled            ! port nào tắt + VÌ SAO
 show udld
 show udld neighbors
 udld reset                                     ! bật lại port UDLD tắt
 
 ! === EtherChannel ===
-show etherchannel summary                      ! ⭐ LỆNH ĐẦU TIÊN
+show etherchannel summary                      ! LỆNH ĐẦU TIÊN
 show etherchannel 1 detail
 show etherchannel load-balance
-show lacp neighbor                             ! ⭐ có partner không
+show lacp neighbor                             ! có partner không
 show lacp counters                             ! PDU gửi/nhận
 show lacp internal
 show pagp neighbor
@@ -1984,11 +1984,11 @@ show interfaces Port-channel1
 show interfaces Gi0/3 etherchannel
 
 ! === Nền tảng L2 ===
-show interfaces status                         ! ⭐ speed/duplex/vlan
-show interfaces trunk                          ! ⭐ trunk + allowed + native
+show interfaces status                         ! speed/duplex/vlan
+show interfaces trunk                          ! trunk + allowed + native
 show vlan brief
 show mac address-table
-show logging | include SPANTREE|EC-|PM-|UDLD   ! ⭐ đọc log
+show logging | include SPANTREE|EC-|PM-|UDLD   ! đọc log
 ```
 
 ### 12.2 Bảng lỗi: triệu chứng → nguyên nhân → cách sửa

@@ -94,8 +94,8 @@ Path C: AS-path "65004 65010"  MED 10    ← AS kề khác (65004) → ⚠️ KH
 **Hai lệnh đổi hành vi:**
 ```
 router bgp 65001
- bgp always-compare-med                 ! ⭐ so MED giữa MỌI AS (⚠️ có thể gây bất ổn)
- bgp deterministic-med                  ! ⭐ nhóm path theo AS trước khi so — KẾT QUẢ NHẤT QUÁN
+ bgp always-compare-med                 ! so MED giữa MỌI AS (⚠️ có thể gây bất ổn)
+ bgp deterministic-med                  ! nhóm path theo AS trước khi so — KẾT QUẢ NHẤT QUÁN
  bgp bestpath med missing-as-worst      ! MED thiếu = vô cực (mặc định coi = 0)
 ```
 
@@ -125,7 +125,7 @@ router bgp 65001
    ┌─────────────────────────────────────────────────────────────────┐
    │  AS của tôi (65001)                                             │
    │                                                                  │
-   │  Traffic ĐI RA ──────▶  ⭐ TÔI kiểm soát hoàn toàn              │
+   │  Traffic ĐI RA ──────▶  TÔI kiểm soát hoàn toàn              │
    │                          → Weight (1 router) / LocPref (cả AS)  │
    │                          → route-map áp chiều IN                 │
    │                                                                  │
@@ -167,16 +167,16 @@ của họ — hai bước **đứng TRƯỚC** AS-path và MED trong 13 bước
 router bgp 65001
  neighbor 10.0.12.2 weight 200
 
-! ═══ Cách 2 (⭐ linh hoạt hơn): route-map — chỉ 1 số prefix ═══
+! ═══ Cách 2 (linh hoạt hơn): route-map — chỉ 1 số prefix ═══
 ip prefix-list PL-IMPORTANT permit 10.3.3.0/24
 !
 route-map RM-SET-WEIGHT permit 10
  match ip address prefix-list PL-IMPORTANT
  set weight 500
-route-map RM-SET-WEIGHT permit 20              ! ⭐ catch-all
+route-map RM-SET-WEIGHT permit 20              ! catch-all
 !
 router bgp 65001
- neighbor 10.0.12.2 route-map RM-SET-WEIGHT in     ! ⭐ chiều IN
+ neighbor 10.0.12.2 route-map RM-SET-WEIGHT in     ! chiều IN
 ```
 
 ⭐ **Khi nào dùng Weight thay Local Preference:**
@@ -204,16 +204,16 @@ router bgp 65001
 router bgp 65001
  bgp default local-preference 150
 
-! ═══ ⭐ Đặt theo prefix bằng route-map (cách chuẩn) ═══
+! ═══ Đặt theo prefix bằng route-map (cách chuẩn) ═══
 ip prefix-list PL-VIA-ISP1 permit 10.3.3.0/24
 !
 route-map RM-ISP1-IN permit 10
  match ip address prefix-list PL-VIA-ISP1
  set local-preference 200                       ! ưu tiên đi qua ISP1
-route-map RM-ISP1-IN permit 20                  ! ⭐ catch-all
+route-map RM-ISP1-IN permit 20                  ! catch-all
 !
 router bgp 65001
- neighbor 10.0.12.2 route-map RM-ISP1-IN in     ! ⭐ chiều IN
+ neighbor 10.0.12.2 route-map RM-ISP1-IN in     ! chiều IN
 ```
 
 ⭐ **Kịch bản thực tế phổ biến nhất:**
@@ -236,7 +236,7 @@ router bgp 65001
 qua mình **kém hơn** → chọn đường khác → traffic **vào** AS của tôi qua hướng khác.
 
 ```
-! ⭐ Áp chiều OUT — vì muốn ảnh hưởng INBOUND traffic
+! Áp chiều OUT — vì muốn ảnh hưởng INBOUND traffic
 route-map RM-PREPEND-OUT permit 10
  set as-path prepend 65001 65001 65001         ! thêm 3 lần ASN của mình
 !
@@ -274,9 +274,9 @@ router bgp 65001
 | Hiện ở | ⭐ Cột **`Metric`** trong `show ip bgp` |
 
 ```
-! ⭐ Áp chiều OUT — muốn ảnh hưởng INBOUND traffic
+! Áp chiều OUT — muốn ảnh hưởng INBOUND traffic
 route-map RM-MED-OUT permit 10
- set metric 200                                ! ⭐ "metric" trong route-map = MED
+ set metric 200                                ! "metric" trong route-map = MED
 !
 router bgp 65001
  neighbor 10.0.14.2 route-map RM-MED-OUT out
@@ -315,12 +315,12 @@ Lúc đó dùng **AS-path prepend**.
 #### Community tự định nghĩa — định dạng `AS:NN`
 
 ```
-ip bgp-community new-format                    ! ⭐ hiện dạng 65001:100 thay vì số nguyên
+ip bgp-community new-format                    ! hiện dạng 65001:100 thay vì số nguyên
 
 route-map RM-SET-COMM permit 10
  set community 65001:100 65001:200             ! đặt 2 community
 route-map RM-SET-COMM permit 20
- set community 65001:300 additive              ! ⭐ THÊM vào (không ghi đè)
+ set community 65001:300 additive              ! THÊM vào (không ghi đè)
 ```
 
 ⚠️ **Không có `additive`** → ⭐ **ghi đè** toàn bộ community cũ.
@@ -348,7 +348,7 @@ ip community-list expanded CL-ANY-65001 permit 65001:.*
 route-map RM-MATCH-COMM permit 10
  match community CL-CUSTOMER
  set local-preference 200
-route-map RM-MATCH-COMM permit 20               ! ⭐ catch-all
+route-map RM-MATCH-COMM permit 20               ! catch-all
 ```
 
 **Kiểm tra:**
@@ -356,7 +356,7 @@ route-map RM-MATCH-COMM permit 20               ! ⭐ catch-all
 show ip bgp community                           ! route có community
 show ip bgp community no-export
 show ip bgp community 65001:100
-show ip bgp <prefix>                            ! ⭐ dòng "Community: ..."
+show ip bgp <prefix>                            ! dòng "Community: ..."
 show ip community-list
 show ip bgp neighbors <ip> | include community
 ```
@@ -403,9 +403,9 @@ nó chỉ cho phép **đúng default route**. Catch-all phải là ⭐ **`permit
 
 ```
 ip as-path access-list 1 permit ^65002$              ! chỉ route sinh tại AS 65002 kề
-ip as-path access-list 2 permit ^$                   ! ⭐ chỉ route sinh trong AS mình
+ip as-path access-list 2 permit ^$                   ! chỉ route sinh trong AS mình
 ip as-path access-list 3 deny _65099_                ! chặn route đi qua AS 65099
-ip as-path access-list 3 permit .*                   ! ⭐ catch-all
+ip as-path access-list 3 permit .*                   ! catch-all
 !
 router bgp 65001
  neighbor 10.0.12.2 filter-list 1 in
@@ -440,7 +440,7 @@ router bgp 65001
 
 **Test regex trực tiếp:**
 ```
-show ip bgp regexp ^$                   ! ⭐ route sinh trong AS mình
+show ip bgp regexp ^$                   ! route sinh trong AS mình
 show ip bgp regexp ^65002$
 show ip bgp regexp _65003_
 show ip bgp regexp ^65002_
@@ -456,7 +456,7 @@ route-map RM-IN deny 5
 route-map RM-IN permit 10
  match as-path 1
  set local-preference 200                        ! route từ AS 65002 → LocPref 200
-route-map RM-IN permit 20                         ! ⭐ CATCH-ALL — đừng quên!
+route-map RM-IN permit 20                         ! CATCH-ALL — đừng quên!
 !
 router bgp 65001
  neighbor 10.0.12.2 route-map RM-IN in
@@ -468,8 +468,8 @@ không khớp 2 dòng trên.
 #### ⭐ Áp filter xong PHẢI reset
 
 ```
-clear ip bgp 10.0.12.2 soft in       ! ⭐ đổi filter chiều IN
-clear ip bgp 10.0.12.2 soft out      ! ⭐ đổi filter chiều OUT
+clear ip bgp 10.0.12.2 soft in       ! đổi filter chiều IN
+clear ip bgp 10.0.12.2 soft out      ! đổi filter chiều OUT
 ```
 ⚠️ Không reset → filter mới **không được áp** cho route đã nhận/gửi trước đó.
 
@@ -482,10 +482,10 @@ clear ip bgp 10.0.12.2 soft out      ! ⭐ đổi filter chiều OUT
 router bgp 65001
  aggregate-address 10.1.0.0 255.255.0.0
 
-! ═══ ⭐ summary-only: CHỈ quảng bá aggregate, ĐÈ các prefix con ═══
+! ═══ summary-only: CHỈ quảng bá aggregate, ĐÈ các prefix con ═══
  aggregate-address 10.1.0.0 255.255.0.0 summary-only
 
-! ═══ ⭐ as-set: giữ thông tin AS-path của các prefix con ═══
+! ═══ as-set: giữ thông tin AS-path của các prefix con ═══
  aggregate-address 10.1.0.0 255.255.0.0 summary-only as-set
 ```
 
@@ -507,8 +507,8 @@ router bgp 65001
 **Đọc `show ip bgp` sau khi aggregate:**
 ```
      Network          Next Hop         Metric LocPrf Weight Path
- *>  10.1.0.0/16      0.0.0.0                     32768 i          ← ⭐ aggregate
- s>  10.1.1.0/24      0.0.0.0              0      32768 i          ← ⭐ s = suppressed
+ *>  10.1.0.0/16      0.0.0.0                     32768 i          ← aggregate
+ s>  10.1.1.0/24      0.0.0.0              0      32768 i          ← s = suppressed
  s>  10.1.2.0/24      0.0.0.0              0      32768 i
 ```
 ⭐ **`s`** = suppressed (bị `summary-only` đè, **không** quảng bá cho peer).
@@ -739,7 +739,7 @@ Paths: (2 available, best #2, table default)
   ...
   65004 65003
     10.0.14.2 from 10.0.14.2 (1.1.1.4)
-      Origin IGP, localpref 100, valid, external, best      ← ⭐ giờ path này best
+      Origin IGP, localpref 100, valid, external, best      ← giờ path này best
 ```
 ⭐ **Path B thắng** vì Router ID `1.1.1.4` < `2.2.2.2`.
 
@@ -784,7 +784,7 @@ R1(config-route-map)# exit
 R1(config)# router bgp 65001
 R1(config-router)#  neighbor 10.0.14.2 route-map RM-PREPEND-TO-AS65004 out
 R1(config-router)# exit
-R1# clear ip bgp 10.0.14.2 soft out             ! ⭐ soft out (đổi outbound policy)
+R1# clear ip bgp 10.0.14.2 soft out             ! soft out (đổi outbound policy)
 ```
 
 **c) Xem trên R4:**
@@ -808,7 +808,7 @@ R3# show ip bgp 10.1.1.0
 Paths: (2 available, best #1, table default)
   65002 65001
     10.0.23.1 from 10.0.23.1 (2.2.2.2)
-      Origin IGP, localpref 100, valid, external, best      ← ⭐ giờ chọn qua R2
+      Origin IGP, localpref 100, valid, external, best      ← giờ chọn qua R2
   65004 65001 65001 65001 65001
     10.0.34.1 from 10.0.34.1 (4.4.4.4)
       Origin IGP, localpref 100, valid, external
@@ -818,7 +818,7 @@ Paths: (2 available, best #1, table default)
 
 ```
 R3# traceroute 10.1.1.1 source 10.3.3.1
-  1 10.0.23.1 ...        ← ⭐ qua R2, không qua R4 nữa
+  1 10.0.23.1 ...        ← qua R2, không qua R4 nữa
 ```
 
 ✅ **Traffic INBOUND vào AS 65001 đã đổi hướng** — bằng cách áp route-map chiều **`out`**.
@@ -836,7 +836,7 @@ R3# show ip bgp 10.1.1.0
 ```
   65004 65001 65001 65001 65001
     10.0.34.1 from 10.0.34.1 (4.4.4.4)
-      Origin IGP, localpref 100, weight 500, valid, external, best   ← ⭐ THẮNG dù AS-path dài
+      Origin IGP, localpref 100, weight 500, valid, external, best   ← THẮNG dù AS-path dài
 ```
 ⭐⭐ **Weight (bước 1) thắng AS-path (bước 4)** → prepend của R1 **vô hiệu**.
 
@@ -865,13 +865,13 @@ R1(config)# route-map RM-PREFER-R4 permit 10
 R1(config-route-map)#  match ip address prefix-list PL-AS65003
 R1(config-route-map)#  set local-preference 200
 R1(config-route-map)# exit
-R1(config)# route-map RM-PREFER-R4 permit 20         ! ⭐ CATCH-ALL
+R1(config)# route-map RM-PREFER-R4 permit 20         ! CATCH-ALL
 R1(config-route-map)# exit
 !
 R1(config)# router bgp 65001
-R1(config-router)#  neighbor 10.0.14.2 route-map RM-PREFER-R4 in     ! ⭐ chiều IN
+R1(config-router)#  neighbor 10.0.14.2 route-map RM-PREFER-R4 in     ! chiều IN
 R1(config-router)# exit
-R1# clear ip bgp 10.0.14.2 soft in                   ! ⭐ soft in
+R1# clear ip bgp 10.0.14.2 soft in                   ! soft in
 ```
 
 **Kiểm tra:**
@@ -886,7 +886,7 @@ Paths: (2 available, best #2, table default)
       Origin IGP, localpref 100, valid, external
   65004 65003
     10.0.14.2 from 10.0.14.2 (4.4.4.4)
-      Origin IGP, localpref 200, valid, external, best      ← ⭐ LocPref 200 THẮNG
+      Origin IGP, localpref 200, valid, external, best      ← LocPref 200 THẮNG
 ```
 ```
 R1# show ip bgp | include 10.3.3.0
@@ -897,7 +897,7 @@ R1# show ip bgp | include 10.3.3.0
 
 ```
 R1# traceroute 10.3.3.1 source 10.1.1.1
-  1 10.0.14.2 ...        ← ⭐ qua R4
+  1 10.0.14.2 ...        ← qua R4
   2 10.0.34.2 ...        ← tới R3
 ```
 
@@ -917,7 +917,7 @@ R1# clear ip bgp 10.0.12.2 soft in
 ```
 ```
 R1# show ip bgp | include 10.3.3.0
- *>  10.3.3.0/24      10.0.12.2                    100     1000 65002 65003 i    ← ⭐ Weight thắng
+ *>  10.3.3.0/24      10.0.12.2                    100     1000 65002 65003 i    ← Weight thắng
  *   10.3.3.0/24      10.0.14.2                    200        0 65004 65003 i
 ```
 ⭐⭐ **Weight 1000 (bước 1) thắng Local Preference 200 (bước 2)** — dù LocPref cao hơn!
@@ -985,7 +985,7 @@ R3# show ip bgp 10.1.1.0
 ```
   65002 65001
     10.0.23.1 from 10.0.23.1 (2.2.2.2)
-      Origin IGP, localpref 100, valid, external, best      ← ⭐ MED 0 < 500
+      Origin IGP, localpref 100, valid, external, best      ← MED 0 < 500
   65004 65001
     10.0.34.1 from 10.0.34.1 (4.4.4.4)
       Origin IGP, metric 500, localpref 100, valid, external
@@ -1061,11 +1061,11 @@ R3(config)# route-map RM-NO-EXPORT permit 10
 R3(config-route-map)#  match ip address prefix-list PL-INTERNAL
 R3(config-route-map)#  set community no-export
 R3(config-route-map)# exit
-R3(config)# route-map RM-NO-EXPORT permit 20             ! ⭐ catch-all
+R3(config)# route-map RM-NO-EXPORT permit 20             ! catch-all
 R3(config-route-map)# exit
 !
 R3(config)# router bgp 65003
-R3(config-router)#  neighbor 10.0.23.1 send-community    ! 🔴 KHÔNG ĐƯỢC QUÊN
+R3(config-router)#  neighbor 10.0.23.1 send-community    ! KHÔNG ĐƯỢC QUÊN
 R3(config-router)#  neighbor 10.0.23.1 route-map RM-NO-EXPORT out
 R3(config-router)# exit
 R3# clear ip bgp 10.0.23.1 soft out
@@ -1079,12 +1079,12 @@ R2# show ip bgp 10.3.4.0
 ```
 BGP routing table entry for 10.3.4.0/24, version 15
 Paths: (1 available, best #1, table default)
-  Not advertised to any peer                              ← ⭐ KHÔNG quảng bá cho ai
+  Not advertised to any peer                              ← KHÔNG quảng bá cho ai
   Refresh Epoch 1
   65003
     10.0.23.2 from 10.0.23.2 (3.3.3.3)
       Origin IGP, localpref 100, valid, external, best
-      Community: no-export                                ← ⭐ COMMUNITY!
+      Community: no-export                                ← COMMUNITY!
 ```
 ⭐⭐ **`Not advertised to any peer`** + **`Community: no-export`**
 
@@ -1177,7 +1177,7 @@ R2(config)# route-map RM-READ-COMM permit 10
 R2(config-route-map)#  match community CL-FROM-AS65003
 R2(config-route-map)#  set local-preference 300
 R2(config-route-map)# exit
-R2(config)# route-map RM-READ-COMM permit 20             ! ⭐ catch-all
+R2(config)# route-map RM-READ-COMM permit 20             ! catch-all
 R2(config)# router bgp 65002
 R2(config-router)#  neighbor 10.0.23.2 route-map RM-READ-COMM in
 R2# clear ip bgp 10.0.23.2 soft in
@@ -1191,7 +1191,7 @@ R2# show ip bgp 10.3.3.0
 ```
   65003
     10.0.23.2 from 10.0.23.2 (3.3.3.3)
-      Origin IGP, localpref 300, valid, external, best     ← ⭐ LocPref 300 do community
+      Origin IGP, localpref 300, valid, external, best     ← LocPref 300 do community
       Community: 65003:100
 ```
 ```
@@ -1276,14 +1276,14 @@ R1# clear ip bgp 10.0.12.2 soft in
 ```
 ```
 R1# show ip bgp neighbors 10.0.12.2 routes
-! Total number of prefixes 0            ← 🔴 MẤT HẾT!
+! Total number of prefixes 0            ← MẤT HẾT!
 ```
 ⭐⭐ **`permit 0.0.0.0/0` chỉ cho phép ĐÚNG default route** → mọi prefix khác bị
 **implicit deny** → **mất hết route**.
 
 **Sửa:**
 ```
-R1(config)# ip prefix-list PL-FROM-R2 seq 10 permit 0.0.0.0/0 le 32   ! ⭐ thêm "le 32"
+R1(config)# ip prefix-list PL-FROM-R2 seq 10 permit 0.0.0.0/0 le 32   ! thêm "le 32"
 R1# clear ip bgp 10.0.12.2 soft in
 R1# show ip bgp neighbors 10.0.12.2 routes
 ! Total number of prefixes 5            ← ✅ chỉ thiếu 10.3.4.0/24 (bị deny đúng ý)
@@ -1352,7 +1352,7 @@ Total number of prefixes 2
 ```
 R1(config)# no ip as-path access-list 10
 R1(config)# ip as-path access-list 10 deny _65003_
-R1(config)# ip as-path access-list 10 permit .*          ! ⭐ catch-all
+R1(config)# ip as-path access-list 10 permit .*          ! catch-all
 R1# clear ip bgp 10.0.12.2 soft in
 R1# show ip bgp neighbors 10.0.12.2 routes
 ```
@@ -1365,7 +1365,7 @@ R1(config)# ip as-path access-list 10 deny _65003_
 !             (thiếu permit .*)
 R1# clear ip bgp 10.0.12.2 soft in
 R1# show ip bgp neighbors 10.0.12.2 routes
-! Total number of prefixes 0            ← 🔴 mất hết
+! Total number of prefixes 0            ← mất hết
 ```
 ⭐ AS-path ACL cũng có **implicit deny** — catch-all là **`permit .*`**.
 
@@ -1390,7 +1390,7 @@ R1(config-route-map)#  match as-path 20
 R1(config-route-map)#  set local-preference 150                     ! route qua AS65003 → LocPref 150
 R1(config-route-map)#  set community 65001:999 additive
 R1(config-route-map)# exit
-R1(config)# route-map RM-COMBO-IN permit 20                         ! ⭐ CATCH-ALL
+R1(config)# route-map RM-COMBO-IN permit 20                         ! CATCH-ALL
 R1(config-route-map)# exit
 !
 R1(config)# router bgp 65001
@@ -1479,14 +1479,14 @@ R1(config-router)# aggregate-address 10.1.0.0 255.255.252.0 summary-only
 ```
 R1# show ip bgp | include 10.1
  *>  10.1.0.0/22      0.0.0.0                            32768 i           ← aggregate
- s>  10.1.1.0/24      0.0.0.0                  0         32768 i           ← ⭐ s = suppressed
+ s>  10.1.1.0/24      0.0.0.0                  0         32768 i           ← s = suppressed
  s>  10.1.2.0/24      0.0.0.0                  0         32768 i
 ```
 ⭐⭐ **`s`** = **suppressed** — vẫn trong BGP table nhưng **KHÔNG quảng bá**.
 
 ```
 R2# show ip bgp | include 10.1
- *>  10.1.0.0/22      10.0.12.1                              0 65001 i      ← ⭐ CHỈ 1 route
+ *>  10.1.0.0/22      10.0.12.1                              0 65001 i      ← CHỈ 1 route
 ```
 ⭐ **3 route → 1 route.**
 
@@ -1538,7 +1538,7 @@ R2# show ip bgp 10.3.0.0
 ```
 **Output mẫu:**
 ```
-  65001 {65002,65003}, (aggregated by 65001 1.1.1.1)      ← ⭐ AS_SET!
+  65001 {65002,65003}, (aggregated by 65001 1.1.1.1)      ← AS_SET!
     10.0.12.1 from 10.0.12.1 (1.1.1.1)
       Origin IGP, localpref 100, valid, external, best
 ```
@@ -1646,12 +1646,12 @@ R1(config-router)# no aggregate-address 10.1.0.0 255.255.252.0 summary-only
 
 ```
 ! ═══ PATH SELECTION ═══
-show ip bgp <prefix>                          ! ⭐⭐ MỌI path + LÝ DO best
+show ip bgp <prefix>                          ! MỌI path + LÝ DO best
 show ip bgp                                   ! bảng tổng quan (Weight/LocPrf/Metric/Path)
 show ip bgp | include <prefix>
 show ip route <prefix>                        ! path nào thật sự vào RIB
 show ip bgp neighbors <ip> routes             ! route nhận từ peer (sau policy)
-show ip bgp neighbors <ip> advertised-routes  ! ⭐ route GỬI cho peer
+show ip bgp neighbors <ip> advertised-routes  ! route GỬI cho peer
 
 ! ═══ ATTRIBUTE ═══
 show ip bgp <prefix>                          ! Weight, localpref, metric(MED), Community
@@ -1664,30 +1664,30 @@ show ip bgp community                          ! route có community
 show ip bgp community no-export
 show ip bgp community <AS:NN>
 show ip community-list
-show ip bgp <prefix>                           ! ⭐ dòng "Community: ..."
-show ip bgp neighbors <ip> | include community ! ⭐ send-community có bật?
+show ip bgp <prefix>                           ! dòng "Community: ..."
+show ip bgp neighbors <ip> | include community ! send-community có bật?
 
 ! ═══ FILTERING ═══
 show ip prefix-list
-show ip prefix-list detail <NAME>              ! ⭐⭐ HIT COUNT
+show ip prefix-list detail <NAME>              ! HIT COUNT
 show ip as-path-access-list
-show route-map <NAME>                          ! ⭐ counter từng dòng
-show ip bgp regexp ^$                          ! ⭐ route sinh trong AS mình
+show route-map <NAME>                          ! counter từng dòng
+show ip bgp regexp ^$                          ! route sinh trong AS mình
 show ip bgp regexp _65003_
 show ip bgp filter-list <N>                    ! route khớp AS-path ACL
 show ip bgp prefix-list <NAME>                 ! route khớp prefix-list
 
 ! ═══ AGGREGATE ═══
-show ip bgp <aggregate-prefix>                 ! ⭐ AS_SET? atomic-aggregate?
-show ip bgp | include ^ s                      ! ⭐ prefix bị suppressed
+show ip bgp <aggregate-prefix>                 ! AS_SET? atomic-aggregate?
+show ip bgp | include ^ s                      ! prefix bị suppressed
 show ip route <aggregate> <mask>               ! discard route Null0?
 
 ! ═══ MED ═══
 show run | include always-compare-med|deterministic-med|missing-as-worst
 
 ! ═══ RESET ═══
-clear ip bgp <ip> soft in                      ! ⭐ sau khi đổi INBOUND policy
-clear ip bgp <ip> soft out                     ! ⭐ sau khi đổi OUTBOUND policy
+clear ip bgp <ip> soft in                      ! sau khi đổi INBOUND policy
+clear ip bgp <ip> soft out                     ! sau khi đổi OUTBOUND policy
 
 ! ═══ DEBUG (⚠️ chỉ lab) ═══
 debug ip bgp updates in
@@ -1731,16 +1731,16 @@ BƯỚC 0: Có dấu `*` (valid) không?
    └─ KHÔNG → next-hop unreachable → show ip route <next-hop> → HẾT
         ↓ (mọi path đều valid)
 BƯỚC 1: cột `weight` — có path nào CAO hơn?
-   └─ CÓ → ⭐ path đó thắng → HẾT
+   └─ CÓ → path đó thắng → HẾT
         ↓ (bằng nhau)
 BƯỚC 2: `localpref` — có path nào CAO hơn?
-   └─ CÓ → ⭐ path đó thắng → HẾT
+   └─ CÓ → path đó thắng → HẾT
         ↓
 BƯỚC 3: có path nào là `local`/`sourced` (next-hop 0.0.0.0)?
    └─ CÓ → path đó thắng → HẾT
         ↓
-BƯỚC 4: ⭐ đếm số AS trong AS-path — có path nào NGẮN hơn?
-   └─ CÓ → ⭐ path đó thắng → HẾT     ← ⭐ 99% dừng ở đây trên Internet
+BƯỚC 4: đếm số AS trong AS-path — có path nào NGẮN hơn?
+   └─ CÓ → path đó thắng → HẾT     ← 99% dừng ở đây trên Internet
         ↓
 BƯỚC 5: `Origin` — i < e < ?
    └─ Khác nhau → path có origin THẤP hơn thắng → HẾT
@@ -1816,7 +1816,7 @@ route-map RM-ISP1-PRIMARY permit 10
  set local-preference 200
 !
 router bgp 65001
- neighbor <ISP1-IP> route-map RM-ISP1-PRIMARY in     ! ⭐ chiều IN
+ neighbor <ISP1-IP> route-map RM-ISP1-PRIMARY in     ! chiều IN
 ! (ISP2 giữ mặc định LocPref 100)
 ```
 
@@ -1826,7 +1826,7 @@ route-map RM-PREPEND-ISP2 permit 10
  set as-path prepend 65001 65001 65001
 !
 router bgp 65001
- neighbor <ISP2-IP> route-map RM-PREPEND-ISP2 out    ! ⭐ chiều OUT
+ neighbor <ISP2-IP> route-map RM-PREPEND-ISP2 out    ! chiều OUT
 ```
 
 🧠 **Câu thần chú:** ⭐ ***"Nhận route VÀO → quyết định đi RA. Gửi route RA → gợi ý người ta đi VÀO."***
@@ -1851,7 +1851,7 @@ BGP xét Weight **trước** → path B có Weight 500 > path A có Weight 0 →
 ```
 show ip bgp 10.3.3.0
 !   65004 65003 65003 65003
-!     10.0.14.2 ... weight 500, valid, external, best      ← ⭐ thắng ở bước 1
+!     10.0.14.2 ... weight 500, valid, external, best      ← thắng ở bước 1
 !   65002 65003
 !     10.0.12.2 ... localpref 200, valid, external          ← LocPref cao hơn nhưng vô ích
 ```
@@ -1947,7 +1947,7 @@ gắn `no-export` → bạn dùng được trong AS mình nhưng **không thể*
 ```
 router bgp 65001
  neighbor 10.0.12.2 send-community              ! standard
- neighbor 10.0.12.2 send-community both         ! ⭐ standard + extended (nên dùng)
+ neighbor 10.0.12.2 send-community both         ! standard + extended (nên dùng)
 ```
 
 ⚠️ Thiếu lệnh này → bạn `set community` thành công trên router mình,
@@ -1962,7 +1962,7 @@ show ip bgp <prefix> | include Community
 **Nguyên nhân thứ 2 — thiếu `additive`:**
 ```
 set community 65001:200                     ! ⚠️ GHI ĐÈ community cũ
-set community 65001:200 additive            ! ⭐ THÊM vào community cũ
+set community 65001:200 additive            ! THÊM vào community cũ
 ```
 
 ⭐ **Quy trình chuẩn:** `set community` → `neighbor x send-community both` →
@@ -1989,7 +1989,7 @@ Nên:
 **Sửa — thêm `le 32`:**
 ```
 ip prefix-list PL-IN seq 5  deny   10.99.0.0/16
-ip prefix-list PL-IN seq 10 permit 0.0.0.0/0 le 32       ! ⭐ CATCH-ALL ĐÚNG
+ip prefix-list PL-IN seq 10 permit 0.0.0.0/0 le 32       ! CATCH-ALL ĐÚNG
 ```
 `permit 0.0.0.0/0 le 32` = "cho phép mọi prefix có mask từ **/0 đến /32**".
 
@@ -2002,7 +2002,7 @@ clear ip bgp <ip> soft in
 ```
 show ip prefix-list detail PL-IN
 !    seq 5 deny 10.99.0.0/16 (hit count: 1, refcount: 1)
-!    seq 10 permit 0.0.0.0/0 le 32 (hit count: 5, refcount: 1)      ← ⭐ hit count tăng
+!    seq 10 permit 0.0.0.0/0 le 32 (hit count: 5, refcount: 1)      ← hit count tăng
 show ip bgp neighbors <ip> routes
 ! Total number of prefixes 5
 ```
@@ -2069,7 +2069,7 @@ router bgp 65001
 ```
 show ip bgp | include 10.1
 ! *>  10.1.0.0/22   0.0.0.0        32768 i         ← aggregate
-! s>  10.1.1.0/24   0.0.0.0    0   32768 i         ← ⭐ s = SUPPRESSED
+! s>  10.1.1.0/24   0.0.0.0    0   32768 i         ← s = SUPPRESSED
 ! s>  10.1.2.0/24   0.0.0.0    0   32768 i
 ```
 ⭐ **`s`** = suppressed — vẫn trong BGP table nhưng **không quảng bá cho peer**.
@@ -2091,7 +2091,7 @@ router bgp 65001
 ```
 ```
 show ip bgp 10.3.0.0
-!   65001 {65002,65003}, (aggregated by 65001 1.1.1.1)     ← ⭐ AS_SET
+!   65001 {65002,65003}, (aggregated by 65001 1.1.1.1)     ← AS_SET
 ```
 
 ⭐ **Quy tắc thực chiến:** gộp prefix **của chính mình** → `summary-only` là đủ.
@@ -2163,8 +2163,8 @@ Và lệnh nào verify filter có thật sự hoạt động?
 
 Policy mới **không tự động áp** cho route đã nhận trước đó.
 ```
-clear ip bgp <ip> soft in            ! ⭐ đổi INBOUND policy
-clear ip bgp <ip> soft out           ! ⭐ đổi OUTBOUND policy
+clear ip bgp <ip> soft in            ! đổi INBOUND policy
+clear ip bgp <ip> soft out           ! đổi OUTBOUND policy
 ```
 ⭐ `soft` dùng **route-refresh** → **không đóng phiên TCP** → không downtime.
 
@@ -2195,7 +2195,7 @@ show route-map <NAME>
 
 ```
 show ip prefix-list detail <NAME>
-! seq 5 permit 10.3.3.0/24 (hit count: 3, refcount: 1)    ← ⭐ HIT COUNT
+! seq 5 permit 10.3.3.0/24 (hit count: 3, refcount: 1)    ← HIT COUNT
 ! seq 10 deny 0.0.0.0/0 le 32 (hit count: 2, refcount: 1)
 ```
 
@@ -2244,7 +2244,7 @@ ip prefix-list PL-BOGON-IN seq 25 deny 172.16.0.0/12 le 32
 ip prefix-list PL-BOGON-IN seq 30 deny 192.168.0.0/16 le 32
 ip prefix-list PL-BOGON-IN seq 35 deny 224.0.0.0/4 le 32
 ip prefix-list PL-BOGON-IN seq 40 deny 0.0.0.0/0 ge 25       ! chặn prefix nhỏ hơn /24
-ip prefix-list PL-BOGON-IN seq 45 permit 0.0.0.0/0 le 32     ! ⭐ CATCH-ALL
+ip prefix-list PL-BOGON-IN seq 45 permit 0.0.0.0/0 le 32     ! CATCH-ALL
 
 ! ═══════════ 3. OUTBOUND: ưu tiên inbound traffic vào qua ISP1 ═══════════
 ! ISP2 nhận AS-path DÀI HƠN → khách chọn ISP1
@@ -2259,7 +2259,7 @@ route-map RM-ISP1-OUT permit 10
 
 ! ═══════════ 4. INBOUND: ưu tiên outbound traffic ra qua ISP1 ═══════════
 route-map RM-ISP1-IN permit 10
- set local-preference 200                     ! ⭐ ISP1 = 200 (ưu tiên)
+ set local-preference 200                     ! ISP1 = 200 (ưu tiên)
 
 route-map RM-ISP2-IN permit 10
  set local-preference 100                     ! ISP2 = 100 (mặc định, backup)
@@ -2268,14 +2268,14 @@ route-map RM-ISP2-IN permit 10
 router bgp 65001
  bgp router-id 203.0.113.1
  bgp log-neighbor-changes
- bgp deterministic-med                        ! ⭐ kết quả nhất quán
+ bgp deterministic-med                        ! kết quả nhất quán
  !
  ! ─── ISP1 (chính, 1 Gbps) ───
  neighbor 198.51.100.1 remote-as 64500
  neighbor 198.51.100.1 description ---> ISP1 VNPT circuit#A123 - PRIMARY 1G
  neighbor 198.51.100.1 password <ISP1-secret>
  neighbor 198.51.100.1 ttl-security hops 1
- neighbor 198.51.100.1 maximum-prefix 200000 90      ! 🔴 BẮT BUỘC
+ neighbor 198.51.100.1 maximum-prefix 200000 90      ! BẮT BUỘC
  neighbor 198.51.100.1 send-community both
  neighbor 198.51.100.1 prefix-list PL-BOGON-IN in
  neighbor 198.51.100.1 route-map RM-ISP1-IN in
@@ -2312,9 +2312,9 @@ router bgp 65001
 ⭐ **Verify sau khi cấu hình:**
 ```
 show ip bgp summary                                          ! cả 2 Established?
-show ip bgp neighbors 198.51.100.1 advertised-routes         ! ⭐ CHỈ 1 prefix của mình?
-show ip bgp neighbors 203.0.114.1 advertised-routes          ! ⭐ CHỈ 1 prefix, AS-path prepend?
-show ip bgp regexp ^$                                        ! ⭐ khớp với advertised-routes?
+show ip bgp neighbors 198.51.100.1 advertised-routes         ! CHỈ 1 prefix của mình?
+show ip bgp neighbors 203.0.114.1 advertised-routes          ! CHỈ 1 prefix, AS-path prepend?
+show ip bgp regexp ^$                                        ! khớp với advertised-routes?
 show ip bgp 0.0.0.0/0                                        ! LocPref ISP1 = 200?
 show ip route 0.0.0.0                                        ! đi qua ISP1?
 show ip prefix-list detail PL-MY-PREFIX-OUT                  ! hit count > 0?

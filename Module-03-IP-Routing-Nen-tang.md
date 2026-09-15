@@ -262,7 +262,7 @@ ip sla 1
  timeout 2000                         ! chờ reply 2000 ms
  threshold 1000                       ! coi là "chậm" nếu > 1000 ms
 !
-ip sla schedule 1 life forever start-time now      ! ⭐ THIẾU DÒNG NÀY = SLA không chạy
+ip sla schedule 1 life forever start-time now      ! THIẾU DÒNG NÀY = SLA không chạy
 !
 ! ═══ BƯỚC 2: Tạo track object theo dõi SLA ═══
 track 1 ip sla 1 reachability
@@ -290,9 +290,9 @@ ip route 0.0.0.0 0.0.0.0 198.51.100.2 200          ! ISP2 — dự phòng (float
 **Kiểm tra:**
 ```
 show ip sla configuration 1                  ! cấu hình
-show ip sla statistics 1                     ! ⭐ kết quả: bao nhiêu lần OK/fail, RTT
+show ip sla statistics 1                     ! kết quả: bao nhiêu lần OK/fail, RTT
 show ip sla summary                          ! tóm tắt mọi SLA
-show track                                   ! ⭐ trạng thái track object
+show track                                   ! trạng thái track object
 show track 1
 show ip route 0.0.0.0                        ! route đang dùng cái nào
 ```
@@ -554,20 +554,20 @@ Khi redistribute **cả hai chiều tại 2 điểm khác nhau** → route có t
 ```
 ! ═══ Trên R1: OSPF → EIGRP, đánh tag 100 ═══
 route-map OSPF-TO-EIGRP permit 10
- match tag 200                        ! ⭐ CHẶN route đã có tag 200 (từ EIGRP đi ra)
+ match tag 200                        ! CHẶN route đã có tag 200 (từ EIGRP đi ra)
  ! → không có "set", và deny ở dưới
 !
 route-map OSPF-TO-EIGRP deny 5
  match tag 200
 route-map OSPF-TO-EIGRP permit 10
- set tag 100                          ! ⭐ đánh dấu "route này từ OSPF"
+ set tag 100                          ! đánh dấu "route này từ OSPF"
 !
 router eigrp 100
  redistribute ospf 1 metric 10000 100 255 1 1500 route-map OSPF-TO-EIGRP
 
 ! ═══ Trên R1: EIGRP → OSPF, đánh tag 200 ═══
 route-map EIGRP-TO-OSPF deny 5
- match tag 100                        ! ⭐ CHẶN route đã có tag 100 (từ OSPF đi ra)
+ match tag 100                        ! CHẶN route đã có tag 100 (từ OSPF đi ra)
 route-map EIGRP-TO-OSPF permit 10
  set tag 200
 !
@@ -640,7 +640,7 @@ route-map DEMO deny 10
 route-map DEMO permit 20
  match tag 500
  set metric 100                       ! có tag 500 → cho qua, metric = 100
-route-map DEMO permit 30              ! ⭐ không có match → khớp mọi thứ còn lại
+route-map DEMO permit 30              ! không có match → khớp mọi thứ còn lại
 ```
 | Route | Kết quả |
 |---|---|
@@ -667,7 +667,7 @@ route-map PBR-KETOAN permit 10
  match ip address 110
  set ip next-hop 198.51.100.2              ! ép đi ISP2
 !
-interface GigabitEthernet0/1                ! ⭐ apply trên interface traffic ĐI VÀO
+interface GigabitEthernet0/1                ! apply trên interface traffic ĐI VÀO
  ip policy route-map PBR-KETOAN
 ```
 
@@ -1233,7 +1233,7 @@ ip sla 1
  timeout 2000
  threshold 1000
 !
-ip sla schedule 1 life forever start-time now       ! ⭐ KHÔNG ĐƯỢC QUÊN DÒNG NÀY
+ip sla schedule 1 life forever start-time now       ! KHÔNG ĐƯỢC QUÊN DÒNG NÀY
 !
 ! ═══ 2. Track object theo dõi kết quả SLA ═══
 track 1 ip sla 1 reachability
@@ -1325,7 +1325,7 @@ R1# show track 1
 ```
 Track 1
   IP SLA 1 reachability
-  Reachability is Down                        ← ⭐ đã phát hiện!
+  Reachability is Down                        ← đã phát hiện!
     2 changes, last change 00:00:08
   Latest operation return code: Timeout
 ```
@@ -1337,7 +1337,7 @@ R1# show ip route 8.8.8.8
 ```
 Routing entry for 8.8.8.8/32
   Known via "static", distance 200, metric 0
-  * 198.51.100.2                              ← ⭐ ĐÃ CHUYỂN SANG ISP2!
+  * 198.51.100.2                              ← ĐÃ CHUYỂN SANG ISP2!
 ```
 
 ```
@@ -1348,7 +1348,7 @@ R1# traceroute 8.8.8.8 source 1.1.1.1
 
 ```
 R1# ping 8.8.8.8 source 1.1.1.1
-Success rate is 100 percent (5/5)             ← ⭐ HOẠT ĐỘNG LẠI
+Success rate is 100 percent (5/5)             ← HOẠT ĐỘNG LẠI
 ```
 
 🎉 **Đây là kết quả mà floating static thuần KHÔNG làm được.**
@@ -1579,7 +1579,7 @@ R1# show ip route 192.168.99.0
 ```
 Routing entry for 192.168.99.0/24
   Known via "ospf 1", distance 110, metric 50, type extern 1
-  Tag 100                                      ← ⭐ TAG!
+  Tag 100                                      ← TAG!
   Routing Descriptor Blocks:
   ...
 ```
@@ -1597,7 +1597,7 @@ R1# show ip ospf database external 192.168.99.0
                 MTID: 0
                 Metric: 50
                 Forward Address: 0.0.0.0
-                External Route Tag: 100                ← ⭐ TAG trong LSA type 5
+                External Route Tag: 100                ← TAG trong LSA type 5
 ```
 
 ⭐ **Tag được mang trong LSA type 5** — nghĩa là mọi router trong domain OSPF đều thấy được nó.
@@ -1747,14 +1747,14 @@ R2(config)# no router eigrp 100
 
 ```
 ! === Bảng định tuyến ===
-show ip route                                ! ⭐ toàn bộ RIB
-show ip route <ip>                           ! ⭐⭐ route nào được dùng + AD + metric + tag
+show ip route                                ! toàn bộ RIB
+show ip route <ip>                           ! route nào được dùng + AD + metric + tag
 show ip route static                         ! chỉ static ĐÃ VÀO RIB
 show ip route ospf                           ! chỉ OSPF
 show ip route connected
 show ip route | include ^O E2|^O E1           ! chỉ external
 show ip route summary                        ! đếm route theo nguồn
-show ip protocols                            ! ⭐ protocol nào chạy, redistribute gì, passive
+show ip protocols                            ! protocol nào chạy, redistribute gì, passive
 show ip cef <ip>                             ! FIB nói gì (Module-01)
 
 ! === So sánh config vs RIB (tìm recursion fail) ===
@@ -1764,25 +1764,25 @@ show ip route static                          ! static đã VÀO RIB
 
 ! === IP SLA + Track ===
 show ip sla configuration <n>                 ! cấu hình
-show ip sla statistics <n>                    ! ⭐ return code, successes/failures, RTT
+show ip sla statistics <n>                    ! return code, successes/failures, RTT
 show ip sla summary
-show track                                    ! ⭐ mọi track object
-show track <n>                                ! ⭐ chi tiết + "Tracked by"
+show track                                    ! mọi track object
+show track <n>                                ! chi tiết + "Tracked by"
 debug ip sla trace <n>                        ! ⚠️ chỉ lab
 debug track                                   ! ⚠️ chỉ lab
 
 ! === Redistribution ===
 show ip protocols | section ospf              ! redistribute gì vào OSPF
-show ip ospf database external                ! ⭐ LSA type 5 + tag + metric type
+show ip ospf database external                ! LSA type 5 + tag + metric type
 show ip ospf database external <prefix>
-show route-map                                ! ⭐ counter số route khớp từng dòng
+show route-map                                ! counter số route khớp từng dòng
 show route-map <TÊN>
 show ip prefix-list
 show ip prefix-list detail <TÊN>              ! có counter hit
 
 ! === EIGRP (đọc hiểu, không cấu hình) ===
 show ip eigrp neighbors
-show ip eigrp topology                        ! ⭐ FD, RD, Successor, FS
+show ip eigrp topology                        ! FD, RD, Successor, FS
 show ip eigrp topology <prefix>               ! chi tiết 1 prefix
 show ip eigrp interfaces
 
@@ -2096,10 +2096,10 @@ Cả hai đều bình thường → route chính (AD 1) vẫn trong RIB → rout
 ```
 ! 1. IP SLA — ping THẬT một đích trên Internet, qua ĐÚNG đường ISP1
 ip sla 1
- icmp-echo 8.8.8.8 source-interface GigabitEthernet0/0    ! ⭐ source-interface BẮT BUỘC
+ icmp-echo 8.8.8.8 source-interface GigabitEthernet0/0    ! source-interface BẮT BUỘC
  frequency 5
  timeout 2000
-ip sla schedule 1 life forever start-time now              ! ⭐ KHÔNG ĐƯỢC QUÊN
+ip sla schedule 1 life forever start-time now              ! KHÔNG ĐƯỢC QUÊN
 
 ! 2. Track theo dõi kết quả
 track 1 ip sla 1 reachability

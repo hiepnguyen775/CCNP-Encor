@@ -76,15 +76,15 @@ gặp câu *"vBond làm gì"* / *"Control Plane Node của SD-Access chạy giao
 
 ```
         ┌──────────────────────────────────┐
-        │      ⭐ CORE  (backbone)          │  "chuyển gói NHANH, không làm gì khác"
+        │      CORE  (backbone)          │  "chuyển gói NHANH, không làm gì khác"
         └────────┬────────────────┬────────┘
                  │                │
         ┌────────┴────────┐ ┌─────┴──────────┐
-        │ ⭐ DISTRIBUTION │ │  DISTRIBUTION  │  "ranh giới L2/L3, nơi ĐẶT CHÍNH SÁCH"
+        │ DISTRIBUTION │ │  DISTRIBUTION  │  "ranh giới L2/L3, nơi ĐẶT CHÍNH SÁCH"
         └───┬────────┬────┘ └────────────────┘
             │        │
      ┌──────┴──┐ ┌───┴─────┐
-     │ ⭐ACCESS│ │ ACCESS  │                    "cắm người dùng, PoE, port security"
+     │ ACCESS│ │ ACCESS  │                    "cắm người dùng, PoE, port security"
      └────┬────┘ └─────────┘
        PC/phone/AP
 ```
@@ -101,9 +101,9 @@ gặp câu *"vBond làm gì"* / *"Control Plane Node của SD-Access chạy giao
 ### 2.2 ⭐⭐ 2-tier (Collapsed Core) vs 3-tier
 
 ```
-   ═══ 3-TIER ═══                    ═══ ⭐ 2-TIER (Collapsed Core) ═══
+   ═══ 3-TIER ═══                    ═══ 2-TIER (Collapsed Core) ═══
 
-   CORE                              ┌── ⭐ CORE + DISTRIBUTION gộp làm một ──┐
+   CORE                              ┌── CORE + DISTRIBUTION gộp làm một ──┐
     │                                │          (thường 2 switch)             │
    DIST                              └──────┬──────────────┬──────────────────┘
     │                                       │              │
@@ -144,9 +144,9 @@ gặp câu *"vBond làm gì"* / *"Control Plane Node của SD-Access chạy giao
         │ SPINE 1 │   │ SPINE 2 │   │ SPINE 3 │
         └──┬─┬─┬──┘   └──┬─┬─┬──┘   └──┬─┬─┬──┘
            │ │ └──────────┼─┼──┐       │ │ │
-     ┌─────┘ └────┐  ┌────┘ │  └───────┘ │ │      ⭐ MỌI leaf nối TỚI MỌI spine
-     │            │  │      │            │ │      🔴 KHÔNG có link leaf–leaf
-   ┌─┴────┐  ┌────┴──┴┐  ┌──┴────────────┴─┴┐     🔴 KHÔNG có link spine–spine
+     ┌─────┘ └────┐  ┌────┘ │  └───────┘ │ │      MỌI leaf nối TỚI MỌI spine
+     │            │  │      │            │ │      KHÔNG có link leaf–leaf
+   ┌─┴────┐  ┌────┴──┴┐  ┌──┴────────────┴─┴┐     KHÔNG có link spine–spine
    │LEAF 1│  │ LEAF 2 │  │      LEAF 3      │
    └──┬───┘  └───┬────┘  └────────┬─────────┘
    servers    servers          servers
@@ -170,7 +170,7 @@ gặp câu *"vBond làm gì"* / *"Control Plane Node của SD-Access chạy giao
 ```
    Access switch: 48 port × 1 Gbps = 48 Gbps phía dưới
                   uplink 2 × 10 Gbps = 20 Gbps lên trên
-   ⭐ Oversubscription = 48 / 20 = 2.4 : 1
+   Oversubscription = 48 / 20 = 2.4 : 1
 ```
 
 | Chặng | ⭐ Tỉ lệ Cisco khuyến nghị |
@@ -289,13 +289,13 @@ gặp câu *"vBond làm gì"* / *"Control Plane Node của SD-Access chạy giao
 ### 5.1 ⭐ Ba mô hình dịch vụ
 
 ```
-   ⭐ AI QUẢN CÁI GÌ:              On-Prem    IaaS     PaaS     SaaS
+   AI QUẢN CÁI GÌ:              On-Prem    IaaS     PaaS     SaaS
    ─────────────────────────────────────────────────────────────────
-   Ứng dụng / Dữ liệu               BẠN       BẠN      BẠN     ⭐ NCC
-   Runtime / Middleware             BẠN       BẠN     ⭐ NCC   ⭐ NCC
-   Hệ điều hành                     BẠN       BẠN     ⭐ NCC   ⭐ NCC
-   Ảo hóa / Server / Storage        BẠN      ⭐ NCC   ⭐ NCC   ⭐ NCC
-   Mạng / Điện / Nhà xưởng          BẠN      ⭐ NCC   ⭐ NCC   ⭐ NCC
+   Ứng dụng / Dữ liệu               BẠN       BẠN      BẠN     NCC
+   Runtime / Middleware             BẠN       BẠN     NCC   NCC
+   Hệ điều hành                     BẠN       BẠN     NCC   NCC
+   Ảo hóa / Server / Storage        BẠN      NCC   NCC   NCC
+   Mạng / Điện / Nhà xưởng          BẠN      NCC   NCC   NCC
                                              (NCC = nhà cung cấp cloud)
 ```
 
@@ -354,19 +354,19 @@ gặp câu *"vBond làm gì"* / *"Control Plane Node của SD-Access chạy giao
 
 ```
    ┌──────────────┐   ┌──────────────┐   ┌──────────────┐
-   │ ⭐ vMANAGE   │   │ ⭐ vSMART    │   │ ⭐ vBOND     │
+   │ vMANAGE   │   │ vSMART    │   │ vBOND     │
    │  QUẢN LÝ     │   │  ĐIỀU KHIỂN  │   │  ĐIỀU PHỐI   │
    │  (GUI/API)   │   │  (OMP+policy)│   │  (kết nối    │
    │              │   │              │   │   đầu tiên)  │
    └──────┬───────┘   └──────┬───────┘   └──────┬───────┘
-          │  DTLS/TLS        │ ⭐ OMP           │ ⭐ CHỈ nó cần IP PUBLIC
+          │  DTLS/TLS        │ OMP           │ CHỈ nó cần IP PUBLIC
           └──────────┬───────┴──────────────────┘
                      │
         ┌────────────┴────────────┐
         │                         │
    ┌────┴─────┐             ┌─────┴────┐
-   │ cEdge /  │═══ ⭐ IPsec ═══│ cEdge /  │   ⭐ DATA PLANE
-   │  vEdge   │   (data thật)  │  vEdge   │   ⭐ Traffic KHÔNG đi qua vSmart!
+   │ cEdge /  │═══ IPsec ═══│ cEdge /  │   DATA PLANE
+   │  vEdge   │   (data thật)  │  vEdge   │   Traffic KHÔNG đi qua vSmart!
    └──────────┘             └──────────┘
 ```
 
@@ -451,7 +451,7 @@ gặp câu *"vBond làm gì"* / *"Control Plane Node của SD-Access chạy giao
 
 ```
    ┌──────────────────┐        ┌──────────────────┐
-   │ ⭐ DNA CENTER    │◄──────►│    ⭐ ISE        │   ⭐ TẦNG ĐIỀU KHIỂN
+   │ DNA CENTER    │◄──────►│    ISE        │   TẦNG ĐIỀU KHIỂN
    │ Design·Policy·   │        │  Identity &      │   (ngoài fabric)
    │ Provision·Assure │        │  SGT / 802.1X    │
    └────────┬─────────┘        └──────────────────┘
@@ -459,14 +459,14 @@ gặp câu *"vBond làm gì"* / *"Control Plane Node của SD-Access chạy giao
    ═════════╪══════════════ FABRIC ══════════════════════════
             │
       ┌─────┴──────┐       ┌──────────────┐      ┌────────────────┐
-      │ ⭐ CONTROL │       │ ⭐ BORDER    │      │ ⭐ FABRIC WLC  │
+      │ CONTROL │       │ BORDER    │      │ FABRIC WLC  │
       │ PLANE NODE │       │    NODE      │      │  + Fabric AP   │
       │ (LISP MS/MR)│      │ (ra ngoài)   │      └────────────────┘
       └────────────┘       └──────────────┘
             │                     │
       ┌─────┴─────────────────────┴──────┐
-      │      ⭐ EDGE NODES (LISP xTR)     │  ← ⭐ nơi CẮM người dùng
-      │      + ⭐ Anycast Gateway         │
+      │      EDGE NODES (LISP xTR)     │  ← nơi CẮM người dùng
+      │      + Anycast Gateway         │
       └───────────────────────────────────┘
                     │
               PC / phone / AP / IoT
@@ -501,14 +501,14 @@ gặp câu *"vBond làm gì"* / *"Control Plane Node của SD-Access chạy giao
 ### 7.4 ⭐⭐ Anycast Gateway — khái niệm hay nhất của SD-Access
 
 ```
-   ⭐⭐ TẤT CẢ Edge Node đều dùng CÙNG một IP gateway VÀ CÙNG một MAC cho mỗi subnet
+   TẤT CẢ Edge Node đều dùng CÙNG một IP gateway VÀ CÙNG một MAC cho mỗi subnet
 
-   Edge-1: SVI 10.10.10.1 / MAC 0000.0c9f.f001   ⭐ giống hệt
-   Edge-2: SVI 10.10.10.1 / MAC 0000.0c9f.f001   ⭐ giống hệt
-   Edge-3: SVI 10.10.10.1 / MAC 0000.0c9f.f001   ⭐ giống hệt
+   Edge-1: SVI 10.10.10.1 / MAC 0000.0c9f.f001   giống hệt
+   Edge-2: SVI 10.10.10.1 / MAC 0000.0c9f.f001   giống hệt
+   Edge-3: SVI 10.10.10.1 / MAC 0000.0c9f.f001   giống hệt
 
-   ⭐⭐ Hệ quả: người dùng cắm ở ĐÂU cũng thấy gateway "ngay cạnh mình"
-   ⭐ → di chuyển khắp campus mà KHÔNG đổi IP, KHÔNG cần ARP lại, KHÔNG cần HSRP
+   Hệ quả: người dùng cắm ở ĐÂU cũng thấy gateway "ngay cạnh mình"
+   → di chuyển khắp campus mà KHÔNG đổi IP, KHÔNG cần ARP lại, KHÔNG cần HSRP
 ```
 
 | ⭐ Lợi ích | Chi tiết |
@@ -524,10 +524,10 @@ gặp câu *"vBond làm gì"* / *"Control Plane Node của SD-Access chạy giao
 ### 7.5 ⭐⭐ SD-Access Wireless — chỗ có bẫy
 
 ```
-   ⭐ CONTROL plane:  Fabric AP ══ CAPWAP control ══► Fabric WLC   (như bình thường)
+   CONTROL plane:  Fabric AP ══ CAPWAP control ══► Fabric WLC   (như bình thường)
 
-   🔴 ⭐⭐ DATA plane:  Fabric AP ══ VXLAN ══► Edge Node ══► fabric
-                       ⭐⭐ KHÔNG có CAPWAP data tunnel về WLC!
+   DATA plane:  Fabric AP ══ VXLAN ══► Edge Node ══► fabric
+                       KHÔNG có CAPWAP data tunnel về WLC!
 ```
 
 > 🔴 ⭐⭐ **Đây là điểm khác biệt lớn nhất so với wireless truyền thống (Module-07B §4):**
@@ -651,13 +651,13 @@ gặp câu *"vBond làm gì"* / *"Control Plane Node của SD-Access chạy giao
 
 ⭐⭐ **Công thức tính AF — học công thức, khỏi học thuộc bảng:**
 ```
-   ⭐ AFxy  →  DSCP = 8x + 2y
+   AFxy  →  DSCP = 8x + 2y
       x = LỚP (1–4), càng cao càng ưu tiên
       y = XÁC SUẤT BỊ VỨT (1–3), càng cao càng DỄ BỊ VỨT khi nghẽn
 
-   ⭐ AF41 = 8(4) + 2(1) = 34 ✓
-   ⭐ AF31 = 8(3) + 2(1) = 26 ✓
-   ⭐ AF23 = 8(2) + 2(3) = 22
+   AF41 = 8(4) + 2(1) = 34 ✓
+   AF31 = 8(3) + 2(1) = 26 ✓
+   AF23 = 8(2) + 2(3) = 22
 ```
 ⭐⭐ **Và CSx = 8x:** CS1=8 · CS3=24 · CS6=48 · CS7=56.
 
@@ -667,13 +667,13 @@ gặp câu *"vBond làm gì"* / *"Control Plane Node của SD-Access chạy giao
 #### ⭐⭐ Trust Boundary
 
 ```
-   ⭐ NGUYÊN TẮC: đặt trust boundary CÀNG GẦN NGUỒN CÀNG TỐT
+   NGUYÊN TẮC: đặt trust boundary CÀNG GẦN NGUỒN CÀNG TỐT
 
    [IP Phone]──[PC]     [Access SW]        [Dist]      [Core]
-       ⭐ TIN            ⭐ TIN phone         tin         tin
-                         🔴 KHÔNG tin PC
+       TIN            TIN phone         tin         tin
+                         KHÔNG tin PC
                          ↑
-                    ⭐ ĐÂY LÀ TRUST BOUNDARY
+                    ĐÂY LÀ TRUST BOUNDARY
 ```
 | ⭐ Quy tắc | Vì sao |
 |---|---|
@@ -712,11 +712,11 @@ gặp câu *"vBond làm gì"* / *"Control Plane Node của SD-Access chạy giao
 ### 8.6 ⭐⭐ Policing vs Shaping — bảng đề hỏi rất nhiều
 
 ```
-   ⭐ POLICING                            ⭐ SHAPING
-   Vượt tốc độ → ⭐ VỨT (hoặc hạ mark)     Vượt tốc độ → ⭐ CHO VÀO HÀNG ĐỢI, thả từ từ
+   POLICING                            SHAPING
+   Vượt tốc độ → VỨT (hoặc hạ mark)     Vượt tốc độ → CHO VÀO HÀNG ĐỢI, thả từ từ
 
    Mbps                                   Mbps
-    │ ╱╲    ╱╲   ← ⭐ cắt ngọn             │ ___________  ← ⭐ làm phẳng
+    │ ╱╲    ╱╲   ← cắt ngọn             │ ___________  ← làm phẳng
     │╱  ╲__╱  ╲                            │╱
     ├─────────── CIR                       ├─────────── CIR
     └──────────► t                         └──────────► t
@@ -776,30 +776,30 @@ class-map match-all SCAVENGER
 ! ═══ ② POLICY-MAP — "làm gì với nó" ═══
 policy-map WAN-OUT
  class VOICE
-  ⭐ priority percent 10           ! ⭐⭐ LLQ — hàng đợi ưu tiên tuyệt đối
+  priority percent 10           ! LLQ — hàng đợi ưu tiên tuyệt đối
  class SIGNALING
-  bandwidth percent 5              ! ⭐ CBWFQ — bảo đảm băng thông
+  bandwidth percent 5              ! CBWFQ — bảo đảm băng thông
  class VIDEO
   bandwidth percent 25
-  random-detect dscp-based         ! ⭐ WRED (⭐ KHÔNG áp lên class VOICE!)
+  random-detect dscp-based         ! WRED (KHÔNG áp lên class VOICE!)
  class SCAVENGER
-  bandwidth percent 1              ! ⭐ bóp gần chết
+  bandwidth percent 1              ! bóp gần chết
  class class-default
   fair-queue
   random-detect
 
 ! ═══ ③ SERVICE-POLICY — "áp lên đâu" ═══
 interface GigabitEthernet0/0
- ⭐ service-policy output WAN-OUT
+ service-policy output WAN-OUT
 
-! ═══ ⭐ Shaping (hay dùng lồng nhau: shape ngoài, queue trong) ═══
+! ═══ Shaping (hay dùng lồng nhau: shape ngoài, queue trong) ═══
 policy-map SHAPE-200M
  class class-default
-  shape average 200000000          ! ⭐ 200 Mbps
-  service-policy WAN-OUT           ! ⭐⭐ "hierarchical QoS" — queue BÊN TRONG shaper
+  shape average 200000000          ! 200 Mbps
+  service-policy WAN-OUT           ! "hierarchical QoS" — queue BÊN TRONG shaper
 
 ! ═══ Verify ═══
-show policy-map interface GigabitEthernet0/0     ! ⭐⭐ lệnh quan trọng nhất
+show policy-map interface GigabitEthernet0/0     ! lệnh quan trọng nhất
 show class-map
 show policy-map
 ```
@@ -967,26 +967,26 @@ interface GigabitEthernet0/0
 R1# show policy-map interface GigabitEthernet0/0
 
  Service-policy output: WAN-OUT
-   Class-map: ⭐ VOICE (match-all)
+   Class-map: VOICE (match-all)
      0 packets, 0 bytes
      Match: dscp ef (46)
-     ⭐ Priority: 10% (100000 kbps), burst bytes 2500000, b/w exceed drops: 0
+     Priority: 10% (100000 kbps), burst bytes 2500000, b/w exceed drops: 0
    Class-map: SIGNALING (match-all)
      Match: dscp cs3 (24)
-     ⭐ bandwidth 5% (50000 kbps)
+     bandwidth 5% (50000 kbps)
    Class-map: class-default (match-any)
-     ⭐ Fair-queue: per-flow queue limit 16
-     ⭐ Exp-weight-constant: 9 (1/512)      ← WRED đang bật
+     Fair-queue: per-flow queue limit 16
+     Exp-weight-constant: 9 (1/512)      ← WRED đang bật
 ```
 
 ✅ **Checkpoint B.2 — ⭐ sinh traffic có DSCP và xem bộ đếm tăng:**
 ```
 R1# ping 10.0.0.2 tos 184 repeat 100
-!     ⭐⭐ tos 184 = DSCP 46 (EF)   [184 = 46 × 4, vì DSCP nằm ở 6 bit CAO của byte ToS]
+!     tos 184 = DSCP 46 (EF)   [184 = 46 × 4, vì DSCP nằm ở 6 bit CAO của byte ToS]
 
 R1# show policy-map interface Gi0/0 | section VOICE
    Class-map: VOICE (match-all)
-     ⭐ 100 packets, 11400 bytes        ← ⭐ BỘ ĐẾM ĐÃ TĂNG!
+     100 packets, 11400 bytes        ← BỘ ĐẾM ĐÃ TĂNG!
      Match: dscp ef (46)
 ```
 > 💡 ⭐⭐ **Công thức đổi DSCP → ToS: `ToS = DSCP × 4`.**
@@ -998,7 +998,7 @@ R1# show policy-map interface Gi0/0 | section VOICE
 policy-map SHAPE-100M
  class class-default
   shape average 100000000
-  ⭐ service-policy WAN-OUT        ! ⭐⭐ queue lồng BÊN TRONG shaper
+  service-policy WAN-OUT        ! queue lồng BÊN TRONG shaper
 !
 interface GigabitEthernet0/0
  no service-policy output WAN-OUT
@@ -1006,13 +1006,13 @@ interface GigabitEthernet0/0
 ```
 ```
 R1# show policy-map interface Gi0/0 | include shape|Shaping|Target
-    ⭐ shape (average) cir 100000000, bc 400000, be 400000
+    shape (average) cir 100000000, bc 400000, be 400000
     target shape rate 100000000
 ```
 
 ✅ **Checkpoint B.4 — 🔴 ⭐ cố ý làm sai để hiểu:**
 ```
-! ⭐ Thử áp WRED lên class VOICE:
+! Thử áp WRED lên class VOICE:
 R1(config)# policy-map WAN-OUT
 R1(config-pmap)# class VOICE
 R1(config-pmap-c)# random-detect
@@ -1203,8 +1203,8 @@ cho các class khác**.
 ### 13.1 ⭐ Hộp lệnh
 
 ```
-═══ ⭐ QoS (cái duy nhất gõ lệnh nhiều trong module này) ═══
-show policy-map interface <intf>        ! ⭐⭐ LỆNH QUAN TRỌNG NHẤT — bộ đếm từng class
+═══ QoS (cái duy nhất gõ lệnh nhiều trong module này) ═══
+show policy-map interface <intf>        ! LỆNH QUAN TRỌNG NHẤT — bộ đếm từng class
 show policy-map
 show class-map
 show mls qos                            ! (switch đời cũ) QoS đã bật chưa
@@ -1212,25 +1212,25 @@ show mls qos interface <intf>            ! trust state của port
 show platform hardware qos ...           ! (Cat9k) chi tiết phần cứng
 show interface <intf> | include drops|queue
 
-═══ ⭐ Thiết kế / HA ═══
-show interface <intf> | include rate|drops    ! ⭐ đo oversubscription thực tế
+═══ Thiết kế / HA ═══
+show interface <intf> | include rate|drops    ! đo oversubscription thực tế
 show interfaces counters errors
-show redundancy states                   ! ⭐ SSO: ACTIVE / STANDBY HOT
-show redundancy                          ! ⭐ trạng thái supervisor
-show switch                              ! ⭐ StackWise: thành viên & vai trò
+show redundancy states                   ! SSO: ACTIVE / STANDBY HOT
+show redundancy                          ! trạng thái supervisor
+show switch                              ! StackWise: thành viên & vai trò
 show switch stack-ports
-show standby brief                       ! ⭐ HSRP (M06A)
-show etherchannel summary                ! ⭐ (M02)
-show power inline                        ! ⭐ ngân sách PoE
+show standby brief                       ! HSRP (M06A)
+show etherchannel summary                ! (M02)
+show power inline                        ! ngân sách PoE
 
-═══ ⭐ SD-Access / SD-WAN (chỉ để nhận biết — không cần thuộc) ═══
+═══ SD-Access / SD-WAN (chỉ để nhận biết — không cần thuộc) ═══
 show lisp session                        ! trên fabric node
 show lisp instance-id <n> ipv4 database
 show device-tracking database
-show sdwan control connections           ! ⭐ trên cEdge: kết nối tới vBond/vSmart/vManage
-show sdwan omp routes                    ! ⭐ OMP routes
-show sdwan omp tlocs                     ! ⭐ TLOC
-show sdwan bfd sessions                  ! ⭐ đo loss/latency/jitter (nền của AAR)
+show sdwan control connections           ! trên cEdge: kết nối tới vBond/vSmart/vManage
+show sdwan omp routes                    ! OMP routes
+show sdwan omp tlocs                     ! TLOC
+show sdwan bfd sessions                  ! đo loss/latency/jitter (nền của AAR)
 ```
 
 ### 13.2 ⭐⭐ Bảng: triệu chứng → nguyên nhân → cách sửa

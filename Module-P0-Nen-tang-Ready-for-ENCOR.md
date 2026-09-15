@@ -560,7 +560,7 @@ interface GigabitEthernet0/1
 
 **Kiểm tra:**
 ```
-show access-lists                        ! xem ACL + số lần match từng dòng ⭐
+show access-lists                        ! xem ACL + số lần match từng dòng 
 show ip interface Gi0/1 | include access ! ACL nào đang apply
 clear access-list counters               ! reset bộ đếm để test lại
 ```
@@ -986,7 +986,7 @@ L        10.10.20.1/32 is directly connected, GigabitEthernet0/0.20
 ```
 ! Trên SW1 (nếu image hỗ trợ)
 configure terminal
-ip routing                          ! ⭐ Bật routing — thiếu dòng này SVI không route
+ip routing                          ! Bật routing — thiếu dòng này SVI không route
 !
 interface Vlan10
  ip address 10.10.10.1 255.255.255.0
@@ -1421,7 +1421,7 @@ configure terminal
 !
 router ospf 1
  router-id 1.1.1.1
- auto-cost reference-bandwidth 10000        ! ⭐ tránh mọi link Gi đều cost 1
+ auto-cost reference-bandwidth 10000        ! tránh mọi link Gi đều cost 1
  network 1.1.1.1 0.0.0.0 area 0             ! quảng bá loopback
  network 10.0.12.0 0.0.0.3 area 0
  network 10.0.13.0 0.0.0.3 area 0
@@ -1819,23 +1819,23 @@ show mac address-table                   ! (switch) MAC học được ở port 
 
 ! === VLAN / Trunk ===
 show vlan brief                          ! VLAN + port nào thuộc VLAN nào
-show interfaces trunk                    ! ⭐ trunk status + allowed vlan
+show interfaces trunk                    ! trunk status + allowed vlan
 show interfaces Gi0/0 switchport         ! chi tiết mode, native vlan
 
 ! === STP ===
-show spanning-tree vlan 10               ! ⭐ root, port role, cost
+show spanning-tree vlan 10               ! root, port role, cost
 show spanning-tree summary               ! mode đang dùng + số port từng state
 show spanning-tree interface Gi0/1 detail
 show spanning-tree inconsistentports     ! port bị guard chặn
 
 ! === Routing ===
-show ip route                            ! ⭐ bảng route
-show ip route 10.1.1.1                   ! ⭐ route cụ thể nào được dùng + AD
+show ip route                            ! bảng route
+show ip route 10.1.1.1                   ! route cụ thể nào được dùng + AD
 show ip protocols                        ! protocol nào chạy, passive interface
 show ip cef 10.1.1.1                     ! đường forward thật sự
 
 ! === OSPF ===
-show ip ospf neighbor                    ! ⭐ lệnh đầu tiên phải chạy
+show ip ospf neighbor                    ! lệnh đầu tiên phải chạy
 show ip ospf interface brief              ! interface nào trong OSPF, cost
 show ip ospf interface Gi0/0             ! timer, DR/BDR, auth, network type
 show ip ospf database                    ! LSDB
@@ -1843,14 +1843,14 @@ show ip ospf database                    ! LSDB
 ! === NAT / ACL ===
 show ip nat translations                 ! bảng NAT
 show ip nat statistics
-show access-lists                        ! ⭐ ACL + counter match
+show access-lists                        ! ACL + counter match
 show ip interface Gi0/1 | include access ! ACL nào đang apply
 
 ! === Debug (nhớ TẮT) ===
 debug ip ospf adj
 debug ip nat
 debug ip packet detail                   ! ⚠️ NGUY HIỂM, chỉ dùng với ACL giới hạn
-undebug all                              ! ⭐ THUỘC LÒNG LỆNH NÀY
+undebug all                              ! THUỘC LÒNG LỆNH NÀY
 ```
 
 ### 8.2 Bảng lỗi: triệu chứng → nguyên nhân → cách sửa

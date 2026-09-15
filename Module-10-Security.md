@@ -85,7 +85,7 @@
 | ⭐ **AUX** (`line aux 0`) | Cổng phụ (modem đời cũ) | 🔴 ⭐ **Hầu như không dùng → PHẢI TẮT HẲN** |
 
 ```
-! ⭐ Tắt AUX — việc hardening đầu tiên ai cũng quên
+! Tắt AUX — việc hardening đầu tiên ai cũng quên
 line aux 0
  no exec
  transport input none
@@ -103,19 +103,19 @@ line aux 0
 | ⭐⭐ **9** | ⭐⭐ **scrypt** | ✅ ⭐ **Tốt nhất** | ⭐⭐ **Khuyến nghị hiện nay** |
 
 ```
-! 🔴 ⭐ KHÔNG BAO GIỜ dùng — type 7 hoặc plaintext
+! KHÔNG BAO GIỜ dùng — type 7 hoặc plaintext
 enable password Cisco123
 
 ! 🟡 Chấp nhận được (type 5 - MD5)
 enable secret Cisco123
 
-! ⭐⭐ ĐÚNG — type 9 (scrypt)
+! ĐÚNG — type 9 (scrypt)
 enable algorithm-type scrypt secret MatKhauRatDaiVaKho2026
 username admin privilege 15 algorithm-type scrypt secret MatKhauRatDaiVaKho2026
 
-! ⭐ Kiểm chứng — nhìn số ngay sau dấu $
+! Kiểm chứng — nhìn số ngay sau dấu $
 R1# show running-config | include enable secret|username
-enable secret 9 $9$xxxxx...          ! ⭐ số 9 = scrypt ✅
+enable secret 9 $9$xxxxx...          ! số 9 = scrypt ✅
 username admin privilege 15 secret 9 $9$yyyy...
 ```
 
@@ -126,10 +126,10 @@ username admin privilege 15 secret 9 $9$yyyy...
 >    ⭐ Nên: ⭐ **xóa hẳn `enable password`**, chỉ giữ `enable secret`.
 
 ```
-! ⭐ Vài lệnh hardening mật khẩu khác
-service password-encryption               ! ⭐ che type 0 → type 7 (cosmetic)
-security passwords min-length 10          ! ⭐ ép độ dài tối thiểu
-no enable password                        ! ⭐ xóa cái yếu, chỉ giữ enable secret
+! Vài lệnh hardening mật khẩu khác
+service password-encryption               ! che type 0 → type 7 (cosmetic)
+security passwords min-length 10          ! ép độ dài tối thiểu
+no enable password                        ! xóa cái yếu, chỉ giữ enable secret
 ```
 
 ### 2.3 ⭐ Privilege level & Role-Based CLI
@@ -142,7 +142,7 @@ no enable password                        ! ⭐ xóa cái yếu, chỉ giữ ena
 | ⭐ **15** | ⭐ **Privileged EXEC** — dấu nhắc `#`, toàn quyền |
 
 ```
-! ⭐ Tạo level 5 chỉ cho xem — dành cho helpdesk
+! Tạo level 5 chỉ cho xem — dành cho helpdesk
 privilege exec level 5 show running-config
 privilege exec level 5 show interfaces
 privilege exec level 5 ping
@@ -153,7 +153,7 @@ username helpdesk privilege 5 algorithm-type scrypt secret MatKhau123
 
 ⭐ **Role-Based CLI Access (parser view)** — mịn hơn privilege level:
 ```
-aaa new-model                             ! ⭐ BẮT BUỘC có trước
+aaa new-model                             ! BẮT BUỘC có trước
 enable view                               ! vào chế độ root view
 !
 parser view HELPDESK
@@ -162,7 +162,7 @@ parser view HELPDESK
  commands exec include show ip interface brief
  commands exec include ping
 !
-parser view MONITOR superview             ! ⭐ superview = gộp nhiều view
+parser view MONITOR superview             ! superview = gộp nhiều view
  secret MatKhauSuper
  view HELPDESK
 ```
@@ -179,36 +179,36 @@ enable view HELPDESK                      ! chuyển sang view
 
 ```
 ! ─── ① Bốn thứ BẮT BUỘC để sinh được khóa RSA ───
-hostname R1                               ! ⭐ (1) không được là "Router"
-ip domain-name cty.local                  ! ⭐ (2) bắt buộc
-crypto key generate rsa modulus 2048      ! ⭐ (3) ≥ 2048 bit
-username admin privilege 15 algorithm-type scrypt secret MatKhauRatDai   ! ⭐ (4)
+hostname R1                               ! (1) không được là "Router"
+ip domain-name cty.local                  ! (2) bắt buộc
+crypto key generate rsa modulus 2048      ! (3) ≥ 2048 bit
+username admin privilege 15 algorithm-type scrypt secret MatKhauRatDai   ! (4)
 
 ! ─── ② Ép SSH v2 và siết tham số ───
-ip ssh version 2                          ! ⭐⭐ v1 có lỗ hổng — LUÔN ép v2
+ip ssh version 2                          ! v1 có lỗ hổng — LUÔN ép v2
 ip ssh time-out 60
 ip ssh authentication-retries 3
 
 ! ─── ③ Khóa VTY lại ───
 line vty 0 15
- transport input ssh                      ! ⭐⭐ CHỈ SSH — cấm telnet
+ transport input ssh                      ! CHỈ SSH — cấm telnet
  login local                              ! (hoặc: login authentication <method-list>)
- exec-timeout 5 0                         ! ⭐ tự thoát sau 5 phút không gõ
- access-class ACL-MGMT in                 ! ⭐⭐ CHỈ cho phép IP quản trị
+ exec-timeout 5 0                         ! tự thoát sau 5 phút không gõ
+ access-class ACL-MGMT in                 ! CHỈ cho phép IP quản trị
 !
 ip access-list standard ACL-MGMT
  permit 10.99.0.0 0.0.0.255
  deny   any log
 
 ! ─── ④ Chống dò mật khẩu ───
-login block-for 120 attempts 3 within 60  ! ⭐⭐ sai 3 lần trong 60s → KHÓA 120s
-login quiet-mode access-class ACL-MGMT    ! ⭐ admin vẫn vào được trong lúc bị khóa
+login block-for 120 attempts 3 within 60  ! sai 3 lần trong 60s → KHÓA 120s
+login quiet-mode access-class ACL-MGMT    ! admin vẫn vào được trong lúc bị khóa
 login on-failure log
 login on-success log
 
 ! ─── ⑤ Banner — đây là vấn đề PHÁP LÝ ───
 banner login ^
-  ⭐ CANH BAO: He thong rieng. Chi nguoi duoc uy quyen. Moi hoat dong bi ghi log.
+  CANH BAO: He thong rieng. Chi nguoi duoc uy quyen. Moi hoat dong bi ghi log.
 ^
 ```
 
@@ -218,10 +218,10 @@ banner login ^
 
 ⭐ **Verify:**
 ```
-show ip ssh                               ! ⭐ version, timeout, retries
+show ip ssh                               ! version, timeout, retries
 show ssh                                  ! phiên SSH đang mở
-show crypto key mypubkey rsa              ! ⭐ đã có khóa chưa, bao nhiêu bit
-show login                                ! ⭐ trạng thái login block-for
+show crypto key mypubkey rsa              ! đã có khóa chưa, bao nhiêu bit
+show login                                ! trạng thái login block-for
 show users                                ! ai đang đăng nhập
 ```
 
@@ -280,10 +280,10 @@ show users                                ! ai đang đăng nhập
 
 ```
 !═══════ ① BẬT AAA ═══════
-! 🔴 ⭐⭐ TẠO USER LOCAL TRƯỚC KHI GÕ DÒNG NÀY — xem cảnh báo §3.5
+! TẠO USER LOCAL TRƯỚC KHI GÕ DÒNG NÀY — xem cảnh báo §3.5
 username admin privilege 15 algorithm-type scrypt secret MatKhauCuuHo2026
 !
-aaa new-model                             ! ⭐⭐ dòng bật toàn bộ hệ thống AAA
+aaa new-model                             ! dòng bật toàn bộ hệ thống AAA
 
 !═══════ ② KHAI BÁO SERVER ═══════
 ! ─── TACACS+ (cho quản trị thiết bị) ───
@@ -294,7 +294,7 @@ tacacs server ISE-TAC-1
 !
 aaa group server tacacs+ GRP-TAC
  server name ISE-TAC-1
- ip tacacs source-interface Loopback0     ! ⭐ nguồn cố định — server dễ khai ACL
+ ip tacacs source-interface Loopback0     ! nguồn cố định — server dễ khai ACL
 
 ! ─── RADIUS (cho 802.1X / wireless) ───
 radius server ISE-RAD-1
@@ -302,23 +302,23 @@ radius server ISE-RAD-1
  key SecretRadius2026
  timeout 3
  retransmit 2
- automate-tester username probe-user probe-on   ! ⭐ tự dò server sống/chết
+ automate-tester username probe-user probe-on   ! tự dò server sống/chết
 !
 aaa group server radius GRP-RAD
  server name ISE-RAD-1
  ip radius source-interface Loopback0
 
-!═══════ ③ ⭐⭐ METHOD LIST — phần quan trọng nhất ═══════
+!═══════ ③ METHOD LIST — phần quan trọng nhất ═══════
 ! ─── Authentication ───
-aaa authentication login  default group GRP-TAC ⭐ local
+aaa authentication login  default group GRP-TAC local
 !                         ↑ tên list      ↑ thử TACACS+ trước   ↑ HỎNG thì dùng local
-aaa authentication enable default group GRP-TAC ⭐ enable
+aaa authentication enable default group GRP-TAC enable
 aaa authentication dot1x  default group GRP-RAD
 
 ! ─── Authorization ───
 aaa authorization exec     default group GRP-TAC local if-authenticated
 aaa authorization commands 15 default group GRP-TAC local
-aaa authorization network  default group GRP-RAD        ! ⭐ cho 802.1X (VLAN/dACL/SGT)
+aaa authorization network  default group GRP-RAD        ! cho 802.1X (VLAN/dACL/SGT)
 aaa authorization config-commands
 
 ! ─── Accounting ───
@@ -328,7 +328,7 @@ aaa accounting dot1x       default start-stop group GRP-RAD
 
 !═══════ ④ ÁP LÊN LINE (nếu dùng named list) ═══════
 line vty 0 15
- login authentication default             ! ⭐ dùng list "default" thì có thể bỏ dòng này
+ login authentication default             ! dùng list "default" thì có thể bỏ dòng này
  authorization exec default
  transport input ssh
 ```
@@ -366,12 +366,12 @@ line vty 0 15
 > 🔴 ⭐⭐ **Đây là tai nạn phổ biến nhất khi triển khai AAA. Đọc kỹ.**
 
 ```
-! 🔴 KỊCH BẢN CHẾT NGƯỜI
+! KỊCH BẢN CHẾT NGƯỜI
 R1(config)# aaa new-model
-!  ⭐ Ngay lập tức: mọi line chuyển sang dùng method list "default"
-!  ⭐ Mà bạn CHƯA tạo user local nào
-!  ⭐ → Lần đăng nhập sau: KHÔNG CÓ TÀI KHOẢN NÀO ĐỂ DÙNG
-!  🔴 → MẤT THIẾT BỊ (phải password recovery tại chỗ)
+!  Ngay lập tức: mọi line chuyển sang dùng method list "default"
+!  Mà bạn CHƯA tạo user local nào
+!  → Lần đăng nhập sau: KHÔNG CÓ TÀI KHOẢN NÀO ĐỂ DÙNG
+!  → MẤT THIẾT BỊ (phải password recovery tại chỗ)
 ```
 
 | ⭐ Bốn quy tắc vàng khi triển khai AAA |
@@ -382,7 +382,7 @@ R1(config)# aaa new-model
 | ⭐⭐ **4. TEST TRƯỚC bằng `test aaa`**, đừng logout rồi mới biết |
 
 ```
-! ⭐ Bảo vệ console riêng — nhiều nơi để console dùng local, không qua AAA server
+! Bảo vệ console riêng — nhiều nơi để console dùng local, không qua AAA server
 aaa authentication login CONSOLE-LOCAL local
 line con 0
  login authentication CONSOLE-LOCAL
@@ -391,14 +391,14 @@ line con 0
 ### 3.6 ⭐ Verify & troubleshoot AAA
 
 ```
-! ⭐⭐ TEST TRƯỚC KHI LOGOUT — lệnh cứu mạng
+! TEST TRƯỚC KHI LOGOUT — lệnh cứu mạng
 test aaa group GRP-TAC admin MatKhau legacy
 test aaa group GRP-RAD admin MatKhau new-code
 
-show aaa servers                          ! ⭐⭐ server sống hay chết + thống kê
+show aaa servers                          ! server sống hay chết + thống kê
 show aaa sessions
 show aaa method-lists all
-show tacacs                               ! ⭐ số gói gửi/nhận, lỗi
+show tacacs                               ! số gói gửi/nhận, lỗi
 show radius statistics
 
 debug aaa authentication                  ! ⚠️ chỉ trong lab
@@ -410,10 +410,10 @@ debug radius authentication
 ⭐ **Đọc `show aaa servers` — dòng cần nhìn:**
 ```
 RADIUS: id 1, priority 1, host 10.99.1.10, auth-port 1812, acct-port 1813
-     ⭐ State: current UP, duration 3520s, previous duration 0s
-     ⭐ Dead: total time 0s, count 0                 ← ⭐ count > 0 = server từng chết
+     State: current UP, duration 3520s, previous duration 0s
+     Dead: total time 0s, count 0                 ← count > 0 = server từng chết
      Authen: request 24, timeouts 0, failover 0, retransmission 0
-             ⭐ Response: accept 22, reject 2        ← reject = sai mật khẩu (server CÓ trả lời)
+             Response: accept 22, reject 2        ← reject = sai mật khẩu (server CÓ trả lời)
 ```
 
 > 🔴 ⭐⭐ **Phân biệt hai loại "đăng nhập thất bại" — đây là chỗ đề gài:**
@@ -451,18 +451,18 @@ ip access-list extended ACL-DMZ-IN
  10 permit tcp any host 203.0.113.10 eq 443
  20 permit tcp any host 203.0.113.10 eq 80
  30 permit udp any host 203.0.113.11 eq 53
- 40 deny   ip any any log                  ! ⭐ deny TƯỜNG MINH để có bộ đếm + log
+ 40 deny   ip any any log                  ! deny TƯỜNG MINH để có bộ đếm + log
 ```
 
 ```
-! ⭐⭐ CHÈN một dòng vào GIỮA — không cần gõ lại cả ACL
+! CHÈN một dòng vào GIỮA — không cần gõ lại cả ACL
 R1(config)# ip access-list extended ACL-DMZ-IN
 R1(config-ext-nacl)# 15 permit tcp any host 203.0.113.10 eq 8443
 
-! ⭐ XÓA đúng một dòng
+! XÓA đúng một dòng
 R1(config-ext-nacl)# no 30
 
-! ⭐ ĐÁNH SỐ LẠI cho gọn (bắt đầu 10, bước 10)
+! ĐÁNH SỐ LẠI cho gọn (bắt đầu 10, bước 10)
 R1(config)# ip access-list resequence ACL-DMZ-IN 10 10
 ```
 
@@ -481,7 +481,7 @@ R1(config)# ip access-list resequence ACL-DMZ-IN 10 10
 
 ```
 ip access-list extended ACL-INTERNET-IN
- permit tcp any 10.1.0.0 0.0.255.255 ⭐ established
+ permit tcp any 10.1.0.0 0.0.255.255 established
  deny   ip any any log
 ```
 ⭐ **`established` khớp gói TCP có cờ ACK hoặc RST** → tức là ⭐ **gói TRẢ LỜI cho một phiên do bên trong khởi tạo.**
@@ -498,7 +498,7 @@ time-range BAO-TRI
  absolute start 00:00 1 January 2026 end 23:59 31 January 2026
 !
 ip access-list extended ACL-USER
- permit tcp 10.1.10.0 0.0.0.255 any eq 443 ⭐ time-range GIO-HANH-CHINH
+ permit tcp 10.1.10.0 0.0.0.255 any eq 443 time-range GIO-HANH-CHINH
  deny   ip any any log
 ```
 > 🔴 ⭐ **Time-based ACL phụ thuộc hoàn toàn vào ĐỒNG HỒ** → ⭐ **bắt buộc phải có NTP** *(Module-06B §3)*.
@@ -508,12 +508,12 @@ ip access-list extended ACL-USER
 
 ```
 ip access-list extended ACL-OUT
- permit tcp 10.1.0.0 0.0.255.255 any ⭐ reflect PHIEN-TCP
- permit udp 10.1.0.0 0.0.255.255 any ⭐ reflect PHIEN-UDP
+ permit tcp 10.1.0.0 0.0.255.255 any reflect PHIEN-TCP
+ permit udp 10.1.0.0 0.0.255.255 any reflect PHIEN-UDP
 !
 ip access-list extended ACL-IN
- ⭐ evaluate PHIEN-TCP
- ⭐ evaluate PHIEN-UDP
+ evaluate PHIEN-TCP
+ evaluate PHIEN-UDP
  deny ip any any log
 !
 interface GigabitEthernet0/0
@@ -554,10 +554,10 @@ ip access-list extended ACL-GON
 | ⭐⭐ **Cuối ACL ngầm có gì** | ⭐ `deny ipv4 any any` | 🔴 ⭐⭐ **BA dòng ngầm** *(xem dưới)* |
 
 ```
-   ⭐⭐ CUỐI MỖI IPv6 ACL, IOS TỰ THÊM BA DÒNG NGẦM THEO ĐÚNG THỨ TỰ NÀY:
+   CUỐI MỖI IPv6 ACL, IOS TỰ THÊM BA DÒNG NGẦM THEO ĐÚNG THỨ TỰ NÀY:
 
-      permit icmp any any nd-na       ⭐ Neighbor Advertisement
-      permit icmp any any nd-ns       ⭐ Neighbor Solicitation
+      permit icmp any any nd-na       Neighbor Advertisement
+      permit icmp any any nd-ns       Neighbor Solicitation
       deny   ipv6 any any
 ```
 
@@ -589,25 +589,25 @@ ip access-list extended ACL-GON
 | ⭐ **RACL** (Router ACL) | ⭐ **SVI hoặc routed port** | ⭐ Traffic **ĐƯỢC ĐỊNH TUYẾN** (giữa các VLAN) |
 
 ```
-   ⭐⭐ THỨ TỰ XỬ LÝ — chiều VÀO (ingress):
-      ⭐ PACL  →  VACL  →  RACL
+   THỨ TỰ XỬ LÝ — chiều VÀO (ingress):
+      PACL  →  VACL  →  RACL
    
-   ⭐ Chiều RA (egress):
+   Chiều RA (egress):
       RACL  →  VACL  →  (không có PACL egress)
 ```
 
 ```
-! ⭐ VACL — chặn 2 máy trong CÙNG VLAN nói chuyện với nhau
+! VACL — chặn 2 máy trong CÙNG VLAN nói chuyện với nhau
 ip access-list extended ACL-CHAN-NOI-BO
  permit ip host 10.1.10.50 host 10.1.10.51
 !
 vlan access-map VMAP-10 10
  match ip address ACL-CHAN-NOI-BO
- ⭐ action drop
+ action drop
 vlan access-map VMAP-10 20
- ⭐ action forward                          ! ⭐ BẮT BUỘC — nếu không, mọi thứ khác bị drop
+ action forward                          ! BẮT BUỘC — nếu không, mọi thứ khác bị drop
 !
-⭐ vlan filter VMAP-10 vlan-list 10
+vlan filter VMAP-10 vlan-list 10
 ```
 
 > 🔴 ⭐⭐ **Hai bẫy VACL:**
@@ -620,8 +620,8 @@ vlan access-map VMAP-10 20
 
 ```
 interface GigabitEthernet0/0
- ⭐ ip verify unicast source reachable-via rx        ! ⭐ STRICT mode
- !  ip verify unicast source reachable-via any      ! ⭐ LOOSE mode
+ ip verify unicast source reachable-via rx        ! STRICT mode
+ !  ip verify unicast source reachable-via any      ! LOOSE mode
 ```
 
 | Mode | Kiểm tra gì | ⭐ Dùng khi |
@@ -639,15 +639,15 @@ hạ tầng của bạn** (loopback, link giữa các router), ⭐ **chỉ cho p
 ### 4.7 ⭐ Verify ACL
 
 ```
-show access-lists                         ! ⭐⭐ bộ đếm match từng dòng
+show access-lists                         ! bộ đếm match từng dòng
 show access-lists ACL-DMZ-IN
 show ip access-lists
-show ip interface Gi0/0 | include access list     ! ⭐ ACL nào đang áp, chiều nào
+show ip interface Gi0/0 | include access list     ! ACL nào đang áp, chiều nào
 show ipv6 access-list
-show vlan access-map                      ! ⭐ VACL
+show vlan access-map                      ! VACL
 show vlan filter                          ! VACL áp lên VLAN nào
-show time-range                           ! ⭐ time-range đang active chưa
-clear ip access-list counters ACL-DMZ-IN  ! ⭐ reset bộ đếm trước khi test
+show time-range                           ! time-range đang active chưa
+clear ip access-list counters ACL-DMZ-IN  ! reset bộ đếm trước khi test
 show ip interface Gi0/0 | include verify  ! uRPF
 show cef interface Gi0/0 internal | include RPF
 ```
@@ -667,17 +667,17 @@ show cef interface Gi0/0 internal | include RPF
 > ⭐ **Data plane** = ASIC/CEF, **cực nhanh**. ⭐ **Control plane** = CPU, **chậm hơn hàng nghìn lần**.
 
 ```
-   🔴 KỊCH BẢN TẤN CÔNG (hoặc chỉ là một vòng lặp lỗi):
+   KỊCH BẢN TẤN CÔNG (hoặc chỉ là một vòng lặp lỗi):
 
    Kẻ tấn công bắn 1 triệu gói/giây TỚI ĐỊA CHỈ CỦA ROUTER
    (ICMP, SSH, SNMP, hoặc gói TTL=1)
                     ↓
-   ⭐ Những gói này KHÔNG được ASIC xử lý — chúng bị "punt" LÊN CPU
+   Những gói này KHÔNG được ASIC xử lý — chúng bị "punt" LÊN CPU
                     ↓
-   🔴 ⭐ CPU 100%  →  OSPF/BGP hello không kịp gửi  →  ⭐ HÀNG XÓM RỚT ADJACENCY
-                  →  ⭐ SSH không vào được để cứu  →  ⭐ MẤT CẢ MẠNG
+   CPU 100%  →  OSPF/BGP hello không kịp gửi  →  HÀNG XÓM RỚT ADJACENCY
+                  →  SSH không vào được để cứu  →  MẤT CẢ MẠNG
    
-   ⭐⭐ Điều đáng sợ: DATA PLANE VẪN CHẠY TỐT. Chỉ "bộ não" bị đánh gục.
+   Điều đáng sợ: DATA PLANE VẪN CHẠY TỐT. Chỉ "bộ não" bị đánh gục.
 ```
 
 > ⭐⭐ **CoPP = một QoS policy áp lên chính "cửa vào CPU"**, để ⭐ **giới hạn tốc độ từng loại
@@ -694,7 +694,7 @@ ip access-list extended ACL-CP-ROUTING
  permit eigrp any any
 !
 ip access-list extended ACL-CP-MANAGEMENT
- permit tcp 10.99.0.0 0.0.0.255 any eq 22        ! ⭐ SSH CHỈ từ mạng quản trị
+ permit tcp 10.99.0.0 0.0.0.255 any eq 22        ! SSH CHỈ từ mạng quản trị
  permit udp 10.99.0.0 0.0.0.255 any eq snmp
  permit udp host 10.99.1.5 any eq ntp
 !
@@ -705,7 +705,7 @@ ip access-list extended ACL-CP-ICMP
  permit icmp any any unreachable
 !
 ip access-list extended ACL-CP-UNDESIRABLE
- permit tcp any any eq telnet                    ! ⭐ mình đã cấm telnet → ai gõ = đáng ngờ
+ permit tcp any any eq telnet                    ! mình đã cấm telnet → ai gõ = đáng ngờ
  permit udp any any eq 1434
 
 !═══════ ② CLASS-MAP ═══════
@@ -721,19 +721,19 @@ class-map match-all CM-CP-UNDESIRABLE
 !═══════ ③ POLICY-MAP ═══════
 policy-map PM-COPP
  class CM-CP-ROUTING
-  ⭐ police 500000 conform-action transmit exceed-action transmit   ! ⭐ ĐỪNG BÓP ROUTING
+  police 500000 conform-action transmit exceed-action transmit   ! ĐỪNG BÓP ROUTING
  class CM-CP-MANAGEMENT
   police 200000 conform-action transmit exceed-action drop
  class CM-CP-ICMP
-  police 50000  conform-action transmit exceed-action drop         ! ⭐ giới hạn ping flood
+  police 50000  conform-action transmit exceed-action drop         ! giới hạn ping flood
  class CM-CP-UNDESIRABLE
-  ⭐ police 8000 conform-action drop exceed-action drop             ! ⭐ vứt thẳng
+  police 8000 conform-action drop exceed-action drop             ! vứt thẳng
  class class-default
-  ⭐ police 500000 conform-action transmit exceed-action transmit   ! ⭐⭐ BẮT ĐẦU: CHỈ ĐẾM
+  police 500000 conform-action transmit exceed-action transmit   ! BẮT ĐẦU: CHỈ ĐẾM
 
 !═══════ ④ ÁP LÊN CONTROL PLANE ═══════
-⭐ control-plane
- ⭐ service-policy input PM-COPP
+control-plane
+ service-policy input PM-COPP
 ```
 
 > 🔴 ⭐⭐ **QUY TẮC VÀNG CỦA CoPP — đề hỏi, và ngoài đời còn quan trọng hơn:**
@@ -758,11 +758,11 @@ policy-map PM-COPP
 | ⭐ **cef-exception** | ⭐ Thứ **CEF không xử lý nổi**, phải punt | ⭐ **ARP**, gói **TTL=1**, gói có **IP options** |
 
 ```
-control-plane ⭐ host
+control-plane host
  service-policy input PM-COPP-HOST
-control-plane ⭐ transit
+control-plane transit
  service-policy input PM-COPP-TRANSIT
-control-plane ⭐ cef-exception
+control-plane cef-exception
  service-policy input PM-COPP-EXCEPTION
 ```
 ⭐ **CPPr còn có:** ⭐ **port-filtering** (vứt ngay gói tới port đóng) và ⭐ **queue-thresholding**
@@ -773,22 +773,22 @@ control-plane ⭐ cef-exception
 ### 5.4 ⭐ Verify CoPP
 
 ```
-show policy-map control-plane                             ! ⭐⭐ lệnh chính
+show policy-map control-plane                             ! lệnh chính
 show policy-map control-plane input class CM-CP-ICMP
 show policy-map control-plane input                       ! chi tiết mọi class
-show processes cpu sorted | exclude 0.00                  ! ⭐ CPU đang bận vì cái gì
-show processes cpu history                                ! ⭐ biểu đồ CPU theo thời gian
+show processes cpu sorted | exclude 0.00                  ! CPU đang bận vì cái gì
+show processes cpu history                                ! biểu đồ CPU theo thời gian
 ```
 
 ⭐ **Đọc output — nhìn đúng ba dòng:**
 ```
 Control Plane
   Service-policy input: PM-COPP
-    Class-map: ⭐ CM-CP-ICMP (match-all)
-      ⭐ 152340 packets, 9140400 bytes             ← có traffic
+    Class-map: CM-CP-ICMP (match-all)
+      152340 packets, 9140400 bytes             ← có traffic
       police:  cir 50000 bps, bc 1562 bytes
-        ⭐ conformed 148120 packets  (trong hạn mức → cho qua)
-        ⭐ exceeded  4220 packets    ← 🔴 ĐANG BỊ VỨT / hoặc vượt hạn mức
+        conformed 148120 packets  (trong hạn mức → cho qua)
+        exceeded  4220 packets    ← ĐANG BỊ VỨT / hoặc vượt hạn mức
 ```
 
 > 🔴 ⭐⭐ **`exceeded` tăng đều đặn có nghĩa gì?** ⭐ Hai khả năng, phải phân biệt:
@@ -807,10 +807,10 @@ Control Plane
 ### 6.1 ⭐⭐ Ba vai — phải thuộc
 
 ```
-   ┌─────────────┐   ⭐ EAPoL    ┌──────────────────┐   ⭐ RADIUS   ┌──────────────────┐
-   │ ⭐ SUPPLICANT│◄────────────►│ ⭐ AUTHENTICATOR │◄────────────►│ ⭐ AUTH SERVER   │
+   ┌─────────────┐   EAPoL    ┌──────────────────┐   RADIUS   ┌──────────────────┐
+   │ SUPPLICANT│◄────────────►│ AUTHENTICATOR │◄────────────►│ AUTH SERVER   │
    │  (client)   │   Layer 2     │ (switch / WLC)   │  UDP 1812    │  (ISE / RADIUS)  │
-   │             │  ⭐ CHƯA CÓ IP│                  │              │                  │
+   │             │  CHƯA CÓ IP│                  │              │                  │
    └─────────────┘               └──────────────────┘              └──────────────────┘
 ```
 
@@ -829,16 +829,16 @@ Control Plane
 ### 6.2 ⭐ Luồng 802.1X
 
 ```
-   ① Port lên → ⭐ switch CHẶN mọi thứ trừ EAPoL (và CDP/STP/LLDP)
-   ② Switch gửi ⭐ EAP-Request/Identity   (hoặc client gửi EAPoL-Start trước)
-   ③ Client gửi ⭐ EAP-Response/Identity  ("tôi là user@cty.local")
-   ④ Switch bọc vào ⭐ RADIUS Access-Request → gửi ISE
-   ⑤ ⭐ ISE ↔ Client trao đổi EAP (qua switch làm trung gian) — dựng tunnel TLS, kiểm chứng thư/mật khẩu
-   ⑥ ⭐⭐ ISE trả RADIUS Access-Accept + THUỘC TÍNH:
+   ① Port lên → switch CHẶN mọi thứ trừ EAPoL (và CDP/STP/LLDP)
+   ② Switch gửi EAP-Request/Identity   (hoặc client gửi EAPoL-Start trước)
+   ③ Client gửi EAP-Response/Identity  ("tôi là user@cty.local")
+   ④ Switch bọc vào RADIUS Access-Request → gửi ISE
+   ⑤ ISE ↔ Client trao đổi EAP (qua switch làm trung gian) — dựng tunnel TLS, kiểm chứng thư/mật khẩu
+   ⑥ ISE trả RADIUS Access-Accept + THUỘC TÍNH:
           · VLAN động (Tunnel-Private-Group-ID)
-          · ⭐ dACL (downloadable ACL)
-          · ⭐ SGT  (→ §8 TrustSec)
-   ⑦ Switch gửi EAPoL-Success → ⭐ MỞ CỔNG và áp các thuộc tính nhận được
+          · dACL (downloadable ACL)
+          · SGT  (→ §8 TrustSec)
+   ⑦ Switch gửi EAPoL-Success → MỞ CỔNG và áp các thuộc tính nhận được
    ⑧ Client mới bắt đầu DHCP → có IP → vào mạng
 ```
 
@@ -879,27 +879,27 @@ aaa new-model
 radius server ISE-1
  address ipv4 10.99.1.10 auth-port 1812 acct-port 1813
  key SecretRadius2026
- ⭐ automate-tester username probe-user probe-on      ! ⭐ tự dò server sống/chết
+ automate-tester username probe-user probe-on      ! tự dò server sống/chết
 !
 aaa group server radius GRP-RAD
  server name ISE-1
 !
 aaa authentication dot1x default group GRP-RAD
-⭐ aaa authorization network default group GRP-RAD    ! ⭐⭐ BẮT BUỘC để nhận VLAN/dACL/SGT
+aaa authorization network default group GRP-RAD    ! BẮT BUỘC để nhận VLAN/dACL/SGT
 aaa accounting dot1x default start-stop group GRP-RAD
 !
-⭐ radius-server attribute 6  on-for-login-auth
-⭐ radius-server attribute 8  include-in-access-req   ! ⭐ gửi IP client — cần cho dACL
+radius-server attribute 6  on-for-login-auth
+radius-server attribute 8  include-in-access-req   ! gửi IP client — cần cho dACL
 radius-server attribute 25 access-request include
 !
-⭐ radius-server vsa send authentication              ! ⭐ nhận thuộc tính riêng của Cisco
+radius-server vsa send authentication              ! nhận thuộc tính riêng của Cisco
 radius-server vsa send accounting
 !
-⭐ radius-server dead-criteria time 5 tries 3
-⭐ radius-server deadtime 10
+radius-server dead-criteria time 5 tries 3
+radius-server deadtime 10
 
-!═══════ ② ⭐⭐ BẬT 802.1X TOÀN CỤC — DÒNG HAY QUÊN NHẤT ═══════
-⭐⭐ dot1x system-auth-control
+!═══════ ② BẬT 802.1X TOÀN CỤC — DÒNG HAY QUÊN NHẤT ═══════
+dot1x system-auth-control
 
 !═══════ ③ CẤU HÌNH PORT ═══════
 interface GigabitEthernet1/0/10
@@ -908,17 +908,17 @@ interface GigabitEthernet1/0/10
  switchport access vlan 10
  switchport voice vlan 20
  !
- ⭐ authentication host-mode multi-domain          ! ⭐ điện thoại + PC
- ⭐ authentication port-control auto               ! ⭐⭐ "auto" = BẬT 802.1X thật sự
- ⭐ authentication order dot1x mab                 ! ⭐ thử 802.1X trước, rồi MAB
- ⭐ authentication priority dot1x mab
+ authentication host-mode multi-domain          ! điện thoại + PC
+ authentication port-control auto               ! "auto" = BẬT 802.1X thật sự
+ authentication order dot1x mab                 ! thử 802.1X trước, rồi MAB
+ authentication priority dot1x mab
  authentication periodic
  authentication timer reauthenticate server
- ⭐ authentication violation restrict
+ authentication violation restrict
  !
- ⭐ mab                                            ! ⭐ bật MAB trên port
- ⭐ dot1x pae authenticator                        ! ⭐ switch đóng vai authenticator
- ⭐ dot1x timeout tx-period 7                      ! ⭐ giảm từ 30s → thiết bị MAB lên nhanh
+ mab                                            ! bật MAB trên port
+ dot1x pae authenticator                        ! switch đóng vai authenticator
+ dot1x timeout tx-period 7                      ! giảm từ 30s → thiết bị MAB lên nhanh
  !
  spanning-tree portfast
  spanning-tree bpduguard enable
@@ -947,11 +947,11 @@ interface GigabitEthernet1/0/10
 
 ```
 interface GigabitEthernet1/0/10
- ⭐ authentication event no-response action authorize vlan 99      ! Guest VLAN
- ⭐ authentication event fail action authorize vlan 98             ! Auth-fail VLAN
- ⭐ authentication event server dead action authorize vlan 10      ! ⭐⭐ Critical VLAN
- ⭐ authentication event server dead action authorize voice
- ⭐ authentication event server alive action reinitialize
+ authentication event no-response action authorize vlan 99      ! Guest VLAN
+ authentication event fail action authorize vlan 98             ! Auth-fail VLAN
+ authentication event server dead action authorize vlan 10      ! Critical VLAN
+ authentication event server dead action authorize voice
+ authentication event server alive action reinitialize
 ```
 
 > 🔴 ⭐⭐ **Critical VLAN là tính năng quan trọng nhất mà người mới hay bỏ qua.**
@@ -974,9 +974,9 @@ interface GigabitEthernet1/0/10
 ### 6.7 ⭐ Verify 802.1X
 
 ```
-⭐ show authentication sessions                              ! (IOS cũ)
-⭐ show access-session                                       ! (IOS-XE mới)
-⭐⭐ show access-session interface Gi1/0/10 details          ! ⭐ LỆNH QUAN TRỌNG NHẤT
+show authentication sessions                              ! (IOS cũ)
+show access-session                                       ! (IOS-XE mới)
+show access-session interface Gi1/0/10 details          ! LỆNH QUAN TRỌNG NHẤT
 show dot1x all
 show dot1x interface Gi1/0/10 details
 show mab all
@@ -991,18 +991,18 @@ debug radius authentication
             Interface: GigabitEthernet1/0/10
           MAC Address: 0050.56aa.bb01
            IPv4 Address: 10.1.10.55
-              ⭐ Status: Authorized                ← ✅ đã xong
-        ⭐ Domain: DATA                            ← DATA hay VOICE (multi-domain)
+              Status: Authorized                ← ✅ đã xong
+        Domain: DATA                            ← DATA hay VOICE (multi-domain)
       Oper host mode: multi-domain
-           ⭐ Current Policy: POLICY_Gi1/0/10
-   ⭐ Method status list:
+           Current Policy: POLICY_Gi1/0/10
+   Method status list:
          Method       State
-       ⭐ dot1x       Authc Success               ← ⭐ 802.1X thành công
+       dot1x       Authc Success               ← 802.1X thành công
          mab          Not run                     ← không cần chạy tới MAB
    Server Policies:
-         ⭐ Vlan Group: Vlan: 20                   ← ⭐ VLAN động ISE trả về
-         ⭐ SGT Value: 10                          ← ⭐ SGT (→ §8)
-         ⭐ ACS ACL: xACSACLx-IP-EMPLOYEE-ACL      ← ⭐ dACL
+         Vlan Group: Vlan: 20                   ← VLAN động ISE trả về
+         SGT Value: 10                          ← SGT (→ §8)
+         ACS ACL: xACSACLx-IP-EMPLOYEE-ACL      ← dACL
 ```
 
 | ⭐ Trạng thái | Nghĩa |
@@ -1045,27 +1045,27 @@ wlan WLAN-PSK 1 CTY-PSK
  security wpa
  security wpa wpa2
  security wpa wpa2 ciphers aes
- ⭐ security wpa akm psk
- ⭐ security wpa akm psk set-key ascii 0 MatKhauRatDaiVaKho2026
- ⭐ security pmf optional
+ security wpa akm psk
+ security wpa akm psk set-key ascii 0 MatKhauRatDaiVaKho2026
+ security pmf optional
  no shutdown
 
-! ═══ ⭐ WPA3-Personal (SAE) ═══
+! ═══ WPA3-Personal (SAE) ═══
 wlan WLAN-WPA3 2 CTY-WPA3
- ⭐ security wpa wpa3
+ security wpa wpa3
  security wpa wpa3 ciphers aes
- ⭐ security wpa akm sae
- ⭐ security wpa akm sae pwe h2e            ! Hash-to-Element (bản SAE mới hơn)
- ⭐ security pmf mandatory                  ! ⭐⭐ WPA3 BẮT BUỘC PMF
+ security wpa akm sae
+ security wpa akm sae pwe h2e            ! Hash-to-Element (bản SAE mới hơn)
+ security pmf mandatory                  ! WPA3 BẮT BUỘC PMF
  no shutdown
 
-! ═══ ⭐ Chế độ chuyển tiếp WPA2+WPA3 (cho client cũ vẫn vào được) ═══
+! ═══ Chế độ chuyển tiếp WPA2+WPA3 (cho client cũ vẫn vào được) ═══
 wlan WLAN-MIXED 3 CTY-MIXED
  security wpa wpa2
  security wpa wpa3
  security wpa akm psk
  security wpa akm sae
- ⭐ security pmf optional                   ! ⭐ "optional" để client cũ không bị loại
+ security pmf optional                   ! "optional" để client cũ không bị loại
  no shutdown
 ```
 
@@ -1085,24 +1085,24 @@ radius server ISE-1
 aaa group server radius GRP-RAD
  server name ISE-1
 !
-⭐ aaa authentication dot1x WLAN-DOT1X group GRP-RAD
-⭐ aaa authorization network WLAN-AUTHZ group GRP-RAD
+aaa authentication dot1x WLAN-DOT1X group GRP-RAD
+aaa authorization network WLAN-AUTHZ group GRP-RAD
 aaa accounting identity WLAN-ACCT start-stop group GRP-RAD
 
 ! ═══ ② WLAN dùng 802.1X ═══
 wlan WLAN-CORP 4 CTY-CORP
  security wpa wpa2
  security wpa wpa2 ciphers aes
- ⭐ security dot1x authentication-list WLAN-DOT1X     ! ⭐⭐ trỏ tới method list
- security ft                                          ! ⭐ 802.11r (Module-07B §6.5)
+ security dot1x authentication-list WLAN-DOT1X     ! trỏ tới method list
+ security ft                                          ! 802.11r (Module-07B §6.5)
  security pmf optional
  no shutdown
 
 ! ═══ ③ Policy Profile — nơi nhận VLAN/ACL từ ISE ═══
 wireless profile policy POL-CORP
  vlan 20
- ⭐ aaa-override                                       ! ⭐⭐ CHO PHÉP ISE ghi đè VLAN/ACL
- ⭐ nac                                                ! ⭐ bật Central Web Auth / posture
+ aaa-override                                       ! CHO PHÉP ISE ghi đè VLAN/ACL
+ nac                                                ! bật Central Web Auth / posture
  accounting-list WLAN-ACCT
  no shutdown
 ```
@@ -1137,18 +1137,18 @@ wireless profile policy POL-CORP
 | **External** | Web server riêng | Tùy biến giao diện tối đa |
 
 ```
-! ═══ ⭐ Pre-auth ACL — phải MỞ DNS và DHCP ═══
+! ═══ Pre-auth ACL — phải MỞ DNS và DHCP ═══
 ip access-list extended ACL-PREAUTH
- ⭐ permit udp any any eq domain            ! ⭐⭐ DNS — thiếu là KHÔNG có portal
- ⭐ permit udp any any eq bootps
- ⭐ permit udp any any eq bootpc
- permit tcp any host 10.99.1.10 eq 8443    ! ⭐ cho phép tới portal ISE
+ permit udp any any eq domain            ! DNS — thiếu là KHÔNG có portal
+ permit udp any any eq bootps
+ permit udp any any eq bootpc
+ permit tcp any host 10.99.1.10 eq 8443    ! cho phép tới portal ISE
  deny   ip any any
 
 ! ═══ Parameter map ═══
 parameter-map type webauth WEBAUTH-KHACH
  type webauth
- ⭐ redirect on-success https://cty.local/xin-chao
+ redirect on-success https://cty.local/xin-chao
  banner text ^Mang danh cho khach^
 
 ! ═══ WLAN khách ═══
@@ -1156,9 +1156,9 @@ wlan WLAN-KHACH 5 CTY-KHACH
  no security wpa
  no security wpa akm dot1x
  no security wpa wpa2
- ⭐ security web-auth
- ⭐ security web-auth authentication-list WEB-AUTH-LIST
- ⭐ security web-auth parameter-map WEBAUTH-KHACH
+ security web-auth
+ security web-auth authentication-list WEB-AUTH-LIST
+ security web-auth parameter-map WEBAUTH-KHACH
  no shutdown
 ```
 
@@ -1175,13 +1175,13 @@ wlan WLAN-KHACH 5 CTY-KHACH
 
 ```
 show wlan summary
-⭐ show wlan id 4                                    ! ⭐ xem đủ cấu hình bảo mật của 1 WLAN
-show wireless profile policy detailed POL-CORP      ! ⭐ aaa-override bật chưa
-⭐ show wireless client mac-address <MAC> detail     ! ⭐⭐ State, VLAN, SGT, ACL đang áp
+show wlan id 4                                    ! xem đủ cấu hình bảo mật của 1 WLAN
+show wireless profile policy detailed POL-CORP      ! aaa-override bật chưa
+show wireless client mac-address <MAC> detail     ! State, VLAN, SGT, ACL đang áp
 show wireless client summary
 show aaa servers
 !
-⭐ debug wireless mac <H.H.H> internal               ! ⭐ RadioActive Trace (Module-07B §9.4)
+debug wireless mac <H.H.H> internal               ! RadioActive Trace (Module-07B §9.4)
 test aaa group GRP-RAD user pass new-code
 ```
 
@@ -1192,17 +1192,17 @@ test aaa group GRP-RAD user pass new-code
 ### 8.1 ⭐ Vấn đề TrustSec giải quyết
 
 ```
-   🔴 CÁCH CŨ — ACL theo địa chỉ IP:
+   CÁCH CŨ — ACL theo địa chỉ IP:
 
    permit ip 10.1.10.0 0.0.0.255 host 10.2.5.100      ! kế toán → server lương
    permit ip 10.1.11.0 0.0.0.255 host 10.2.5.100
    ... (200 dòng nữa)
 
-   ⭐ Vấn đề: ⭐ CHÍNH SÁCH BỊ TRÓI VÀO ĐỊA CHỈ IP VÀ TOPOLOGY
-   🔴 Đổi subnet  → viết lại ACL
-   🔴 Thêm site   → viết lại ACL ở nhiều thiết bị
-   🔴 Nhân viên chuyển tầng → sai VLAN → sai quyền
-   🔴 ACL phình tới hàng nghìn dòng, không ai dám sửa
+   Vấn đề: CHÍNH SÁCH BỊ TRÓI VÀO ĐỊA CHỈ IP VÀ TOPOLOGY
+   Đổi subnet  → viết lại ACL
+   Thêm site   → viết lại ACL ở nhiều thiết bị
+   Nhân viên chuyển tầng → sai VLAN → sai quyền
+   ACL phình tới hàng nghìn dòng, không ai dám sửa
 ```
 
 > ⭐⭐ **Ý tưởng TrustSec:** ⭐ **gán cho mỗi người/thiết bị một NHÃN (SGT) dựa trên DANH TÍNH,
@@ -1237,10 +1237,10 @@ test aaa group GRP-RAD user pass new-code
 ⭐ **Thêm một phòng ban mới = thêm một dòng trong ma trận.** ⭐ **Không đụng vào ACL nào cả.**
 
 ```
-! ⭐ Vài lệnh nhận biết (không cần thuộc)
+! Vài lệnh nhận biết (không cần thuộc)
 cts authorization list ISE-LIST
-cts role-based enforcement                        ! ⭐ bật thực thi SGACL
-cts role-based sgt-map 10.1.10.0/24 sgt 10        ! ⭐ gán tĩnh subnet → SGT
+cts role-based enforcement                        ! bật thực thi SGACL
+cts role-based sgt-map 10.1.10.0/24 sgt 10        ! gán tĩnh subnet → SGT
 !
 interface Gi1/0/1
  cts manual
@@ -1249,9 +1249,9 @@ interface Gi1/0/1
 cts sxp enable
 cts sxp connection peer 10.99.1.10 password default mode local listener
 !
-⭐ show cts environment-data
-⭐ show cts role-based sgt-map all
-⭐ show cts role-based permissions
+show cts environment-data
+show cts role-based sgt-map all
+show cts role-based permissions
 show cts sxp connections
 ```
 
@@ -1271,14 +1271,14 @@ show cts sxp connections
 ### 8.4 ⭐⭐ MACsec (IEEE 802.1AE)
 
 ```
-   ⭐⭐ MACsec mã hóa Ở LỚP 2, TỪNG CHẶNG MỘT (hop-by-hop):
+   MACsec mã hóa Ở LỚP 2, TỪNG CHẶNG MỘT (hop-by-hop):
 
    [PC]══mã hóa══[SW1]──giải mã, xử lý, mã hóa lại──[SW2]══mã hóa══[Server]
-        ⭐ MỖI CHẶNG mã hóa riêng. Switch NHÌN THẤY gói ở giữa.
+        MỖI CHẶNG mã hóa riêng. Switch NHÌN THẤY gói ở giữa.
 
-   ⭐ So sánh IPsec (Module-08 §5) — mã hóa ĐẦU-CUỐI:
+   So sánh IPsec (Module-08 §5) — mã hóa ĐẦU-CUỐI:
    [R1]════════════ mã hóa suốt chặng ════════════[R2]
-        ⭐ Router ở giữa KHÔNG đọc được gì.
+        Router ở giữa KHÔNG đọc được gì.
 ```
 
 | | ⭐⭐ **MACsec** | ⭐⭐ **IPsec** |
@@ -1299,7 +1299,7 @@ show cts sxp connections
 | ⭐ **Uplink** (switch ↔ switch) | ⭐ **MKA với pre-shared key (CKN/CAK)**, hoặc **SAP** *(Cisco, đời cũ)* | ⭐ Bảo vệ đường trục, đặc biệt khi **cáp đi qua khu vực không kiểm soát** |
 
 ```
-! ⭐ Cấu hình MACsec switch↔switch với pre-shared key
+! Cấu hình MACsec switch↔switch với pre-shared key
 key chain KC-MACSEC macsec
  key 01
   cryptographic-algorithm aes-256-cmac
@@ -1309,12 +1309,12 @@ mka policy MKA-POL
  macsec-cipher-suite gcm-aes-256
 !
 interface TenGigabitEthernet1/0/1
- ⭐ macsec network-link
- ⭐ mka policy MKA-POL
- ⭐ mka pre-shared-key key-chain KC-MACSEC
+ macsec network-link
+ mka policy MKA-POL
+ mka pre-shared-key key-chain KC-MACSEC
 !
-⭐ show macsec summary
-⭐ show macsec interface Te1/0/1
+show macsec summary
+show macsec interface Te1/0/1
 show mka sessions
 ```
 
@@ -1421,17 +1421,17 @@ show mka sessions
 ### 10.2 ⭐⭐ Luồng token của hai sản phẩm Cisco — đề hay hỏi
 
 ```
-   ⭐⭐ DNA CENTER — Basic Auth đổi lấy token
+   DNA CENTER — Basic Auth đổi lấy token
    ① POST https://<dnac>/dna/system/api/v1/auth/token
       Header: Authorization: Basic <base64(user:pass)>
-   ② ⭐ Trả về: { "Token": "eyJhbGciOi..." }
-   ③ ⭐ Mọi lời gọi sau: Header  X-Auth-Token: eyJhbGciOi...
-   ⭐ Token hết hạn (thường ~1 giờ) → xin lại
+   ② Trả về: { "Token": "eyJhbGciOi..." }
+   ③ Mọi lời gọi sau: Header  X-Auth-Token: eyJhbGciOi...
+   Token hết hạn (thường ~1 giờ) → xin lại
 
-   ⭐ vMANAGE (SD-WAN) — session cookie
+   vMANAGE (SD-WAN) — session cookie
    ① POST https://<vmanage>/j_security_check   (form: j_username, j_password)
-   ② ⭐ Trả về cookie JSESSIONID
-   ③ ⭐ Với lệnh GHI: xin thêm X-XSRF-TOKEN từ /dataservice/client/token
+   ② Trả về cookie JSESSIONID
+   ③ Với lệnh GHI: xin thêm X-XSRF-TOKEN từ /dataservice/client/token
 ```
 
 > ⭐⭐ **Nhớ hai điểm:** ⭐ **DNAC = `X-Auth-Token`** · ⭐ **vManage = cookie `JSESSIONID` + `X-XSRF-TOKEN`.**
@@ -1634,14 +1634,14 @@ ip route 1.1.1.1 255.255.255.255 10.0.0.1
 R1(config)# enable password TestPlain
 R1(config)# username u5 password TestType5
 R1(config)# do show run | include enable password|username u5
-⭐ enable password TestPlain              ← 🔴 HIỆN NGUYÊN VĂN
-⭐ username u5 password 0 TestType5       ← 🔴 type 0 = plaintext
+enable password TestPlain              ← HIỆN NGUYÊN VĂN
+username u5 password 0 TestType5       ← type 0 = plaintext
 ```
 ```
 R1(config)# service password-encryption
 R1(config)# do show run | include enable password|username u5
-⭐ enable password 7 0822455D0A16         ← ⭐ đã thành type 7
-⭐ username u5 password 7 06120A2D4A1A
+enable password 7 0822455D0A16         ← đã thành type 7
+username u5 password 7 06120A2D4A1A
 ```
 > 💡 🔴 ⭐⭐ **Chép chuỗi type 7 đó và tìm bất kỳ trang "cisco type 7 decrypt" nào.**
 > ⭐ **Nó ra lại mật khẩu gốc trong 1 giây.** ⭐ **Đó là lý do type 7 KHÔNG PHẢI bảo mật.**
@@ -1652,8 +1652,8 @@ R1(config)# no enable password
 R1(config)# enable algorithm-type scrypt secret MatKhauRatDaiVaKho2026
 R1(config)# username admin privilege 15 algorithm-type scrypt secret MatKhauRatDaiVaKho2026
 R1(config)# do show run | include enable secret|username admin
-⭐ enable secret 9 $9$Ab3...               ← ⭐ số 9 = scrypt ✅
-⭐ username admin privilege 15 secret 9 $9$Xy7...
+enable secret 9 $9$Ab3...               ← số 9 = scrypt ✅
+username admin privilege 15 secret 9 $9$Xy7...
 ```
 ✅ **Checkpoint A2:** ⭐ **con số ngay sau `secret` phải là `9`.** ⭐ Nếu là `5` → bạn quên `algorithm-type scrypt`.
 
@@ -1675,16 +1675,16 @@ R1(config)# banner login ^ CANH BAO: He thong rieng. Moi hoat dong bi ghi log. ^
 ✅ **Checkpoint A3 — test từ R2:**
 ```
 R2# telnet 1.1.1.1
-   ⭐ Trying 1.1.1.1 ... Open
-   🔴 [Connection closed by foreign host]     ← ⭐ ĐÚNG: telnet bị cấm
+   Trying 1.1.1.1 ... Open
+   [Connection closed by foreign host]     ← ĐÚNG: telnet bị cấm
 
 R2# ssh -l admin 1.1.1.1
-   ⭐ CANH BAO: He thong rieng...              ← ⭐ banner hiện ra
-   Password:                                   ← ⭐ SSH hoạt động
+   CANH BAO: He thong rieng...              ← banner hiện ra
+   Password:                                   ← SSH hoạt động
 ```
 ```
 R1# show ip ssh
-⭐ SSH Enabled - version 2.0                    ← ⭐ phải là 2.0
+SSH Enabled - version 2.0                    ← phải là 2.0
 ```
 
 **Bước A4 — ⭐ `login block-for` (rất đáng làm):**
@@ -1696,9 +1696,9 @@ R1(config)# login quiet-mode access-class ACL-MGMT
 ⭐ Từ R2, ⭐ **SSH sai mật khẩu 3 lần liên tiếp**, rồi xem trên R1:
 ```
 R1# show login
-   ⭐ Router enabled to watch for login Attacks.
-   ⭐ Router presently in Quiet-Mode, will remain in Quiet-Mode for 47 seconds.
-   ⭐ Denying logins from all sources.
+   Router enabled to watch for login Attacks.
+   Router presently in Quiet-Mode, will remain in Quiet-Mode for 47 seconds.
+   Denying logins from all sources.
 %SEC_LOGIN-1-QUIET_MODE_ON: Still timeleft for watching failures is 47 seconds,
    [user: admin] [Source: 10.0.0.2] [localport: 22] ...
 ```
@@ -1711,9 +1711,9 @@ R1# show login
 
 **Bước B1 — ⭐ Chuẩn bị AN TOÀN trước (đọc kỹ):**
 ```
-! ⭐⭐ TẠO USER LOCAL TRƯỚC — nếu không bạn sẽ tự khóa mình
+! TẠO USER LOCAL TRƯỚC — nếu không bạn sẽ tự khóa mình
 R1(config)# username admin privilege 15 algorithm-type scrypt secret MatKhauCuuHo
-! ⭐⭐ MỞ SẴN MỘT PHIÊN SSH THỨ HAI tới R1 và ĐỪNG ĐÓNG NÓ
+! MỞ SẴN MỘT PHIÊN SSH THỨ HAI tới R1 và ĐỪNG ĐÓNG NÓ
 ```
 
 **Bước B2 — Bật AAA, trỏ vào server KHÔNG TỒN TẠI:**
@@ -1721,28 +1721,28 @@ R1(config)# username admin privilege 15 algorithm-type scrypt secret MatKhauCuuH
 R1(config)# aaa new-model
 !
 R1(config)# tacacs server FAKE-ISE
-R1(config-server-tacacs)#  address ipv4 ⭐ 192.0.2.99      ! ⭐ IP không tồn tại
+R1(config-server-tacacs)#  address ipv4 192.0.2.99      ! IP không tồn tại
 R1(config-server-tacacs)#  key SecretGia
 R1(config-server-tacacs)#  timeout 5
 !
 R1(config)# aaa group server tacacs+ GRP-TAC
 R1(config-sg-tacacs+)#  server name FAKE-ISE
 !
-R1(config)# aaa authentication login default group GRP-TAC ⭐ local
+R1(config)# aaa authentication login default group GRP-TAC local
 R1(config)# aaa authorization exec default group GRP-TAC local if-authenticated
 ```
 
 **Bước B3 — ⭐⭐ Test TRƯỚC KHI logout:**
 ```
 R1# test aaa group GRP-TAC admin MatKhauCuuHo legacy
-   ⭐ Attempting authentication test to server-group GRP-TAC using tacacs+
-   ⭐ No response from server                    ← server chết, đúng như thiết kế
+   Attempting authentication test to server-group GRP-TAC using tacacs+
+   No response from server                    ← server chết, đúng như thiết kế
 ```
 ```
 R1# show aaa servers | include host|State|Dead
    TACACS+: id 1, priority 1, host 192.0.2.99, auth-port 49
-        ⭐ State: current DEAD, duration 35s      ← 🔴 DEAD
-        ⭐ Dead: total time 35s, count 1
+        State: current DEAD, duration 35s      ← DEAD
+        Dead: total time 35s, count 1
 ```
 
 ✅ **Checkpoint B3 — ⭐⭐ bài test quyết định:**
@@ -1750,7 +1750,7 @@ Từ R2, ⭐ **SSH vào R1 bằng `admin` / `MatKhauCuuHo`**:
 ```
 R2# ssh -l admin 1.1.1.1
 Password: ********
-⭐ R1>                                            ← ⭐⭐ VÀO ĐƯỢC!
+R1>                                            ← VÀO ĐƯỢC!
 ```
 > 💡 ⭐⭐ **Bạn vừa chứng kiến FALLBACK hoạt động.** ⭐ TACACS+ **im lặng** → router chờ hết timeout →
 > ⭐ **chuyển sang phương pháp thứ hai (`local`)** → dùng `username admin` trong config.
@@ -1760,32 +1760,32 @@ Password: ********
 
 **Bước B4 — 🔴 ⭐⭐ Tái hiện tai nạn (an toàn, vì có phiên SSH thứ hai đang mở):**
 ```
-! ⭐ Trên phiên SSH THỨ NHẤT:
-R1(config)# aaa authentication login default group GRP-TAC       ! 🔴 BỎ "local"
+! Trên phiên SSH THỨ NHẤT:
+R1(config)# aaa authentication login default group GRP-TAC       ! BỎ "local"
 ```
 ⭐ Từ R2, thử SSH mới:
 ```
 R2# ssh -l admin 1.1.1.1
 Password: ********
-🔴 % Authentication failed                       ← 🔴 KHÔNG VÀO ĐƯỢC NỮA
+% Authentication failed                       ← KHÔNG VÀO ĐƯỢC NỮA
 ```
 ⭐ **Dùng phiên SSH thứ hai (vẫn đang mở) để sửa:**
 ```
-R1(config)# aaa authentication login default group GRP-TAC ⭐ local
+R1(config)# aaa authentication login default group GRP-TAC local
 ```
 > 💡 🔴 ⭐⭐ **Ghi ngay vào `SO-TAY-LOI.md`.** ⭐ Trên thiết bị thật, nếu bạn không giữ phiên thứ hai,
 > ⭐ **bạn phải đi tới tận nơi cắm cáp console và làm password recovery.**
 
 **Bước B5 — ⭐ Phân biệt `reject` với `timeout`:**
 ```
-! ⭐ Bảo vệ console riêng — thực hành tốt
+! Bảo vệ console riêng — thực hành tốt
 R1(config)# aaa authentication login CONSOLE-LOCAL local
 R1(config)# line con 0
 R1(config-line)#  login authentication CONSOLE-LOCAL
 ```
 ```
 R1# show aaa servers | include Authen|accept|reject|timeout
-   ⭐ Authen: request 6, ⭐ timeouts 6            ← ⭐ TẤT CẢ là timeout, không có reject
+   Authen: request 6, timeouts 6            ← TẤT CẢ là timeout, không có reject
 ```
 > 💡 ⭐⭐ **Ghi nhớ bảng phân biệt:**
 > ⭐ **`timeouts` tăng / `State: DEAD`** → server **im lặng** → ⭐ **CÓ fallback**
@@ -1808,14 +1808,14 @@ R1(config)# interface Gi0/0
 R1(config-if)#  ip access-group ACL-TEST in
 ```
 ```
-! ⭐ CHÈN vào giữa — không cần gõ lại cả ACL
+! CHÈN vào giữa — không cần gõ lại cả ACL
 R1(config)# ip access-list extended ACL-TEST
-R1(config-ext-nacl)# ⭐ 15 permit tcp any any eq telnet
+R1(config-ext-nacl)# 15 permit tcp any any eq telnet
 !
 R1# show access-lists ACL-TEST
 Extended IP access list ACL-TEST
     10 permit icmp any any
-    ⭐ 15 permit tcp any any eq telnet      ← ⭐ đã chèn ĐÚNG VỊ TRÍ
+    15 permit tcp any any eq telnet      ← đã chèn ĐÚNG VỊ TRÍ
     20 permit tcp any any eq 22
     30 deny ip any any log
 ```
@@ -1828,7 +1828,7 @@ R1# clear ip access-list counters ACL-TEST
 R2# ping 1.1.1.1 repeat 10
 R2# ping 1.1.1.1 source 2.2.2.2 repeat 5
 R1# show access-lists ACL-TEST
-    ⭐ 10 permit icmp any any (15 matches)      ← ⭐ ĐÂY là dòng đang quyết định
+    10 permit icmp any any (15 matches)      ← ĐÂY là dòng đang quyết định
     15 permit tcp any any eq telnet
     20 permit tcp any any eq 22
     30 deny ip any any log
@@ -1840,9 +1840,9 @@ R1# show access-lists ACL-TEST
 **Bước C3 — ⭐ Deny tường minh để có bộ đếm:**
 ```
 R2# telnet 1.1.1.1 8080
-   ⭐ (bị chặn)
+   (bị chặn)
 R1# show access-lists ACL-TEST | include deny
-    ⭐ 30 deny ip any any log (3 matches)      ← ⭐ CÓ ĐẾM và CÓ LOG
+    30 deny ip any any log (3 matches)      ← CÓ ĐẾM và CÓ LOG
 R1# show logging | include ACL-TEST
 %SEC-6-IPACCESSLOGP: list ACL-TEST denied tcp 10.0.0.2(...) -> 1.1.1.1(8080), 1 packet
 ```
@@ -1863,30 +1863,30 @@ interface Gi0/0
 ```
 ```
 R1# ping 2001:DB8::2
-!!!!!                                            ⭐ OK
+!!!!!                                            OK
 R1# show ipv6 neighbors
-2001:DB8::2   ...  ⭐ REACH  Gi0/0               ⭐ NDP hoạt động
+2001:DB8::2   ...  REACH  Gi0/0               NDP hoạt động
 ```
 ```
-! 🔴 ⭐ Giờ áp một ACL "trông có vẻ đúng":
+! Giờ áp một ACL "trông có vẻ đúng":
 R1(config)# ipv6 access-list ACL-V6-SAI
 R1(config-ipv6-acl)#  permit tcp any any eq 22
-R1(config-ipv6-acl)# ⭐ deny ipv6 any any log        ! 🔴 DÒNG GIẾT NDP
+R1(config-ipv6-acl)# deny ipv6 any any log        ! DÒNG GIẾT NDP
 R1(config)# interface Gi0/0
 R1(config-if)#  ipv6 traffic-filter ACL-V6-SAI in
 ```
 ```
 R1# clear ipv6 neighbors
 R1# ping 2001:DB8::2
-🔴 .....                                          ← 🔴 CHẾT HOÀN TOÀN
+.....                                          ← CHẾT HOÀN TOÀN
 R1# show ipv6 neighbors
-🔴 (trống — hoặc INCMP)                           ← 🔴 KHÔNG phân giải được lớp 2
+(trống — hoặc INCMP)                           ← KHÔNG phân giải được lớp 2
 ```
 ✅ **Sửa:**
 ```
 R1(config)# ipv6 access-list ACL-V6-DUNG
-R1(config-ipv6-acl)# ⭐ permit icmp any any nd-na     ! ⭐ PHẢI ĐẶT TRƯỚC
-R1(config-ipv6-acl)# ⭐ permit icmp any any nd-ns
+R1(config-ipv6-acl)# permit icmp any any nd-na     ! PHẢI ĐẶT TRƯỚC
+R1(config-ipv6-acl)# permit icmp any any nd-ns
 R1(config-ipv6-acl)#  permit icmp any any            ! (cho ping test)
 R1(config-ipv6-acl)#  permit tcp any any eq 22
 R1(config-ipv6-acl)#  deny ipv6 any any log
@@ -1894,7 +1894,7 @@ R1(config)# interface Gi0/0
 R1(config-if)#  ipv6 traffic-filter ACL-V6-DUNG in
 !
 R1# ping 2001:DB8::2
-⭐ !!!!!                                          ← ✅ SỐNG LẠI
+!!!!!                                          ← ✅ SỐNG LẠI
 ```
 > 💡 🔴 ⭐⭐ **Bài học một câu — ghi vào `SO-TAY-LOI.md`:**
 > ⭐ ***"Viết `deny ipv6 any any` tường minh thì PHẢI tự thêm `permit icmp any any nd-na` và
@@ -1932,14 +1932,14 @@ class-map match-all CM-CP-SSH
 !
 policy-map PM-COPP
  class CM-CP-ICMP
-  ⭐ police 8000 conform-action transmit exceed-action transmit   ! ⭐ CHỈ ĐẾM
+  police 8000 conform-action transmit exceed-action transmit   ! CHỈ ĐẾM
  class CM-CP-SSH
   police 100000 conform-action transmit exceed-action transmit
  class class-default
   police 500000 conform-action transmit exceed-action transmit
 !
-⭐ control-plane
- ⭐ service-policy input PM-COPP
+control-plane
+ service-policy input PM-COPP
 ```
 
 **Bước D2 — Tạo traffic và đọc bộ đếm:**
@@ -1950,11 +1950,11 @@ R1# show policy-map control-plane input class CM-CP-ICMP
 ```
 Control Plane
   Service-policy input: PM-COPP
-    Class-map: ⭐ CM-CP-ICMP (match-all)
-      ⭐ 400 packets, 568000 bytes                ← ⭐ CÓ ĐẾM
+    Class-map: CM-CP-ICMP (match-all)
+      400 packets, 568000 bytes                ← CÓ ĐẾM
       police:  cir 8000 bps, bc 1500 bytes
-        ⭐ conformed 63 packets;  actions: transmit
-        ⭐ exceeded  337 packets; actions: ⭐ transmit    ← ⭐ VƯỢT nhưng VẪN CHO QUA
+        conformed 63 packets;  actions: transmit
+        exceeded  337 packets; actions: transmit    ← VƯỢT nhưng VẪN CHO QUA
 ```
 > 💡 ⭐⭐ **`exceeded` cao nhưng `actions: transmit` = CoPP đang ĐO chứ chưa CHẶN.**
 > ⭐ **Đây chính xác là chế độ bạn phải chạy vài ngày trước khi siết.**
@@ -1963,16 +1963,16 @@ Control Plane
 ```
 R1(config)# policy-map PM-COPP
 R1(config-pmap)#  class CM-CP-ICMP
-R1(config-pmap-c)#  ⭐ police 8000 conform-action transmit exceed-action ⭐ drop
+R1(config-pmap-c)#  police 8000 conform-action transmit exceed-action drop
 ```
 ```
 R2# ping 1.1.1.1 repeat 100 size 1400
-⭐ !!!..!...!..!!....!...                        ← 🔴 MẤT GÓI RẤT NHIỀU
+!!!..!...!..!!....!...                        ← MẤT GÓI RẤT NHIỀU
 Success rate is 22 percent (22/100)
 ```
 ```
 R1# show policy-map control-plane input class CM-CP-ICMP | include exceeded
-        ⭐ exceeded 78 packets; actions: ⭐ drop     ← 🔴 GIỜ THÌ VỨT THẬT
+        exceeded 78 packets; actions: drop     ← GIỜ THÌ VỨT THẬT
 ```
 > 💡 🔴 ⭐⭐ **Bạn vừa tự tay chứng minh vì sao CoPP nguy hiểm.**
 > ⭐ Nếu class này là **OSPF** thay vì ICMP, ⭐ **bạn vừa đánh sập adjacency của chính mình.**
@@ -1998,19 +1998,19 @@ R1# show processes cpu history
 ```
 !═══ SW1 ═══
 aaa new-model
-username admin privilege 15 algorithm-type scrypt secret MatKhauCuuHo   ! ⭐ trước tiên!
+username admin privilege 15 algorithm-type scrypt secret MatKhauCuuHo   ! trước tiên!
 !
 radius server FAKE-ISE
- address ipv4 ⭐ 192.0.2.99 auth-port 1812 acct-port 1813
+ address ipv4 192.0.2.99 auth-port 1812 acct-port 1813
  key SecretGia
 !
 aaa group server radius GRP-RAD
  server name FAKE-ISE
 !
 aaa authentication dot1x default group GRP-RAD
-⭐ aaa authorization network default group GRP-RAD
+aaa authorization network default group GRP-RAD
 !
-⭐⭐ dot1x system-auth-control                    ! ⭐ DÒNG HAY QUÊN NHẤT
+dot1x system-auth-control                    ! DÒNG HAY QUÊN NHẤT
 !
 radius-server dead-criteria time 5 tries 2
 radius-server deadtime 5
@@ -2024,12 +2024,12 @@ interface GigabitEthernet0/2
  description Cong nguoi dung - LAB 802.1X
  switchport mode access
  switchport access vlan 10
- ⭐ authentication port-control auto
- ⭐ authentication host-mode multi-domain
- ⭐ authentication order dot1x mab
- ⭐ mab
- ⭐ dot1x pae authenticator
- ⭐ dot1x timeout tx-period 7
+ authentication port-control auto
+ authentication host-mode multi-domain
+ authentication order dot1x mab
+ mab
+ dot1x pae authenticator
+ dot1x timeout tx-period 7
  spanning-tree portfast
 ```
 
@@ -2037,17 +2037,17 @@ interface GigabitEthernet0/2
 ```
 SW1# show access-session interface Gi0/2 details
             Interface: GigabitEthernet0/2
-              ⭐ Status: Unauthorized             ← ⭐ cổng ĐANG ĐÓNG
+              Status: Unauthorized             ← cổng ĐANG ĐÓNG
       Oper host mode: multi-domain
    Method status list:
          Method      State
-         dot1x       ⭐ Running / Stopped
-         mab         ⭐ Running
+         dot1x       Running / Stopped
+         mab         Running
 ```
 ```
 SW1# show dot1x interface Gi0/2 details | include PortControl|Status
-   ⭐ PortControl = AUTO
-   ⭐ Port Status  = UNAUTHORIZED
+   PortControl = AUTO
+   Port Status  = UNAUTHORIZED
 ```
 > 💡 ⭐ **Bạn vừa thấy điều quan trọng nhất:** ⭐ **cổng ở trạng thái `AUTO` sẽ ĐÓNG cho tới khi
 > có `Access-Accept`.** ⭐ Server chết → **không ai vào được.**
@@ -2055,17 +2055,17 @@ SW1# show dot1x interface Gi0/2 details | include PortControl|Status
 ✅ **Checkpoint E2 — ⭐⭐ thêm Critical VLAN và thấy nó cứu tình hình:**
 ```
 interface GigabitEthernet0/2
- ⭐ authentication event server dead action authorize vlan 10
- ⭐ authentication event server dead action authorize voice
- ⭐ authentication event no-response action authorize vlan 99
- ⭐ authentication event server alive action reinitialize
+ authentication event server dead action authorize vlan 10
+ authentication event server dead action authorize voice
+ authentication event no-response action authorize vlan 99
+ authentication event server alive action reinitialize
 ```
 ```
 SW1# show access-session interface Gi0/2 details
-              ⭐ Status: Authorized
-   ⭐ Method status list:
-         dot1x   ⭐ Authc Failed / Not run
-   ⭐ Current Policy: Critical_Auth                ← ⭐⭐ Critical VLAN đã cứu
+              Status: Authorized
+   Method status list:
+         dot1x   Authc Failed / Not run
+   Current Policy: Critical_Auth                ← Critical VLAN đã cứu
 ```
 > 💡 🔴 ⭐⭐ **Đây là bài học đắt giá nhất của 802.1X ngoài đời:**
 > ⭐ **Không có Critical VLAN → ISE bảo trì 10 phút = cả công ty mất mạng.**
@@ -2074,11 +2074,11 @@ SW1# show access-session interface Gi0/2 details
 
 ✅ **Checkpoint E3 — 🔴 ⭐ tái hiện lỗi "quên dòng global":**
 ```
-SW1(config)# ⭐ no dot1x system-auth-control
+SW1(config)# no dot1x system-auth-control
 SW1# show access-session interface Gi0/2 details
-   ⭐ (không có session nào — như thể 802.1X chưa từng được cấu hình)
+   (không có session nào — như thể 802.1X chưa từng được cấu hình)
 SW1# show dot1x
-   ⭐ Sysauthcontrol         = Disabled            ← 🔴 THỦ PHẠM
+   Sysauthcontrol         = Disabled            ← THỦ PHẠM
 ```
 > 💡 🔴 ⭐⭐ **Cấu hình trên port vẫn còn nguyên, nhưng 802.1X hoàn toàn không chạy — và
 > KHÔNG có thông báo lỗi nào.** ⭐ **Luôn kiểm tra `show dot1x | include Sysauthcontrol` đầu tiên.**
@@ -2088,23 +2088,23 @@ SW1# show dot1x
 ```
 !═══ R1 ═══
 interface GigabitEthernet0/0
- ⭐ ip verify unicast source reachable-via rx
+ ip verify unicast source reachable-via rx
 ```
 ```
-! ⭐ Từ R2, gửi gói với source GIẢ (một IP R1 không có route về qua Gi0/0)
-R2# ping 1.1.1.1 source Loopback0        ! ⭐ 2.2.2.2 — R1 CÓ route → OK
+! Từ R2, gửi gói với source GIẢ (một IP R1 không có route về qua Gi0/0)
+R2# ping 1.1.1.1 source Loopback0        ! 2.2.2.2 — R1 CÓ route → OK
 !!!!!
 
-! ⭐ Tạo interface với IP "lạ" trên R2 rồi ping bằng nó:
+! Tạo interface với IP "lạ" trên R2 rồi ping bằng nó:
 R2(config)# interface Loopback9
 R2(config-if)#  ip address 172.31.99.9 255.255.255.255
-R2# ping 1.1.1.1 source Loopback9        ! ⭐ R1 KHÔNG có route về 172.31.99.9
-🔴 .....                                  ← 🔴 uRPF VỨT
+R2# ping 1.1.1.1 source Loopback9        ! R1 KHÔNG có route về 172.31.99.9
+.....                                  ← uRPF VỨT
 ```
 ```
 R1# show ip interface Gi0/0 | include verify|drop
-   ⭐ IP verify source reachable-via RX
-   ⭐ 5 verification drops                  ← ⭐ bằng chứng uRPF hoạt động
+   IP verify source reachable-via RX
+   5 verification drops                  ← bằng chứng uRPF hoạt động
 ```
 > 💡 ⭐ **Bây giờ đổi sang loose mode và thử lại:**
 > `ip verify unicast source reachable-via any` → ⭐ **vẫn drop** (vì R1 **hoàn toàn không có** route
@@ -2121,11 +2121,11 @@ ip access-list extended ACL-CHAN
 !
 vlan access-map VMAP-10 10
  match ip address ACL-CHAN
- ⭐ action drop
+ action drop
 vlan access-map VMAP-10 20
- ⭐ action forward                          ! ⭐⭐ BẮT BUỘC — nếu không chặn sạch VLAN
+ action forward                          ! BẮT BUỘC — nếu không chặn sạch VLAN
 !
-⭐ vlan filter VMAP-10 vlan-list 10
+vlan filter VMAP-10 vlan-list 10
 ```
 ```
 SW1# show vlan access-map
@@ -2142,26 +2142,26 @@ SW1(config)# no vlan access-map VMAP-10 20
 
 ```
 !═══ SW1 ═══
-⭐ ip dhcp snooping
-⭐ ip dhcp snooping vlan 10
-no ip dhcp snooping information option            ! ⭐ tắt option 82 trong lab
+ip dhcp snooping
+ip dhcp snooping vlan 10
+no ip dhcp snooping information option            ! tắt option 82 trong lab
 !
 interface GigabitEthernet0/0
  description Uplink toi DHCP server that
- ⭐ ip dhcp snooping trust
+ ip dhcp snooping trust
 !
 interface GigabitEthernet0/2
  description Cong nguoi dung
- ⭐ ip dhcp snooping limit rate 10
+ ip dhcp snooping limit rate 10
 !
-⭐ ip arp inspection vlan 10
+ip arp inspection vlan 10
 interface GigabitEthernet0/0
- ⭐ ip arp inspection trust
+ ip arp inspection trust
 ```
 ```
-⭐ show ip dhcp snooping
-⭐ show ip dhcp snooping binding                  ! ⭐ bảng MAC↔IP↔port↔VLAN
-⭐ show ip arp inspection statistics
+show ip dhcp snooping
+show ip dhcp snooping binding                  ! bảng MAC↔IP↔port↔VLAN
+show ip arp inspection statistics
 ```
 > 💡 🔴 ⭐⭐ **Thử bật DAI mà CHƯA bật DHCP Snooping** → ⭐ **mọi ARP bị drop, VLAN chết.**
 > ⭐ **Thứ tự: DHCP Snooping TRƯỚC → nó xây bảng binding → DAI mới có cái để so.**
@@ -2278,20 +2278,20 @@ interface GigabitEthernet0/0
 ### 17.1 ⭐ Hộp lệnh vạn năng
 
 ```
-═══ ⭐ DEVICE ACCESS ═══
+═══ DEVICE ACCESS ═══
 show run | include enable secret|username|service password
-show ip ssh                          ! ⭐ version phải là 2.0
+show ip ssh                          ! version phải là 2.0
 show ssh                             ! phiên đang mở
-show crypto key mypubkey rsa         ! ⭐ đã sinh khóa chưa, bao nhiêu bit
-show login                           ! ⭐ trạng thái login block-for / quiet-mode
+show crypto key mypubkey rsa         ! đã sinh khóa chưa, bao nhiêu bit
+show login                           ! trạng thái login block-for / quiet-mode
 show users
 show privilege                       ! đang ở level mấy
 show parser view
 
-═══ ⭐⭐ AAA ═══
-⭐ test aaa group <GRP> <user> <pass> legacy       ! ⭐⭐ TEST TRƯỚC KHI LOGOUT
+═══ AAA ═══
+test aaa group <GRP> <user> <pass> legacy       ! TEST TRƯỚC KHI LOGOUT
 test aaa group <GRP> <user> <pass> new-code
-⭐ show aaa servers                                ! ⭐⭐ UP/DEAD + accept/reject/timeout
+show aaa servers                                ! UP/DEAD + accept/reject/timeout
 show aaa sessions
 show aaa method-lists all
 show tacacs
@@ -2299,30 +2299,30 @@ show radius statistics
 debug aaa authentication                           ! ⚠️ chỉ lab
 debug tacacs / debug radius authentication
 
-═══ ⭐⭐ ACL ═══
-⭐ show access-lists <NAME>                        ! ⭐⭐ BỘ ĐẾM TỪNG DÒNG
-show ip interface Gi0/0 | include access list      ! ⭐ ACL nào, chiều nào
+═══ ACL ═══
+show access-lists <NAME>                        ! BỘ ĐẾM TỪNG DÒNG
+show ip interface Gi0/0 | include access list      ! ACL nào, chiều nào
 show ipv6 access-list
 show vlan access-map  /  show vlan filter          ! VACL
 show time-range
-⭐ clear ip access-list counters <NAME>            ! ⭐ reset trước khi test
+clear ip access-list counters <NAME>            ! reset trước khi test
 show ip interface Gi0/0 | include verify           ! uRPF + số drop
 
-═══ ⭐⭐ CoPP ═══
-⭐ show policy-map control-plane                   ! ⭐⭐ lệnh chính
+═══ CoPP ═══
+show policy-map control-plane                   ! lệnh chính
 show policy-map control-plane input class <CM>
-⭐ show processes cpu sorted | exclude 0.00        ! ⭐ CPU bận vì cái gì
+show processes cpu sorted | exclude 0.00        ! CPU bận vì cái gì
 show processes cpu history
 
-═══ ⭐⭐ 802.1X / NAC ═══
-⭐ show dot1x | include Sysauthcontrol             ! ⭐⭐ KIỂM TRA ĐẦU TIÊN
-⭐⭐ show access-session interface Gi0/2 details    ! ⭐⭐ LỆNH QUAN TRỌNG NHẤT
+═══ 802.1X / NAC ═══
+show dot1x | include Sysauthcontrol             ! KIỂM TRA ĐẦU TIÊN
+show access-session interface Gi0/2 details    ! LỆNH QUAN TRỌNG NHẤT
 show authentication sessions interface Gi0/2 details   ! (IOS cũ)
 show dot1x all / show dot1x interface Gi0/2 details
 show mab all
 debug dot1x all                                    ! ⚠️ chỉ lab
 
-═══ ⭐ TRUSTSEC / MACSEC ═══
+═══ TRUSTSEC / MACSEC ═══
 show cts environment-data
 show cts role-based sgt-map all
 show cts role-based permissions
@@ -2330,13 +2330,13 @@ show cts sxp connections
 show macsec summary / show macsec interface <intf>
 show mka sessions
 
-═══ ⭐ WIRELESS (C9800) ═══
+═══ WIRELESS (C9800) ═══
 show wlan id <n>
-show wireless profile policy detailed <POL>        ! ⭐ aaa-override bật chưa
-⭐ show wireless client mac-address <MAC> detail
+show wireless profile policy detailed <POL>        ! aaa-override bật chưa
+show wireless client mac-address <MAC> detail
 debug wireless mac <H.H.H> internal                ! RadioActive Trace
 
-═══ ⭐ L2 SECURITY ═══
+═══ L2 SECURITY ═══
 show ip dhcp snooping / show ip dhcp snooping binding
 show ip arp inspection statistics
 show port-security interface <intf>
@@ -2376,25 +2376,25 @@ show port-security interface <intf>
 ### 17.3 ⭐ Quy trình chẩn đoán 802.1X — 6 bước
 
 ```
-① ⭐⭐ show dot1x | include Sysauthcontrol
-      → Disabled?  →  ⭐ thiếu "dot1x system-auth-control". DỪNG, sửa cái này trước.
+① show dot1x | include Sysauthcontrol
+      → Disabled?  →  thiếu "dot1x system-auth-control". DỪNG, sửa cái này trước.
 
-② ⭐⭐ show access-session interface <intf> details
-      → ⭐ CLIENT ĐANG DỪNG Ở ĐÂU?  (Unauthorized / Running / Authorized)
+② show access-session interface <intf> details
+      → CLIENT ĐANG DỪNG Ở ĐÂU?  (Unauthorized / Running / Authorized)
 
-③ ⭐ Xem "Method status list":
-      · dot1x = No response      → ⭐ client KHÔNG có supplicant → sẽ rơi xuống MAB/Guest
-      · dot1x = Authc Failed     → ⭐ server TRẢ LỜI TRƯỢT → sai mật khẩu/chứng thư
-      · dot1x = Running mãi      → ⭐ không tới được server
+③ Xem "Method status list":
+      · dot1x = No response      → client KHÔNG có supplicant → sẽ rơi xuống MAB/Guest
+      · dot1x = Authc Failed     → server TRẢ LỜI TRƯỢT → sai mật khẩu/chứng thư
+      · dot1x = Running mãi      → không tới được server
 
-④ ⭐ show aaa servers | include host|State
-      → ⭐ DEAD?  →  firewall / sai key / sai IP  →  ⭐ và Critical VLAN đã cấu hình chưa?
+④ show aaa servers | include host|State
+      → DEAD?  →  firewall / sai key / sai IP  →  và Critical VLAN đã cấu hình chưa?
 
-⑤ ⭐ Authorized rồi nhưng SAI VLAN/thiếu ACL?
-      → ⭐⭐ thiếu "aaa authorization network default group ..."  (hoặc "aaa-override" trên WLC)
+⑤ Authorized rồi nhưng SAI VLAN/thiếu ACL?
+      → thiếu "aaa authorization network default group ..."  (hoặc "aaa-override" trên WLC)
 
-⑥ ⭐ Vẫn không thông sau khi Authorized?
-      → ⭐ Không còn là vấn đề 802.1X. Xem VLAN, trunk, DHCP  (Module-07B §9)
+⑥ Vẫn không thông sau khi Authorized?
+      → Không còn là vấn đề 802.1X. Xem VLAN, trunk, DHCP  (Module-07B §9)
 ```
 
 ---
@@ -2486,8 +2486,8 @@ show port-security interface <intf>
 
 ⭐ Cuối mỗi IPv6 ACL, IOS tự thêm **BA dòng ngầm theo thứ tự:**
 ```
-permit icmp any any nd-na       ⭐ Neighbor Advertisement
-permit icmp any any nd-ns       ⭐ Neighbor Solicitation
+permit icmp any any nd-na       Neighbor Advertisement
+permit icmp any any nd-ns       Neighbor Solicitation
 deny   ipv6 any any
 ```
 ⭐ **NDP là "ARP của IPv6".** ⭐ Khi bạn viết `deny ipv6 any any` **tường minh**, hai dòng permit NDP ngầm
