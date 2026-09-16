@@ -10,6 +10,76 @@
 
 ---
 
+# 📌 TÓM TẮT — đọc 10 phút là nắm khung
+
+## Module này trả lời một câu hỏi duy nhất
+
+> **"Có nhiều đường tới cùng một đích — router quyết định đi đường nào, và dựa vào gì?"**
+
+## Ba bước chọn đường — xương sống của cả module
+
+```
+   Gói tin cần tới 10.1.1.50 — router có 3 lựa chọn trong bảng:
+
+      A) 10.1.1.0/24   học từ OSPF   (AD 110)
+      B) 10.1.1.0/26   học từ RIP    (AD 120)
+      C) 10.0.0.0/8    static        (AD 1)
+
+   ┌─────────────────────────────────────────────────────────────┐
+   │ BƯỚC 1 — LONGEST PREFIX MATCH   "cái nào CỤ THỂ nhất?"       │
+   │          /26 > /24 > /8   →   B thắng                        │
+   │          ⚠️ AD KHÔNG được xét ở bước này!                    │
+   ├─────────────────────────────────────────────────────────────┤
+   │ BƯỚC 2 — ADMINISTRATIVE DISTANCE  (chỉ khi CÙNG prefix)      │
+   │          "tin nguồn tin nào hơn?"  số NHỎ = tin hơn          │
+   ├─────────────────────────────────────────────────────────────┤
+   │ BƯỚC 3 — METRIC   (chỉ khi cùng prefix VÀ cùng giao thức)    │
+   │          "đường nào ngắn hơn?"                               │
+   └─────────────────────────────────────────────────────────────┘
+
+   ⭐ B thắng — dù AD 120 là cao nhất. Vì bước 1 xét TRƯỚC.
+```
+
+## 6 ý phải nhớ
+
+| # | Ý | Một câu |
+|:---:|---|---|
+| 1 | **Thứ tự chọn đường** | **Longest prefix → AD → Metric.** Không bao giờ đảo. Prefix dài **luôn** thắng trước |
+| 2 | **AD là "tin ai hơn"** | Connected 0 · Static 1 · eBGP 20 · EIGRP 90 · **OSPF 110** · RIP 120 · iBGP 200 |
+| 3 | **Floating static** | Static dự phòng đặt **AD cao hơn** → chỉ vào bảng khi đường chính rớt |
+| 4 | ⭐ **`up/up` ≠ thông** | Interface sống không có nghĩa đầu kia còn sống → **phải dùng IP SLA + track** |
+| 5 | **EIGRP vs OSPF** | EIGRP = **hỏi hàng xóm** (distance vector nâng cao) · OSPF = **có bản đồ cả vùng** (link-state) |
+| 6 | **Redistribution** | Nối 2 giao thức = nguy cơ **routing loop**. Chặn bằng **route tag** |
+
+## Bảng lệnh cốt lõi
+
+| Lệnh | Cho biết gì |
+|---|---|
+| `show ip route` | Bảng định tuyến — đường router đang dùng |
+| `show ip route 10.1.1.50` | **Router chọn route nào cho ĐÍCH cụ thể này** |
+| `show ip route <prefix> longer-prefixes` | Mọi route con của một dải |
+| `show ip protocols` | Giao thức nào đang chạy, AD bao nhiêu, quảng bá mạng nào |
+| `show ip sla statistics` | Phép đo IP SLA — đường còn sống không |
+| `show track` | Trạng thái track + ai đang dùng nó |
+| `show route-map` | Route-map khớp bao nhiêu lần |
+
+## 🗺️ Bố cục module — đọc theo đúng thứ tự này
+
+| Phần | Tên | Đọc thế nào | Thời gian |
+|:---:|---|---|:---:|
+| **1** | 🧠 **CÁI ĐÓ LÀ GÌ** | 6 ví von, đọc **một mạch**, không lệnh | 45 phút |
+| **2** | ⚙️ **NÓ CHẠY THẾ NÀO** | Cơ chế + bảng AD + IP SLA + redistribution | 4 giờ |
+| **3** | 🧪 **NHÌN THẤY NÓ** | [LAB 03](Module-03-LAB.md) — 3 bài, dùng chung 1 topology | 7 giờ |
+| **4** | 🏗️ **TOPO & KIẾN TRÚC** | 6 quyết định thiết kế. **Vẽ lại trên giấy** | 45 phút |
+| **📎** | **PHỤ LỤC** | 🔴 **KHÔNG đọc lần đầu** — chỉ tra | — |
+
+> **Bài quan trọng nhất module: [LAB 03-2 — IP SLA + Object Tracking](Module-03-LAB.md).**
+> Nó dạy bạn một sự thật mà không bảng nào truyền tải được:
+> ⭐ **interface báo `up/up` KHÔNG có nghĩa là đường còn thông.**
+> Kỹ thuật này quay lại ở **Module-06A** (HSRP tracking) và **Module-11** (đo chất lượng đường).
+
+---
+
 ## ⭐ 0. ĐỌC TRƯỚC — một thông tin tiết kiệm cho bạn 2 tuần
 
 Rất nhiều người tự học ENCOR dành **2–3 tuần học cấu hình EIGRP** rồi vào phòng thi mới biết:
@@ -45,9 +115,111 @@ Rất nhiều người tự học ENCOR dành **2–3 tuần học cấu hình E
 
 ---
 
-## 📘 2. LÝ THUYẾT — dạng bảng
+## 🧠 PHẦN 1 — CÁI ĐÓ LÀ GÌ
 
-### 2.1 Router chọn đường: 3 bước (đào sâu hơn Module-P0)
+> **Đọc phần này TRƯỚC, đọc một mạch.** Không lệnh, không bảng tra — chỉ ví von.
+>
+> Routing là chủ đề **trừu tượng** nhưng lại có ví von rất dễ: nó giống hệt việc
+> bạn hỏi đường và chọn chỉ dẫn nào đáng tin nhất.
+>
+> **Tự kiểm tra:** đọc xong mỗi mục, gấp tài liệu lại, nói lại trong 3 câu.
+
+### 2.1 Longest prefix match — GPS chọn chỉ dẫn cụ thể nhất
+
+Bạn đi tìm *"số 12 Nguyễn Huệ, Quận 1, TP.HCM"*. Có 3 tấm biển:
+
+| Biển | Nội dung | Prefix |
+|---|---|---|
+| A | → Việt Nam | `/8` |
+| B | → TP.HCM | `/16` |
+| C | → số 12 Nguyễn Huệ, Quận 1 | `/32` |
+
+Bạn theo biển **C**. Không quan tâm biển nào do ai dựng (protocol nào), ai đáng tin hơn (AD).
+**Cụ thể nhất thì thắng.**
+
+🧠 **Một câu để nhớ:** *Cụ thể thắng tin cậy. Longest prefix ĐỨNG TRƯỚC AD, luôn luôn.*
+
+### 2.2 Recursive lookup — tra địa chỉ 2 lần
+
+Bạn cần gửi thư tới `10.1.1.5`. Sổ ghi: *"Đưa cho anh Hai (`10.0.12.2`)"*.
+
+Nhưng câu hỏi tiếp theo là: **"Anh Hai ở đâu?"** Bạn phải tra sổ **lần thứ hai**.
+
+- Tra được → ✅ gửi được
+- Không tra được ("không biết anh Hai ở đâu") → ❌ **cả chỉ dẫn ban đầu trở nên vô dụng**
+
+🧠 **Một câu để nhớ:** *Static route có trong config mà không có trong `show ip route`
+= recursion thất bại = next-hop không reachable.*
+
+### 2.3 Floating static vs IP SLA — hai cách kiểm tra "đường còn thông không"
+
+**Floating static** như *nhìn ra cửa xem đường có bị rào không*:
+> "Cửa còn mở → chắc đường thông." — Nhưng đường có thể sập ở km thứ 50 mà cửa vẫn mở.
+
+**IP SLA** như *gọi điện cho người ở đầu bên kia*:
+> "Anh có nghe tôi không?" — Không trả lời → đường có vấn đề, **dù cửa vẫn mở**.
+
+🧠 **Một câu để nhớ:** *Interface `up` không có nghĩa là **đích** còn sống.
+Floating static tin vào cửa, IP SLA tin vào tiếng trả lời.*
+
+### 2.4 EIGRP vs OSPF — hỏi đường vs có bản đồ
+
+| | **EIGRP** — *người hỏi đường thông minh* | **OSPF** — *người có bản đồ* |
+|---|---|---|
+| Biết gì | Chỉ biết mỗi neighbor nói "từ tôi tới đó xa X km" | ⭐ Biết **toàn bộ bản đồ** thành phố |
+| Tính đường | So sánh lời kể của các neighbor | ⭐ **Tự tính** bằng Dijkstra |
+| Có bản đồ dự phòng? | ⭐ **Có** — ghi sẵn "nếu đường A tắc thì đi anh B" (**Feasible Successor**) → chuyển ngay | Có bản đồ → **tự tính lại** (mất chút CPU) |
+| Khi bí | ⚠️ Phải **đi hỏi khắp nơi** (query) → có thể bị treo (**SIA**) | Xem lại bản đồ, tự tính ra |
+| Chi phí | Nhẹ (không cần lưu bản đồ) | Tốn RAM (lưu LSDB) + CPU (chạy SPF) |
+| Cần chia vùng? | Không bắt buộc | ⭐ **Bắt buộc** (area) khi mạng lớn — bản đồ quá to |
+
+🧠 **Một câu để nhớ:** *EIGRP nhanh vì **có sẵn phương án B đã được kiểm chứng** (Feasible Successor).
+OSPF nhanh vì **có bản đồ nên tự tính được** phương án mới. Hai triết lý khác nhau,
+và đó là toàn bộ nội dung câu "compare EIGRP and OSPF" của đề.*
+
+### 2.5 Feasibility Condition — mẹo chống loop bằng một phép so sánh
+
+Bạn ở Hà Nội, muốn đi Sài Gòn (2000 km). Hai người báo:
+
+| Người | Họ nói | RD | Có thể tin làm phương án B? |
+|---|---|:---:|:---:|
+| Anh A | "Từ **chỗ tôi** tới Sài Gòn còn **1800 km**" | 1800 | ✅ **Tin được** (1800 < 2000) |
+| Anh B | "Từ **chỗ tôi** tới Sài Gòn còn **2100 km**" | 2100 | ❌ **Không tin** (2100 > 2000) |
+
+**Vì sao không tin anh B:** nếu anh B ở xa Sài Gòn **hơn tôi**, rất có thể anh ta đang tính
+đường **đi qua tôi**. Dùng anh B làm phương án B = **gửi traffic vòng lại chính mình** = loop.
+
+🧠 **Một câu để nhớ:** *`RD < FD` — "neighbor phải gần đích hơn tôi" — nghĩa là nó không đi qua tôi.
+Một phép so sánh đơn giản mà chống được loop, không cần hỏi ai. Đó là sự thanh lịch của DUAL.*
+
+### 2.6 Route tag — con dấu hộ chiếu
+
+Route được redistribute từ OSPF sang EIGRP → **dập dấu "xuất phát từ OSPF"** (`set tag 100`).
+
+Khi route đó đi lòng vòng trong EIGRP rồi tới một cửa khác muốn **nhập lại vào OSPF**,
+hải quan xem hộ chiếu, thấy dấu "xuất phát từ OSPF" → **"Anh vốn là người của chúng tôi,
+không cần nhập cảnh lại"** → từ chối.
+
+🧠 **Một câu để nhớ:** *Không có tag thì route không có ký ức về nguồn gốc của mình —
+và nó sẽ đi vòng mãi. Tag cho route một trí nhớ.*
+
+---
+
+## ⚙️ PHẦN 2 — NÓ CHẠY THẾ NÀO
+
+> Giờ lắp **cơ chế thật, con số và câu lệnh** vào hình dung bạn vừa có.
+>
+> | Phần 1 (ví von) | → | Phần 2 (cơ chế) |
+> |---|:---:|---|
+> | §2.1 GPS chọn chỉ dẫn cụ thể nhất | → | **§3.1 Ba bước chọn đường** |
+> | §2.2 tra địa chỉ 2 lần | → | **§3.3 Static route & recursive lookup** |
+> | §2.3 hai cách kiểm tra đường | → | **§3.4 IP SLA + Object Tracking** |
+> | §2.4 hỏi đường vs có bản đồ · §2.5 | → | **§3.5 EIGRP vs OSPF** |
+> | §2.6 con dấu hộ chiếu | → | **§3.6 Redistribution · §3.7 Route-map** |
+>
+> ⚠️ **Bảng trong phần này là để TRA CỨU về sau.** Đọc hiểu ý chính, quay lại tra khi làm LAB.
+
+### 3.1 Router chọn đường: 3 bước (đào sâu hơn Module-P0)
 
 ```
 ┌───────────────────────────────────────────────────────────────────────┐
@@ -106,7 +278,7 @@ Nếu một cái metric 30 → chỉ cái metric 20 vào RIB.
 > ⚠️ **Sai lầm phổ biến nhất của người tự học:** *"OSPF AD 110 < RIP 120 nên OSPF luôn thắng."*
 > **Sai.** Longest prefix match **đứng trước** AD. Đề ENCOR gài chỗ này rất nhiều.
 
-### 2.2 Administrative Distance — bảng đầy đủ
+### 3.2 Administrative Distance — bảng đầy đủ
 
 | Nguồn route | AD | Ghi nhớ |
 |---|:---:|---|
@@ -167,7 +339,7 @@ router bgp 65001
 > trên mọi router liên quan. Chỉ dùng khi hiểu rõ. Ở production, ưu tiên dùng **route-map + tag**
 > (§2.7) thay vì đổi AD.
 
-### 2.3 Static route — đào sâu
+### 3.3 Static route — đào sâu
 
 | Kiểu | Cú pháp | Ghi chú |
 |---|---|---|
@@ -230,7 +402,7 @@ ip route 2.2.2.2 255.255.255.255 10.0.13.2 200     ! dự phòng, AD 200
 >
 > ✅ **Giải pháp: IP SLA + object tracking** — §2.4.
 
-### 2.4 ⭐ IP SLA + Object Tracking — vá lỗ hổng của static route
+### 3.4 ⭐ IP SLA + Object Tracking — vá lỗ hổng của static route
 
 **Ý tưởng:** thay vì tin vào trạng thái interface, hãy **thực sự ping thử đích** rồi mới quyết định.
 
@@ -318,7 +490,7 @@ Track 1
 > 💡 **Nâng cao (Module-11 sẽ học):** IP SLA + track còn dùng cho **HSRP** (Module-06),
 > **PBR**, và **EEM** (Module-12). Đây là một trong những công cụ đa dụng nhất của IOS.
 
-### 2.5 ⭐ EIGRP vs OSPF — bảng cần cho đề (học bảng này, đừng học cấu hình)
+### 3.5 ⭐ EIGRP vs OSPF — bảng cần cho đề (học bảng này, đừng học cấu hình)
 
 #### Bảng so sánh chính
 
@@ -436,7 +608,7 @@ router eigrp 100
 > 🎓 **Đề hay hỏi:** *"Protocol nào hỗ trợ unequal-cost load balancing?"* → **EIGRP**.
 > OSPF muốn "unequal-cost" thì phải dùng cách khác (PBR, hoặc tune cost thủ công).
 
-### 2.6 Redistribution — nối 2 protocol lại
+### 3.6 Redistribution — nối 2 protocol lại
 
 **Redistribution** = lấy route từ protocol A đưa vào protocol B.
 
@@ -588,7 +760,7 @@ show route-map                              ! đếm số route khớp từng d�
 > 🧠 **Ví von:** route tag như **con dấu trên hộ chiếu**. Route ra khỏi OSPF được dập dấu "đã từ OSPF ra".
 > Khi nó xin quay lại OSPF ở cửa khác, hải quan thấy dấu → **từ chối nhập cảnh** → không có vòng lặp.
 
-### 2.7 Route-map — công cụ đa dụng nhất của IOS
+### 3.7 Route-map — công cụ đa dụng nhất của IOS
 
 Bạn sẽ gặp `route-map` ở Module-05 (BGP), Module-06 (PBR) và Module-10 (Security). Học đúng ở đây.
 
@@ -650,7 +822,7 @@ route-map DEMO permit 30              ! không có match → khớp mọi thứ 
 
 ⚠️ **Nếu bỏ dòng `permit 30`** → mọi route không khớp 2 dòng đầu sẽ bị **implicit deny** → mất hết.
 
-### 2.8 🟡 PBR — Policy-Based Routing (bổ trợ, không bắt buộc ENCOR)
+### 3.8 🟡 PBR — Policy-Based Routing (bổ trợ, không bắt buộc ENCOR)
 
 > ℹ️ PBR **không nằm rõ trong blueprint ENCOR** (nó thuộc ENARSI), nhưng hay xuất hiện trong
 > câu hỏi kiểu "làm sao ép traffic đi đường không phải đường tốt nhất". Đọc để **hiểu**,
@@ -682,1007 +854,114 @@ interface GigabitEthernet0/1                ! apply trên interface traffic ĐI 
 
 ---
 
-## 📖 3. HIỂU RÕ HƠN — mô hình tư duy
+## 🧪 PHẦN 3 — NHÌN THẤY NÓ
 
-### 3.1 Longest prefix match — GPS chọn chỉ dẫn cụ thể nhất
+> LAB đã tách ra file riêng để bạn **mở song song** với lý thuyết.
 
-Bạn đi tìm *"số 12 Nguyễn Huệ, Quận 1, TP.HCM"*. Có 3 tấm biển:
+> ### 👉 **[LAB 03 — Tuần 6: Routing nền tảng](Module-03-LAB.md)**
 
-| Biển | Nội dung | Prefix |
-|---|---|---|
-| A | → Việt Nam | `/8` |
-| B | → TP.HCM | `/16` |
-| C | → số 12 Nguyễn Huệ, Quận 1 | `/32` |
+| LAB | Nội dung | Trả lời câu hỏi | Ví von ở Phần 1 | Cơ chế ở Phần 2 |
+|---|---|---|---|---|
+| **03-1** | Đọc bảng route, chứng minh 3 bước chọn đường | Router chọn đường nào? | §2.1 GPS · §2.2 tra 2 lần | §3.1 · §3.2 |
+| **03-2** | ⭐ IP SLA + Object Tracking | Đường "up" mà chết thì sao? | §2.3 hai cách kiểm tra | §3.4 |
+| **03-3** | Redistribution + Route tag | Nối 2 protocol thì loop ra sao? | §2.6 con dấu hộ chiếu | §3.6 · §3.7 |
 
-Bạn theo biển **C**. Không quan tâm biển nào do ai dựng (protocol nào), ai đáng tin hơn (AD).
-**Cụ thể nhất thì thắng.**
-
-🧠 **Một câu để nhớ:** *Cụ thể thắng tin cậy. Longest prefix ĐỨNG TRƯỚC AD, luôn luôn.*
-
-### 3.2 Recursive lookup — tra địa chỉ 2 lần
-
-Bạn cần gửi thư tới `10.1.1.5`. Sổ ghi: *"Đưa cho anh Hai (`10.0.12.2`)"*.
-
-Nhưng câu hỏi tiếp theo là: **"Anh Hai ở đâu?"** Bạn phải tra sổ **lần thứ hai**.
-
-- Tra được → ✅ gửi được
-- Không tra được ("không biết anh Hai ở đâu") → ❌ **cả chỉ dẫn ban đầu trở nên vô dụng**
-
-🧠 **Một câu để nhớ:** *Static route có trong config mà không có trong `show ip route`
-= recursion thất bại = next-hop không reachable.*
-
-### 3.3 Floating static vs IP SLA — hai cách kiểm tra "đường còn thông không"
-
-**Floating static** như *nhìn ra cửa xem đường có bị rào không*:
-> "Cửa còn mở → chắc đường thông." — Nhưng đường có thể sập ở km thứ 50 mà cửa vẫn mở.
-
-**IP SLA** như *gọi điện cho người ở đầu bên kia*:
-> "Anh có nghe tôi không?" — Không trả lời → đường có vấn đề, **dù cửa vẫn mở**.
-
-🧠 **Một câu để nhớ:** *Interface `up` không có nghĩa là **đích** còn sống.
-Floating static tin vào cửa, IP SLA tin vào tiếng trả lời.*
-
-### 3.4 EIGRP vs OSPF — hỏi đường vs có bản đồ
-
-| | **EIGRP** — *người hỏi đường thông minh* | **OSPF** — *người có bản đồ* |
-|---|---|---|
-| Biết gì | Chỉ biết mỗi neighbor nói "từ tôi tới đó xa X km" | ⭐ Biết **toàn bộ bản đồ** thành phố |
-| Tính đường | So sánh lời kể của các neighbor | ⭐ **Tự tính** bằng Dijkstra |
-| Có bản đồ dự phòng? | ⭐ **Có** — ghi sẵn "nếu đường A tắc thì đi anh B" (**Feasible Successor**) → chuyển ngay | Có bản đồ → **tự tính lại** (mất chút CPU) |
-| Khi bí | ⚠️ Phải **đi hỏi khắp nơi** (query) → có thể bị treo (**SIA**) | Xem lại bản đồ, tự tính ra |
-| Chi phí | Nhẹ (không cần lưu bản đồ) | Tốn RAM (lưu LSDB) + CPU (chạy SPF) |
-| Cần chia vùng? | Không bắt buộc | ⭐ **Bắt buộc** (area) khi mạng lớn — bản đồ quá to |
-
-🧠 **Một câu để nhớ:** *EIGRP nhanh vì **có sẵn phương án B đã được kiểm chứng** (Feasible Successor).
-OSPF nhanh vì **có bản đồ nên tự tính được** phương án mới. Hai triết lý khác nhau,
-và đó là toàn bộ nội dung câu "compare EIGRP and OSPF" của đề.*
-
-### 3.5 Feasibility Condition — mẹo chống loop bằng một phép so sánh
-
-Bạn ở Hà Nội, muốn đi Sài Gòn (2000 km). Hai người báo:
-
-| Người | Họ nói | RD | Có thể tin làm phương án B? |
-|---|---|:---:|:---:|
-| Anh A | "Từ **chỗ tôi** tới Sài Gòn còn **1800 km**" | 1800 | ✅ **Tin được** (1800 < 2000) |
-| Anh B | "Từ **chỗ tôi** tới Sài Gòn còn **2100 km**" | 2100 | ❌ **Không tin** (2100 > 2000) |
-
-**Vì sao không tin anh B:** nếu anh B ở xa Sài Gòn **hơn tôi**, rất có thể anh ta đang tính
-đường **đi qua tôi**. Dùng anh B làm phương án B = **gửi traffic vòng lại chính mình** = loop.
-
-🧠 **Một câu để nhớ:** *`RD < FD` — "neighbor phải gần đích hơn tôi" — nghĩa là nó không đi qua tôi.
-Một phép so sánh đơn giản mà chống được loop, không cần hỏi ai. Đó là sự thanh lịch của DUAL.*
-
-### 3.6 Route tag — con dấu hộ chiếu
-
-Route được redistribute từ OSPF sang EIGRP → **dập dấu "xuất phát từ OSPF"** (`set tag 100`).
-
-Khi route đó đi lòng vòng trong EIGRP rồi tới một cửa khác muốn **nhập lại vào OSPF**,
-hải quan xem hộ chiếu, thấy dấu "xuất phát từ OSPF" → **"Anh vốn là người của chúng tôi,
-không cần nhập cảnh lại"** → từ chối.
-
-🧠 **Một câu để nhớ:** *Không có tag thì route không có ký ức về nguồn gốc của mình —
-và nó sẽ đi vòng mãi. Tag cho route một trí nhớ.*
+> ⚠️ **LAB 03-2 là bài quan trọng nhất module.** Nó dạy bạn một sự thật mà lý thuyết
+> không truyền tải được: ⭐ **interface báo `up/up` KHÔNG có nghĩa là đường còn thông.**
+>
+> Bạn sẽ tự tay tạo ra tình huống "đường chết mà router không biết", rồi dùng IP SLA
+> để router tự phát hiện. Kỹ thuật này quay lại ở **Module-06A** và **Module-11**.
 
 ---
 
-## 🧪 4. LAB — TUẦN 6
+## 🏗️ PHẦN 4 — TOPO & KIẾN TRÚC
 
-### 4.1 Topology chung cho cả module
+> Bạn vừa học: 3 bước chọn đường, AD, static, IP SLA, EIGRP/OSPF, redistribution, route-map.
+> Phần này ghép chúng vào **một mạng doanh nghiệp thật**.
 
-```
-                  10.0.12.0/30
-        R1 ═══════════════════════ R2
-        ║  Gi0/0            Gi0/0  ║
-        ║                          ║
-  Gi0/1 ║  10.0.13.0/30            ║ Gi0/1
-        ╚══════════ R3 ════════════╝
-                 10.0.23.0/30
-
-  Gi0/2 (R1) ──▶ 198.51.100.0/30 ──▶ R-ISP2  (dự phòng)
-  Loopback0:  R1 = 1.1.1.1/32 · R2 = 2.2.2.2/32 · R3 = 3.3.3.3/32
-  Loopback1:  R2 = 172.16.2.0/24 (mạng "khách hàng" để redistribute)
-              R3 = 172.16.3.0/24
-```
-
-| Node | Image | RAM | Vai trò |
-|---|---|:---:|---|
-| R1 | vIOS | 512 MB | Router chính, làm ASBR khi redistribute |
-| R2 | vIOS | 512 MB | |
-| R3 | vIOS | 512 MB | |
-| R-ISP2 | vIOS | 512 MB | Giả lập ISP dự phòng (chỉ dùng ở LAB 03-2) |
-
-**RAM tổng: 2 GB** ✅
-
----
-
-### LAB 03-1 — Đọc bảng định tuyến & chứng minh 3 bước chọn đường
-
-#### Bước 1 — Cấu hình nền
-
-**R1:**
-```
-enable
-configure terminal
-hostname R1
-no ip domain lookup
-!
-interface Loopback0
- ip address 1.1.1.1 255.255.255.255
-!
-interface GigabitEthernet0/0
- description ---> To R2
- ip address 10.0.12.1 255.255.255.252
- no shutdown
-!
-interface GigabitEthernet0/1
- description ---> To R3
- ip address 10.0.13.1 255.255.255.252
- no shutdown
-!
-line con 0
- exec-timeout 0 0
- logging synchronous
-end
-write memory
-```
-
-**R2:**
-```
-enable
-configure terminal
-hostname R2
-no ip domain lookup
-!
-interface Loopback0
- ip address 2.2.2.2 255.255.255.255
-!
-interface Loopback1
- description ---> Mang "khach hang" de redistribute
- ip address 172.16.2.1 255.255.255.0
-!
-interface GigabitEthernet0/0
- ip address 10.0.12.2 255.255.255.252
- no shutdown
-!
-interface GigabitEthernet0/1
- ip address 10.0.23.1 255.255.255.252
- no shutdown
-!
-line con 0
- exec-timeout 0 0
- logging synchronous
-end
-write memory
-```
-
-**R3:**
-```
-enable
-configure terminal
-hostname R3
-no ip domain lookup
-!
-interface Loopback0
- ip address 3.3.3.3 255.255.255.255
-!
-interface Loopback1
- ip address 172.16.3.1 255.255.255.0
-!
-interface GigabitEthernet0/0
- ip address 10.0.13.2 255.255.255.252
- no shutdown
-!
-interface GigabitEthernet0/1
- ip address 10.0.23.2 255.255.255.252
- no shutdown
-!
-line con 0
- exec-timeout 0 0
- logging synchronous
-end
-write memory
-```
-
-#### Bước 2 — Bật OSPF area 0
+### 4.1 Bản đồ: routing nằm ở đâu trong doanh nghiệp
 
 ```
-! R1
-router ospf 1
- router-id 1.1.1.1
- auto-cost reference-bandwidth 10000
- network 1.1.1.1 0.0.0.0 area 0
- network 10.0.12.0 0.0.0.3 area 0
- network 10.0.13.0 0.0.0.3 area 0
-
-! R2 — CHÚ Ý: chưa quảng bá Loopback1 (172.16.2.0) vào OSPF
-router ospf 1
- router-id 2.2.2.2
- auto-cost reference-bandwidth 10000
- network 2.2.2.2 0.0.0.0 area 0
- network 10.0.12.0 0.0.0.3 area 0
- network 10.0.23.0 0.0.0.3 area 0
-
-! R3 — cũng chưa quảng bá Loopback1
-router ospf 1
- router-id 3.3.3.3
- auto-cost reference-bandwidth 10000
- network 3.3.3.3 0.0.0.0 area 0
- network 10.0.13.0 0.0.0.3 area 0
- network 10.0.23.0 0.0.0.3 area 0
+                    ISP-1 (chính)          ISP-2 (dự phòng)
+                       │                        │
+                  203.0.113.1              198.51.100.1
+                       │                        │
+                  ┌────┴────────────────────────┴────┐
+   ROUTER BIÊN    │   ⑤ Default route + IP SLA       │
+                  │      "ISP còn sống không?"       │
+                  │   ⑥ Floating static  AD 10       │
+                  └───────────────┬──────────────────┘
+                                  │
+                  ┌───────────────┴──────────────────┐
+   LÕI / DIST     │   ② OSPF — mạng CHÍNH của mình   │
+                  │      (link-state, hội tụ nhanh)  │
+                  │                                  │
+                  │   ④ Redistribution ở ĐÂY         │
+                  │      + route tag chống loop      │
+                  └───┬──────────────────────────┬───┘
+                      │                          │
+          ┌───────────┴──────┐        ┌──────────┴───────────┐
+   NHÁNH  │  ③ EIGRP         │        │  ① Static route      │
+          │  (mạng công ty   │        │     (chi nhánh nhỏ,  │
+          │   mua lại)       │        │      1 đường duy nhất)│
+          └──────────────────┘        └──────────────────────┘
 ```
 
-✅ **Checkpoint:** `show ip ospf neighbor` trên mỗi router → **2 neighbor `FULL`**.
+### 4.2 Sáu quyết định — và sai thì hỏng thế nào
 
-#### Bước 3 — ⭐ Đọc bảng định tuyến đầy đủ
+| # | Quyết định | Vì sao | 🔴 Sai thì hỏng thế nào |
+|:---:|---|---|---|
+| ① | **Chi nhánh 1 đường → dùng STATIC** | Chỉ có một lối đi, chạy giao thức động là thừa | Chạy OSPF cho chi nhánh 1 link → tốn CPU, tốn băng thông hello, không được gì |
+| ② | **Mạng chính → dùng OSPF** | Nhiều đường, cần hội tụ nhanh, cần chuẩn mở | Dùng static cho mạng 50 router → **không ai bảo trì nổi**, đứt link là sập |
+| ③ | **Có 2 giao thức → không tránh được** | Sáp nhập công ty, thiết bị đa hãng | — |
+| ④ | **Redistribution đặt ở ĐÚNG MỘT chỗ nếu được** | Hai điểm redistribute = **vòng lặp route** | Redistribute 2 chiều ở 2 router mà không tag → ⭐ **route quay vòng, mạng loạn** |
+| ⑤ | **Default route ra ISP + IP SLA** | Interface `up` **không có nghĩa là ISP còn sống** | Chỉ dùng static thường → ISP chết mà router vẫn đẩy traffic ra → **mất mạng mà không ai biết vì sao** |
+| ⑥ | **Floating static AD cao hơn** | Đường dự phòng chỉ vào khi đường chính rớt | Đặt cùng AD → **ECMP chia tải ra cả đường backup chậm** |
 
-```
-R1# show ip route
-```
-**Output mẫu:**
-```
-Codes: L - local, C - connected, S - static, R - RIP, M - mobile, B - BGP
-       D - EIGRP, EX - EIGRP external, O - OSPF, IA - OSPF inter area
-       N1 - OSPF NSSA external type 1, N2 - OSPF NSSA external type 2
-       E1 - OSPF external type 1, E2 - OSPF external type 2
+### 4.3 Ba sự thật mà chỉ người đi làm mới biết
 
-Gateway of last resort is not set
-
-      1.0.0.0/32 is subnetted, 1 subnets
-C        1.1.1.1 is directly connected, Loopback0
-      2.0.0.0/32 is subnetted, 1 subnets
-O        2.2.2.2 [110/11] via 10.0.12.2, 00:03:22, GigabitEthernet0/0
-      3.0.0.0/32 is subnetted, 1 subnets
-O        3.3.3.3 [110/11] via 10.0.13.2, 00:03:22, GigabitEthernet0/1
-      10.0.0.0/8 is variably subnetted, 6 subnets, 2 masks
-C        10.0.12.0/30 is directly connected, GigabitEthernet0/0
-L        10.0.12.1/32 is directly connected, GigabitEthernet0/0
-C        10.0.13.0/30 is directly connected, GigabitEthernet0/1
-L        10.0.13.1/32 is directly connected, GigabitEthernet0/1
-O        10.0.23.0/30 [110/20] via 10.0.13.2, 00:03:22, GigabitEthernet0/1
-                              [110/20] via 10.0.12.2, 00:03:22, GigabitEthernet0/0
-```
-
-⭐ **Bảng giải mã — điền vào để tự kiểm tra:**
-
-| Thành phần trong output | Nghĩa |
+| Sự thật | Giải thích |
 |---|---|
-| `C` | |
-| `L` | |
-| `O` | |
-| `[110/11]` | |
-| `via 10.0.12.2` | |
-| `00:03:22` | |
-| `variably subnetted, 6 subnets, 2 masks` | |
-| `10.0.23.0/30` có **2 dòng via** | |
-| `Gateway of last resort is not set` | |
+| ⭐ **`up/up` KHÔNG có nghĩa là thông** | Cáp cắm vào switch của ISP, switch đó vẫn sống — nhưng **router ISP phía sau đã chết**. Interface bạn vẫn `up`. Đây là lý do **IP SLA tồn tại** |
+| ⭐ **Redistribution là chỗ sinh sự cố nhiều nhất** | Nó nối hai thế giới có **metric khác nhau hoàn toàn** (OSPF cost vs EIGRP composite). Không có route tag = sớm muộn cũng loop |
+| ⭐ **AD là "tin ai hơn", không phải "đường nào ngắn hơn"** | Static AD 1 **luôn thắng** OSPF AD 110, kể cả khi đường static đi vòng xa hơn. Router tin **nguồn tin**, không tự đánh giá đường |
 
-<details><summary>Đáp án</summary>
+### 4.4 Những thứ này sẽ lớn lên thành gì
 
-| Thành phần | Nghĩa |
-|---|---|
-| `C` | **Connected** — subnet cắm trực tiếp |
-| `L` | **Local** — chính IP của interface, luôn `/32` |
-| `O` | **OSPF intra-area** (trong cùng area 0) |
-| `[110/11]` | **[AD 110 / Metric 11]** |
-| `via 10.0.12.2` | **Next-hop** |
-| `00:03:22` | Route học được cách đây 3 phút 22 giây |
-| `variably subnetted, 6 subnets, 2 masks` | Dải `10.0.0.0/8` bị chia thành 6 subnet với 2 loại mask (`/30` và `/32`) |
-| 2 dòng `via` | ⭐ **ECMP** — 2 đường cùng metric 20 → chia tải |
-| `Gateway of last resort is not set` | Chưa có default route |
-</details>
+| Bạn vừa học | Sẽ thành | Ở module |
+|---|---|---|
+| OSPF single-area, cost | LSA type 1–7, area stub/NSSA, summarization | **Module-04A/B** |
+| AD, chọn đường | 13 bước path selection của BGP | **Module-05B** |
+| IP SLA + track | HSRP tracking · đo jitter/MOS cho VoIP | **Module-06A · Module-11** |
+| Route-map | Filtering BGP · PBR · NAT theo route-map | **Module-05B · Module-06B** |
+| Redistribution | Nối SD-Access với mạng cũ qua border node | **Module-09** |
 
-**Chú ý:** `172.16.2.0/24` và `172.16.3.0/24` **KHÔNG có** trong bảng route của R1
-— vì chưa được quảng bá vào OSPF. Chúng ta sẽ dùng chúng ở LAB 03-3.
+### 4.5 Vẽ lại để nhớ
 
-#### Bước 4 — ⭐ Chứng minh Longest Prefix Match thắng AD
+> **Bài tập 15 phút, trên giấy.**
+>
+> 1. Vẽ lại sơ đồ §4.1 **không nhìn tài liệu**
+> 2. Đánh dấu ① → ⑥
+> 3. Trả lời: *"Nếu tôi redistribute hai chiều giữa OSPF và EIGRP ở CẢ HAI router nhánh, mà không dùng route tag — chuyện gì xảy ra?"*
 
-**a) Xem route hiện tại tới `2.2.2.2`:**
-```
-R1# show ip route 2.2.2.2
-```
-**Output mẫu:**
-```
-Routing entry for 2.2.2.2/32
-  Known via "ospf 1", distance 110, metric 11, type intra area
-  Last update from 10.0.12.2 on GigabitEthernet0/0, 00:04:11 ago
-  Routing Descriptor Blocks:
-  * 10.0.12.2, from 2.2.2.2, 00:04:11 ago, via GigabitEthernet0/0
-      Route metric is 11, traffic share count is 1
-```
+<details>
+<summary>Đáp án câu 3</summary>
 
-**b) Thêm static route với prefix NGẮN HƠN nhưng AD TỐT HƠN:**
-```
-R1(config)# ip route 2.0.0.0 255.0.0.0 10.0.13.2
-!            └── /8, AD 1 (tốt hơn OSPF 110 rất nhiều)
-```
+Route từ OSPF chảy vào EIGRP ở router A → đi vòng trong EIGRP → tới router B →
+router B redistribute **ngược lại** vào OSPF → OSPF thấy đó là route "mới" →
+⭐ **route quay vòng vô tận (routing loop)**.
 
-**c) Kiểm tra route nào được dùng cho `2.2.2.2`:**
-```
-R1# show ip route 2.2.2.2
-```
-**Output mẫu:**
-```
-Routing entry for 2.2.2.2/32
-  Known via "ospf 1", distance 110, metric 11, type intra area
-  ...
-  * 10.0.12.2, from 2.2.2.2, ... via GigabitEthernet0/0
-```
+Tệ hơn nữa: route redistribute vào có **AD của external** (OSPF E2 = 110, EIGRP EX = 170),
+nên nó có thể **thắng route gốc** → traffic đi đường vòng.
 
-⭐ **KẾT QUẢ: vẫn dùng OSPF `/32` (AD 110), KHÔNG dùng static `/8` (AD 1).**
+**Cách chặn:** gắn **route tag** khi redistribute vào, rồi **deny tag đó** khi redistribute ngược ra.
+Đây chính là LAB 03-3.
 
-**Xác nhận bằng traceroute:**
-```
-R1# traceroute 2.2.2.2 source 1.1.1.1
-```
-→ Đi qua `10.0.12.2` (R2 trực tiếp), **không** qua `10.0.13.2` (R3).
-
-**Xác nhận thêm bằng CEF (kiến thức Module-01):**
-```
-R1# show ip cef 2.2.2.2
-2.2.2.2/32           10.0.12.2            GigabitEthernet0/0
-```
-
-⭐ **Bài học:** `/32` (32 bit khớp) **cụ thể hơn** `/8` (8 bit khớp) → longest prefix thắng,
-**AD không được xét tới**.
-
-**d) Chứng minh ngược lại — cùng prefix thì AD thắng:**
-```
-R1(config)# ip route 2.2.2.2 255.255.255.255 10.0.13.2
-!            └── CÙNG /32 với route OSPF, AD 1
-```
-```
-R1# show ip route 2.2.2.2
-```
-**Output mẫu:**
-```
-Routing entry for 2.2.2.2/32
-  Known via "static", distance 1, metric 0
-  Routing Descriptor Blocks:
-  * 10.0.13.2
-```
-⭐ **Giờ static thắng** (AD 1 < 110) — vì **cùng prefix `/32`** nên mới xét tới AD.
-
-**Xác nhận OSPF route vẫn tồn tại nhưng không vào RIB:**
-```
-R1# show ip ospf database router 2.2.2.2
-R1# show ip route ospf | include 2.2.2.2
-```
-→ LSDB vẫn có thông tin, nhưng route **không vào bảng route**.
-
-**e) Dọn dẹp:**
-```
-R1(config)# no ip route 2.0.0.0 255.0.0.0 10.0.13.2
-R1(config)# no ip route 2.2.2.2 255.255.255.255 10.0.13.2
-```
-
-✅ **Checkpoint LAB 03-1 — bảng bạn tự điền:**
-
-| Cấu hình | Route được dùng | AD | Vì sao |
-|---|---|:---:|---|
-| Chỉ OSPF `/32` | | | |
-| + static `/8` AD 1 | | | |
-| + static `/32` AD 1 | | | |
-
-<details><summary>Đáp án</summary>
-
-| Cấu hình | Route được dùng | AD | Vì sao |
-|---|---|:---:|---|
-| Chỉ OSPF `/32` | OSPF via 10.0.12.2 | 110 | Route duy nhất |
-| + static `/8` AD 1 | ⭐ **Vẫn OSPF `/32`** | 110 | **Longest prefix** `/32` > `/8`, AD không được xét |
-| + static `/32` AD 1 | ⭐ **Static** via 10.0.13.2 | 1 | **Cùng prefix `/32`** → xét AD → 1 < 110 |
 </details>
 
 ---
 
-### LAB 03-2 — ⭐ IP SLA + Object Tracking (lab thực chiến nhất module)
-
-**Mục tiêu:** làm dual-ISP failover **thật sự hoạt động** — không phải chỉ dựa vào interface up/down.
-
-#### Bước 1 — Thêm R-ISP2 và mở rộng topology
-
-Thêm 1 node vIOS tên `R-ISP2`, nối `R1 Gi0/2` ↔ `R-ISP2 Gi0/0`.
-
-> 💡 Trong lab này ta dùng **R2 làm "ISP1"** và **R-ISP2 làm "ISP2"**, đích cần tới là
-> loopback `8.8.8.8` được tạo trên **R3** (mô phỏng "Internet").
-
-**Cấu hình R3 — tạo đích "Internet":**
-```
-R3(config)# interface Loopback8
-R3(config-if)#  description ---> Gia lap server tren Internet
-R3(config-if)#  ip address 8.8.8.8 255.255.255.255
-R3(config-if)# exit
-R3(config)# router ospf 1
-R3(config-router)#  network 8.8.8.8 0.0.0.0 area 0
-```
-
-**Cấu hình R-ISP2:**
-```
-enable
-configure terminal
-hostname R-ISP2
-no ip domain lookup
-!
-interface GigabitEthernet0/0
- description ---> To R1 (backup path)
- ip address 198.51.100.2 255.255.255.252
- no shutdown
-!
-interface GigabitEthernet0/1
- description ---> To R3
- ip address 10.0.34.1 255.255.255.252
- no shutdown
-!
-! Route tĩnh về mạng R1 và tới 8.8.8.8
-ip route 1.1.1.1 255.255.255.255 198.51.100.1
-ip route 8.8.8.8 255.255.255.255 10.0.34.2
-!
-line con 0
- exec-timeout 0 0
- logging synchronous
-end
-write memory
-```
-
-**Nối thêm** `R-ISP2 Gi0/1` ↔ `R3 Gi0/2`, và cấu hình trên R3:
-```
-R3(config)# interface GigabitEthernet0/2
-R3(config-if)#  description ---> To R-ISP2
-R3(config-if)#  ip address 10.0.34.2 255.255.255.252
-R3(config-if)#  no shutdown
-R3(config-if)# exit
-R3(config)# ip route 198.51.100.0 255.255.255.252 10.0.34.1
-R3(config)# ip route 1.1.1.1 255.255.255.255 10.0.34.1
-```
-
-**Cấu hình R1 — interface tới ISP2:**
-```
-R1(config)# interface GigabitEthernet0/2
-R1(config-if)#  description ---> To ISP2 (backup)
-R1(config-if)#  ip address 198.51.100.1 255.255.255.252
-R1(config-if)#  no shutdown
-```
-
-#### Bước 2 — Cấu hình floating static THÔNG THƯỜNG (để thấy điểm yếu)
-
-```
-! Trên R1 — tạm thời tắt OSPF learning cho 8.8.8.8 để test static
-R1(config)# ip route 8.8.8.8 255.255.255.255 10.0.12.2           ! qua ISP1 (R2), AD 1
-R1(config)# ip route 8.8.8.8 255.255.255.255 198.51.100.2 200    ! qua ISP2, AD 200
-```
-
-> ℹ️ OSPF cũng học được `8.8.8.8` (AD 110). Static AD 1 sẽ thắng → đúng ý ta muốn test.
-
-**Kiểm tra:**
-```
-R1# show ip route 8.8.8.8
-```
-**Output mẫu:**
-```
-Routing entry for 8.8.8.8/32
-  Known via "static", distance 1, metric 0
-  * 10.0.12.2
-```
-```
-R1# traceroute 8.8.8.8 source 1.1.1.1
-  1 10.0.12.2 ...        ← qua R2 (ISP1)
-```
-
-#### Bước 3 — ⭐ TÁI HIỆN LỖ HỔNG: đích chết mà route vẫn còn
-
-```
-! Trên R2 — mô phỏng "ISP1 nhận link nhưng mạng bên trong ISP chết"
-! Cắt đường của R2 đi tới R3 (nơi có 8.8.8.8)
-R2(config)# interface GigabitEthernet0/1
-R2(config-if)# shutdown
-```
-
-**Nhưng link R1↔R2 VẪN UP.** Kiểm tra trên R1:
-```
-R1# show ip interface brief | include 0/0
-GigabitEthernet0/0         10.0.12.1       YES manual up                    up
-```
-✅ Interface vẫn `up/up`.
-
-```
-R1# show ip route 8.8.8.8
-```
-**Output mẫu:**
-```
-Routing entry for 8.8.8.8/32
-  Known via "static", distance 1, metric 0
-  * 10.0.12.2                                 ← ⚠️ VẪN LÀ ISP1!
-```
-
-```
-R1# ping 8.8.8.8 source 1.1.1.1
-```
-**Output mẫu:**
-```
-Sending 5, 100-byte ICMP Echos to 8.8.8.8, timeout is 2 seconds:
-.....
-Success rate is 0 percent (0/5)
-```
-
-🔴 **ĐÂY LÀ LỖ HỔNG:** ping **fail 100%**, nhưng floating static **không failover** vì
-interface `Gi0/0` vẫn `up` và next-hop `10.0.12.2` vẫn reachable.
-**Traffic đi vào hố đen.** Route dự phòng ISP2 (AD 200) **không được kích hoạt**.
-
-> ⭐ Đây chính là điểm yếu tôi nói ở Module-P0 §6 (bảng Thực chiến). Giờ bạn **tự tay tái hiện được nó**.
-> Ghi vào `SO-TAY-LOI.md`.
-
-**Hoàn tác để sang bước sau:**
-```
-R2(config)# interface GigabitEthernet0/1
-R2(config-if)# no shutdown
-```
-
-#### Bước 4 — ⭐ VÁ LỖ HỔNG bằng IP SLA + Track
-
-```
-R1(config)# no ip route 8.8.8.8 255.255.255.255 10.0.12.2
-R1(config)# exit
-```
-
-```
-R1# configure terminal
-!
-! ═══ 1. IP SLA: ping thật 8.8.8.8 qua đường ISP1 ═══
-ip sla 1
- icmp-echo 8.8.8.8 source-interface GigabitEthernet0/0
- frequency 5
- timeout 2000
- threshold 1000
-!
-ip sla schedule 1 life forever start-time now       ! KHÔNG ĐƯỢC QUÊN DÒNG NÀY
-!
-! ═══ 2. Track object theo dõi kết quả SLA ═══
-track 1 ip sla 1 reachability
- delay down 3 up 5
-!
-! ═══ 3. Static route CÓ TRACK ═══
-ip route 8.8.8.8 255.255.255.255 10.0.12.2 track 1        ! ISP1, chỉ tồn tại khi track UP
-ip route 8.8.8.8 255.255.255.255 198.51.100.2 200         ! ISP2, dự phòng
-!
-end
-write memory
-```
-
-#### Bước 5 — Kiểm tra IP SLA hoạt động
-
-**a) SLA có chạy không:**
-```
-R1# show ip sla statistics 1
-```
-**Output mẫu:**
-```
-IPSLAs Latest Operation Statistics
-
-IPSLA operation id: 1
-        Latest RTT: 3 milliseconds
-Latest operation start time: 10:15:32 UTC Mon Sep 9 2026
-Latest operation return code: OK
-Number of successes: 24
-Number of failures: 0
-Operation time to live: Forever
-```
-✅ **Checkpoint:** `return code: OK` · `Number of successes` **tăng dần** · `failures: 0`.
-
-⚠️ Nếu `Number of successes: 0` và `Operation time to live: 0` → **bạn quên
-`ip sla schedule 1 life forever start-time now`**.
-
-**b) Track object:**
-```
-R1# show track 1
-```
-**Output mẫu:**
-```
-Track 1
-  IP SLA 1 reachability
-  Reachability is Up
-    1 change, last change 00:02:15
-  Delay up 5 secs, down 3 secs
-  Latest operation return code: OK
-  Latest RTT (millisecs) 3
-  Tracked by:
-    STATIC-IP-ROUTING 0
-```
-✅ **Checkpoint:** `Reachability is Up` · `Tracked by: STATIC-IP-ROUTING 0`.
-
-**c) Route đang dùng đường nào:**
-```
-R1# show ip route 8.8.8.8
-```
-**Output mẫu:**
-```
-Routing entry for 8.8.8.8/32
-  Known via "static", distance 1, metric 0
-  * 10.0.12.2                                 ← ISP1 (đường chính)
-```
-
-#### Bước 6 — ⭐⭐ TEST FAILOVER THẬT (tình huống đã làm floating static thất bại)
-
-```
-! Ping liên tục để đếm gói mất
-R1# ping 8.8.8.8 source 1.1.1.1 repeat 100
-```
-
-Ở console khác (hoặc dừng ping rồi làm), trên **R2** — tái hiện đúng lỗi ở Bước 3:
-```
-R2(config)# interface GigabitEthernet0/1
-R2(config-if)# shutdown
-```
-
-**Quan sát trên R1 sau ~5–10 giây:**
-```
-R1#
-%TRACK-6-STATE: 1 ip sla 1 reachability Up -> Down
-```
-
-```
-R1# show track 1
-```
-**Output mẫu:**
-```
-Track 1
-  IP SLA 1 reachability
-  Reachability is Down                        ← đã phát hiện!
-    2 changes, last change 00:00:08
-  Latest operation return code: Timeout
-```
-
-```
-R1# show ip route 8.8.8.8
-```
-**Output mẫu:**
-```
-Routing entry for 8.8.8.8/32
-  Known via "static", distance 200, metric 0
-  * 198.51.100.2                              ← ĐÃ CHUYỂN SANG ISP2!
-```
-
-```
-R1# traceroute 8.8.8.8 source 1.1.1.1
-  1 198.51.100.2 ...       ← qua R-ISP2
-  2 10.0.34.2 ...          ← rồi tới R3
-```
-
-```
-R1# ping 8.8.8.8 source 1.1.1.1
-Success rate is 100 percent (5/5)             ← HOẠT ĐỘNG LẠI
-```
-
-🎉 **Đây là kết quả mà floating static thuần KHÔNG làm được.**
-
-**Test hồi phục:**
-```
-R2(config)# interface GigabitEthernet0/1
-R2(config-if)# no shutdown
-```
-Chờ ~10 giây (5 s frequency + 5 s delay up):
-```
-R1#
-%TRACK-6-STATE: 1 ip sla 1 reachability Down -> Up
-R1# show ip route 8.8.8.8
-  * 10.0.12.2                                 ← quay về ISP1
-```
-
-⭐ **BẢNG SO SÁNH — điền vào:**
-
-| Kịch bản | Floating static thuần | Floating static + IP SLA track |
-|---|:---:|:---:|
-| Interface local `down` | ✅ Failover | ✅ Failover |
-| Next-hop unreachable | ✅ Failover | ✅ Failover |
-| ⭐ **Đích chết, link vẫn up** | ❌ **KHÔNG** | ⭐ ✅ **Failover** |
-| Thời gian phát hiện | — | ~8 s (frequency 5 + delay down 3) |
-| Số gói mất khi failover | — | |
-
-✅ **Checkpoint LAB 03-2:**
-
-| Kiểm tra | Mong đợi |
-|---|---|
-| `show ip sla statistics 1` → `return code: OK`, successes tăng | ✅ |
-| `show track 1` → `Reachability is Up`, `Tracked by: STATIC-IP-ROUTING` | ✅ |
-| Bình thường: route dùng ISP1 (`distance 1`) | ✅ |
-| ⭐ Cắt đường **phía sau** ISP1 (link vẫn up) → track `Down` → route chuyển ISP2 (`distance 200`) | ⭐ ✅ |
-| Bật lại → track `Up` → route quay về ISP1 | ✅ |
-| Tái hiện được lỗ hổng của floating static thuần ở Bước 3 | ⭐ ✅ |
-
-#### 🧪 Thử nghiệm thêm
-
-| Thử nghiệm | Gõ gì | Quan sát | Bài học |
-|---|---|---|---|
-| Quên `ip sla schedule` | `no ip sla schedule 1` | `show ip sla stat 1` → successes = 0, track Down → route mất luôn! | ⭐ Lỗi kinh điển. **Luôn kiểm tra `Operation time to live`** |
-| Bỏ `delay` | `track 1 ip sla 1 reachability` (không có delay) | Nhấp nháy link → route flap liên tục | Vì sao cần `delay down/up` |
-| `delay up` ngắn hơn `down` | `delay down 10 up 1` | Route quay lại quá nhanh, chưa ổn định | ⭐ Nên `up` **lớn hơn** `down` |
-| Đổi frequency | `frequency 1` | Phát hiện nhanh hơn nhưng tốn CPU/traffic | Cân bằng giữa nhanh và tải |
-| Track nhiều SLA | `track 10 list boolean and` + `object 1` + `object 2` | Chỉ Down khi **cả 2** đích fail | Chống false-positive (1 đích chết ≠ ISP chết) |
-| SLA sai source | Bỏ `source-interface` | SLA có thể ping qua đường ISP2 → không phát hiện lỗi ISP1! | ⭐ **`source-interface` là bắt buộc** để SLA đi đúng đường cần kiểm tra |
-
-> ⭐ **Thử nghiệm cuối cùng là quan trọng nhất.** Nếu không chỉ định `source-interface`
-> (hoặc `source-ip`), IP SLA sẽ ping theo **bảng route hiện tại** — nghĩa là khi ISP1 chết,
-> nó có thể ping qua ISP2 và báo "OK" → **track không bao giờ Down**. Lỗi này rất khó tìm.
-
----
-
-### LAB 03-3 — Redistribution + Route tag
-
-**Mục tiêu:** đưa mạng static/connected vào OSPF, hiểu E1 vs E2, và dùng tag chống loop.
-
-#### Bước 1 — Redistribute connected (Loopback1) vào OSPF
-
-Nhớ rằng `172.16.2.0/24` (R2) và `172.16.3.0/24` (R3) chưa có trong OSPF.
-
-```
-! Trên R2
-R2(config)# router ospf 1
-R2(config-router)#  redistribute connected subnets
-```
-
-**Kiểm tra trên R1:**
-```
-R1# show ip route 172.16.2.0
-```
-**Output mẫu:**
-```
-Routing entry for 172.16.2.0/24
-  Known via "ospf 1", distance 110, metric 20, type extern 2, forward metric 10
-  Last update from 10.0.12.2 on GigabitEthernet0/0, 00:00:15 ago
-  Routing Descriptor Blocks:
-  * 10.0.12.2, from 2.2.2.2, 00:00:15 ago, via GigabitEthernet0/0
-      Route metric is 20, traffic share count is 1
-```
-
-⭐ **Đọc output:**
-- `metric 20` → **seed metric mặc định khi redistribute vào OSPF = 20** ✅
-- `type extern 2` → **E2 là mặc định** ✅
-- `forward metric 10` → cost nội bộ để tới ASBR (R2)
-
-```
-R1# show ip route ospf | include E2
-O E2     172.16.2.0/24 [110/20] via 10.0.12.2, 00:01:22, GigabitEthernet0/0
-```
-⭐ Ký hiệu **`O E2`**.
-
-⚠️ **Cảnh báo — `redistribute connected` là con dao hai lưỡi:**
-```
-R2# show ip route | include L|C
-```
-`redistribute connected` đưa **MỌI** subnet connected vào OSPF — kể cả những cái bạn không muốn.
-Cách đúng là dùng **route-map lọc**:
-```
-R2(config)# ip prefix-list PL-CUSTOMER permit 172.16.2.0/24
-R2(config)# route-map RM-CONN-TO-OSPF permit 10
-R2(config-route-map)#  match ip address prefix-list PL-CUSTOMER
-R2(config-route-map)# exit
-R2(config)# router ospf 1
-R2(config-router)#  no redistribute connected subnets
-R2(config-router)#  redistribute connected subnets route-map RM-CONN-TO-OSPF
-```
-✅ Giờ chỉ `172.16.2.0/24` được đưa vào OSPF.
-
-#### Bước 2 — ⭐ E1 vs E2: chứng minh khác biệt
-
-**a) Cả R2 và R3 cùng redistribute một mạng chung** để tạo tình huống "2 ASBR":
-
-```
-! Trên R2
-R2(config)# ip route 192.168.99.0 255.255.255.0 Null0
-R2(config)# router ospf 1
-R2(config-router)#  redistribute static subnets
-
-! Trên R3 — cùng mạng đó
-R3(config)# ip route 192.168.99.0 255.255.255.0 Null0
-R3(config)# router ospf 1
-R3(config-router)#  redistribute static subnets
-```
-
-**b) Xem R1 nhìn thấy gì (E2 — mặc định):**
-```
-R1# show ip route 192.168.99.0
-```
-**Output mẫu:**
-```
-Routing entry for 192.168.99.0/24
-  Known via "ospf 1", distance 110, metric 20, type extern 2, forward metric 10
-  Routing Descriptor Blocks:
-  * 10.0.13.2, from 3.3.3.3, ... via GigabitEthernet0/1
-    10.0.12.2, from 2.2.2.2, ... via GigabitEthernet0/0
-      Route metric is 20, traffic share count is 1
-```
-⭐ **Cả 2 ASBR đều metric 20** → R1 **ECMP** qua cả hai. Metric E2 **không tính** đường nội bộ.
-
-**c) Làm cho R2 "xa hơn" R1, rồi xem E2 có phân biệt được không:**
-```
-R1(config)# interface GigabitEthernet0/0
-R1(config-if)# ip ospf cost 500              ! làm đường tới R2 rất đắt
-```
-```
-R1# show ip route 192.168.99.0
-```
-→ **Vẫn metric 20 cho cả hai!** Chỉ có `forward metric` khác nhau.
-⚠️ Với E2, R1 **có thể** vẫn chọn cả 2 (hoặc chọn theo forward metric tùy IOS version)
-— nhưng **metric E2 bản thân nó không phản ánh khoảng cách nội bộ**.
-
-**d) Chuyển sang E1 và xem lại:**
-```
-! Trên CẢ R2 và R3
-router ospf 1
- no redistribute static subnets
- redistribute static subnets metric-type 1
-```
-```
-R1# show ip route 192.168.99.0
-```
-**Output mẫu:**
-```
-Routing entry for 192.168.99.0/24
-  Known via "ospf 1", distance 110, metric 30, type extern 1
-  Routing Descriptor Blocks:
-  * 10.0.13.2, from 3.3.3.3, ... via GigabitEthernet0/1
-      Route metric is 30, traffic share count is 1
-```
-⭐ **Giờ metric = 30** (20 external + 10 internal tới R3), và **chỉ có 1 next-hop**
-— R1 chọn **ASBR gần hơn (R3)** vì đường tới R2 có cost 500.
-
-```
-R1# show ip route ospf | include E1
-O E1     192.168.99.0/24 [110/30] via 10.0.13.2, ...
-```
-
-⭐ **BẢNG KẾT LUẬN — điền vào:**
-
-| | **E2** | **E1** |
-|---|---|---|
-| Metric R1 thấy | | |
-| Metric có tính đường nội bộ? | | |
-| R1 phân biệt được ASBR gần/xa? | | |
-| Ký hiệu | | |
-
-<details><summary>Đáp án</summary>
-
-| | **E2** (mặc định) | **E1** |
-|---|---|---|
-| Metric R1 thấy | **20** (không đổi toàn domain) | **30** = 20 external + 10 internal |
-| Metric có tính đường nội bộ? | ❌ Không | ⭐ **Có** |
-| R1 phân biệt được ASBR gần/xa? | ⚠️ Không (qua metric) | ⭐ **Có** — chọn ASBR gần nhất |
-| Ký hiệu | `O E2` | `O E1` |
-
-**Kết luận thực chiến:** có **nhiều điểm ra (nhiều ASBR)** → dùng **E1** để traffic ra điểm gần nhất.
-</details>
-
-**Dọn dẹp:**
-```
-R1(config)# interface GigabitEthernet0/0
-R1(config-if)# no ip ospf cost
-```
-
-#### Bước 3 — ⭐ Route tag
-
-**a) Đánh tag khi redistribute:**
-```
-! Trên R2
-R2(config)# route-map RM-STATIC-TO-OSPF permit 10
-R2(config-route-map)#  set tag 100
-R2(config-route-map)#  set metric 50
-R2(config-route-map)#  set metric-type type-1
-R2(config-route-map)# exit
-R2(config)# router ospf 1
-R2(config-router)#  no redistribute static subnets metric-type 1
-R2(config-router)#  redistribute static subnets route-map RM-STATIC-TO-OSPF
-```
-
-**b) Xem tag trên R1:**
-```
-R1# show ip route 192.168.99.0
-```
-**Output mẫu:**
-```
-Routing entry for 192.168.99.0/24
-  Known via "ospf 1", distance 110, metric 50, type extern 1
-  Tag 100                                      ← TAG!
-  Routing Descriptor Blocks:
-  ...
-```
-
-```
-R1# show ip ospf database external 192.168.99.0
-```
-**Output mẫu:**
-```
-                LS Type: AS External Link
-                Link State ID: 192.168.99.0 (External Network Number)
-                Advertising Router: 2.2.2.2
-                LS Seq Number: 80000001
-                Metric Type: 1 (Comparable directly to link state metric)
-                MTID: 0
-                Metric: 50
-                Forward Address: 0.0.0.0
-                External Route Tag: 100                ← TAG trong LSA type 5
-```
-
-⭐ **Tag được mang trong LSA type 5** — nghĩa là mọi router trong domain OSPF đều thấy được nó.
-Đây là cơ chế cho phép chống loop ở điểm redistribute khác.
-
-**c) Dùng tag để lọc — chặn route có tag 100:**
-```
-! Trên R3 — mô phỏng "điểm redistribute thứ 2", chặn route đã từ đây ra
-R3(config)# route-map RM-BLOCK-TAG100 deny 5
-R3(config-route-map)#  match tag 100
-R3(config-route-map)# exit
-R3(config)# route-map RM-BLOCK-TAG100 permit 10
-R3(config-route-map)#  set tag 200
-R3(config-route-map)# exit
-```
-
-**Kiểm tra route-map hoạt động:**
-```
-R3# show route-map RM-BLOCK-TAG100
-```
-**Output mẫu:**
-```
-route-map RM-BLOCK-TAG100, deny, sequence 5
-  Match clauses:
-    tag 100
-  Set clauses:
-  Policy routing matches: 0 packets, 0 bytes
-route-map RM-BLOCK-TAG100, permit, sequence 10
-  Match clauses:
-  Set clauses:
-    tag 200
-  Policy routing matches: 0 packets, 0 bytes
-```
-⭐ Chú ý: `sequence 10` **không có `Match clauses`** → khớp mọi thứ (catch-all).
-
-#### Bước 4 — ⚠️ Tái hiện lỗi redistribute vào EIGRP thiếu metric
-
-> ℹ️ Chỉ để **thấy hành vi**, không phải để học cấu hình EIGRP.
-
-```
-! Trên R2 — bật EIGRP tối thiểu rồi redistribute OSPF vào, KHÔNG chỉ định metric
-R2(config)# router eigrp 100
-R2(config-router)#  network 10.0.23.0 0.0.0.3
-R2(config-router)#  redistribute ospf 1              ! ⚠️ THIẾU METRIC
-```
-```
-R2# show ip eigrp topology | include 1.1.1.1|10.0.13
-```
-→ **Không có route nào từ OSPF xuất hiện.** Không có thông báo lỗi.
-
-```
-R2# show ip protocols | section eigrp
-```
-→ Xem phần `Redistributing` — có khai báo nhưng route không vào.
-
-**Sửa:**
-```
-R2(config)# router eigrp 100
-R2(config-router)#  redistribute ospf 1 metric 10000 100 255 1 1500
-```
-→ Giờ route xuất hiện.
-
-⭐ **Bài học:** redistribute vào **EIGRP/RIP bắt buộc chỉ định metric**
-(hoặc `default-metric`). Vào **OSPF/BGP thì không cần**. **Ghi vào `SO-TAY-LOI.md`.**
-
-**Dọn dẹp:**
-```
-R2(config)# no router eigrp 100
-```
-
-✅ **Checkpoint LAB 03-3:**
-
-| Kiểm tra | Mong đợi |
-|---|---|
-| `redistribute connected subnets` → R1 thấy `O E2` metric **20** | ✅ |
-| Dùng route-map + prefix-list để chỉ redistribute 1 subnet | ✅ |
-| Chuyển sang `metric-type 1` → metric đổi thành **20 + internal cost** | ⭐ ✅ |
-| E1 phân biệt được ASBR gần/xa, E2 thì không | ⭐ ✅ |
-| `show ip route <prefix>` hiện dòng `Tag 100` | ✅ |
-| `show ip ospf database external` hiện `External Route Tag: 100` | ⭐ ✅ |
-| Tái hiện được lỗi redistribute vào EIGRP thiếu metric | ✅ |
-
----
-
-## 💡 5. THỰC CHIẾN ĐI LÀM
+## 💡 4.6 Thực chiến đi làm
 
 | Chủ đề | Thi dạy | Thực tế đi làm |
 |---|---|---|
@@ -1703,6 +982,20 @@ R2(config)# no router eigrp 100
 | **`show route-map`** | Ít nhắc | ⭐ Có **counter số route/gói khớp từng dòng**. Đây là cách nhanh nhất kiểm tra route-map có thật sự hoạt động — nếu counter = 0 thì route-map không được gọi hoặc không khớp |
 | **EIGRP** | Compare only cho ENCOR | ⭐ Ở Việt Nam nhiều doanh nghiệp vẫn chạy EIGRP (di sản Cisco-only). Biết **đọc** `show ip eigrp topology` là đủ để vận hành. Học cấu hình sâu khi nào thật cần |
 | **Documentation** | Không có | ⭐ Mỗi lần thêm static/redistribute/route-map: ghi vào file (ngày, lý do, ai yêu cầu, cách hoàn tác). Không có tài liệu = 6 tháng sau chính bạn không dám xóa dòng nào |
+
+---
+
+# 📎 PHỤ LỤC — TRA CỨU
+
+> 🔴 **KHÔNG đọc phần này ở lần học đầu tiên.**
+>
+> | Khi nào | Mở mục nào |
+> |---|---|
+> | Đang lab mà lỗi | **Gỡ lỗi nhanh** (§7) — quy trình 6 bước cho routing |
+> | Quên lệnh | **Hộp lệnh** (§7.1) |
+> | Tuần 20, ôn thi | **Bẫy đề** (§6) + **Quiz** (§8) |
+> | Gặp từ lạ | **Thuật ngữ** (§9) |
+> | Tự chấm | **Đúc kết** (§10) |
 
 ---
 
