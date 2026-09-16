@@ -1389,7 +1389,7 @@ Cả hai đều bình thường → route chính (AD 1) vẫn trong RIB → rout
 ```
 ! 1. IP SLA — ping THẬT một đích trên Internet, qua ĐÚNG đường ISP1
 ip sla 1
- icmp-echo 8.8.8.8 source-interface GigabitEthernet0/0    ! source-interface BẮT BUỘC
+ icmp-echo 8.8.8.8 source-interface GigabitEthernet0/0    ! ⚠️ cú pháp là TÙY CHỌN — nhưng thiếu ở đây là SAI (xem ghi chú dưới)
  frequency 5
  timeout 2000
 ip sla schedule 1 life forever start-time now              ! KHÔNG ĐƯỢC QUÊN

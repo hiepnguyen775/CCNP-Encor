@@ -373,11 +373,11 @@ enable view HELPDESK                      ! chuyển sang view
 ### 3.4 ⭐⭐ SSH — cấu hình chuẩn
 
 ```
-! ─── ① Bốn thứ BẮT BUỘC để sinh được khóa RSA ───
+! ─── ① Bốn thứ BẮT BUỘC để SSH hoạt động ───
 hostname R1                               ! (1) không được là "Router"
 ip domain-name cty.local                  ! (2) bắt buộc
 crypto key generate rsa modulus 2048      ! (3) ≥ 2048 bit
-username admin privilege 15 algorithm-type scrypt secret MatKhauRatDai   ! (4)
+username admin privilege 15 algorithm-type scrypt secret MatKhauRatDai   ! (4) để ĐĂNG NHẬP
 
 ! ─── ② Ép SSH v2 và siết tham số ───
 ip ssh version 2                          ! v1 có lỗ hổng — LUÔN ép v2

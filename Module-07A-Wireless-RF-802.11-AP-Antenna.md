@@ -517,6 +517,8 @@ Kết quả **tệ hơn** — xem §2.7 (ACI tệ hơn CCI).
 > **AP phải làm 2 việc:**
 > 1. ⭐ **CAC (Channel Availability Check)** — nghe **60 giây** trước khi phát trên channel DFS
 > 2. ⭐ **Nếu phát hiện radar khi đang chạy → PHẢI rời channel trong 10 giây** và không quay lại 30 phút
+> 3. 🔴 ⭐ **Ngoại lệ TDWR** — channel **120 / 124 / 128** nằm cạnh **radar thời tiết sân bay**,
+>    nên CAC kéo dài **600 giây (10 phút)**, không phải 60 s. AP im lặng 10 phút là **bình thường**, không phải hỏng.
 
 | 🔴 ⭐ Triệu chứng gặp thật với DFS | Giải thích |
 |---|---|
@@ -1154,7 +1156,7 @@ show ap auto-rf dot11 5ghz                    ! thông tin RRM: noise, interfere
 | ⭐ **Client rớt khi đi lại** | Thiếu vùng chồng lấn giữa các cell · client "sticky" · thiếu 802.11r/k/v | ⭐ Thiết kế **RSSI ≥ −67 dBm ở mọi điểm** · bật 11r/k/v → **Module-07B** |
 | ⭐ **Thiết bị cũ không thấy SSID** | (a) chỉ hỗ trợ 2.4 GHz · (b) AP ở **channel DFS** · (c) đã tắt data rate mà nó cần · (d) bật **WPA3-only** | ⭐ Kiểm tra từng cái theo thứ tự này |
 | ⭐ **AP tự đổi channel, user rớt vài giây** | ⭐ **DFS** phát hiện radar · hoặc **DCA/ED-RRM** chạy | ⭐ Xem log WLC. Bị liên tục → **loại channel DFS** khỏi DCA list |
-| ⭐ **AP mất tới 60 s mới lên sóng sau reboot** | ⭐ **CAC** trên channel DFS (bình thường!) | Không phải lỗi. Muốn nhanh → dùng UNII-1/UNII-3 |
+| ⭐ **AP mất tới 60 s mới lên sóng sau reboot** (🔴 tới **10 phút** nếu là channel **120/124/128**) | ⭐ **CAC** trên channel DFS — TDWR cần 600 s (bình thường!) | Không phải lỗi. Muốn nhanh → dùng UNII-1/UNII-3 |
 | ⭐ **Noise floor cao bất thường (> −85 dBm)** | Nguồn nhiễu non-Wi-Fi: lò vi sóng, camera analog, điện thoại DECT, đèn hỏng, thiết bị y tế | ⭐ Bật **CleanAir** · đặt 1 AP sang **SE-Connect mode** để định vị nguồn nhiễu |
 | ⭐ **Nhiều CRC error / retry rate cao** | 🔴 ⭐ **ACI** (channel chồng lấn) hoặc **hidden node** | ⭐ Kiểm tra channel plan có đúng **1-6-11** không · cân nhắc **RTS/CTS** |
 | ⭐ **Tốc độ thấp dù đứng gần AP** | (a) client ít spatial stream · (b) thiếu antenna trên AP · (c) channel width nhỏ · (d) MCS bị hạ do SNR | ⭐ `netsh wlan show drivers` xem năng lực client · kiểm tra antenna đã cắm đủ chưa |
@@ -1318,7 +1320,7 @@ Ba lý do:
 ⭐ **DFS (Dynamic Frequency Selection)** — bắt buộc ở ⭐ **UNII-2A (52–64)** và ⭐ **UNII-2C (100–144)** vì
 dải này **dùng chung với radar**.
 
-⭐ AP phải: (1) ⭐ **CAC — nghe 60 giây** trước khi phát · (2) ⭐ **phát hiện radar → rời channel trong 10 giây**, không quay lại 30 phút.
+⭐ AP phải: (1) ⭐ **CAC — nghe 60 giây** trước khi phát (🔴 **channel 120/124/128 — TDWR: 600 giây**) · (2) ⭐ **phát hiện radar → rời channel trong 10 giây**, không quay lại 30 phút.
 
 ⭐ Hai hiện tượng lạ trong vận hành:
 1. ⭐ AP **mất tới 60 giây mới lên sóng** sau reboot (đang chạy CAC)

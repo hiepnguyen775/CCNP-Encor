@@ -582,7 +582,7 @@ Một host với traffic khổng lồ vẫn chỉ dùng 1 router. Và ⭐ **Cisc
 ```
 ! ═══ 1. IP SLA — ping THẬT một đích trên Internet qua ĐÚNG uplink ═══
 ip sla 1
- icmp-echo 8.8.8.8 source-interface GigabitEthernet0/1    ! source-interface BẮT BUỘC
+ icmp-echo 8.8.8.8 source-interface GigabitEthernet0/1    ! ⚠️ cú pháp là TÙY CHỌN — nhưng thiếu ở đây là SAI (xem ghi chú dưới)
  frequency 5
  timeout 2000
 ip sla schedule 1 life forever start-time now              ! KHÔNG ĐƯỢC QUÊN
@@ -804,7 +804,7 @@ Khi IP SLA thất bại → track Down → **HSRP tự hạ priority 20 điểm*
 | 🔴 ⭐ **`preempt delay minimum`** | Ít nhắc | 🔴 **BẮT BUỘC ở production.** Router reboot → interface lên trước routing → preempt ngay → **black hole 60 s**. Đặt 60–120 s (dài hơn thời gian hội tụ IGP/BGP của bạn) |
 | 🔴 ⭐ **Object tracking** | Có lệnh | 🔴 **FHRP không có tracking = HA GIẢ.** Uplink chết mà LAN up thì FHRP không biết → black hole. Đây là lỗi thiết kế phổ biến nhất về FHRP |
 | ⭐ **Track cái gì** | Interface | ⭐ Kết hợp `boolean and`: **(1) IP SLA ping đích thật** + **(2) interface uplink** + **(3) có default route trong RIB**. Một cái không đủ |
-| 🔴 ⭐ **IP SLA `source-interface`** | Ít nhắc | 🔴 **BẮT BUỘC.** Thiếu nó → SLA ping theo bảng route → có thể đi đường khác → **không bao giờ phát hiện lỗi uplink cần kiểm** |
+| 🔴 ⭐ **IP SLA `source-interface`** | Ít nhắc | 🔴 **Cú pháp là tùy chọn — nhưng ở bài toán dual-uplink là bắt buộc.** Thiếu nó → SLA ping theo bảng route → có thể đi đường khác → **không bao giờ phát hiện lỗi uplink cần kiểm** |
 | ⭐ **Tracking + preempt là cặp đôi** | Không dạy | ⭐ Tracking giảm priority router A **chỉ có tác dụng nếu router B có `preempt`**. Thiếu một trong hai = vô ích |
 | ⭐ **Tính decrement** | Không dạy | ⭐ `decrement > (pri_mình − pri_kia)`, **để dư biên**. Pri 110 vs 100 → dùng **20–30**, không dùng 11 |
 | ⭐ **Load balancing thực tế** | GLBP | ⭐ Thực tế dùng **HSRP/VRRP + nhiều group theo VLAN**: VLAN chẵn Active ở R1, VLAN lẻ Active ở R2. Đơn giản, đa vendor, dễ hiểu hơn GLBP |
@@ -1203,7 +1203,7 @@ show ip route 0.0.0.0
 ```
 ! 1. IP SLA — ping THẬT một đích Internet qua ĐÚNG uplink
 ip sla 1
- icmp-echo 8.8.8.8 source-interface GigabitEthernet0/1     ! source-interface BẮT BUỘC
+ icmp-echo 8.8.8.8 source-interface GigabitEthernet0/1     ! ⚠️ cú pháp là TÙY CHỌN — nhưng thiếu ở đây là SAI (xem ghi chú dưới)
  frequency 5
  timeout 2000
 ip sla schedule 1 life forever start-time now               ! ĐỪNG QUÊN

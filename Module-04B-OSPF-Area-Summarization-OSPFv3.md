@@ -1577,7 +1577,7 @@ router ospf 1
 **Lớp 2 — ⭐ IP SLA + track cho default route** (Module-03 §2.4):
 ```
 ip sla 1
- icmp-echo 8.8.8.8 source-interface GigabitEthernet0/0      ! source-interface bắt buộc
+ icmp-echo 8.8.8.8 source-interface GigabitEthernet0/0      ! ⚠️ tùy chọn về cú pháp — thiếu thì SLA ping đường khác, track không bao giờ Down
  frequency 5
 ip sla schedule 1 life forever start-time now                ! đừng quên
 !
