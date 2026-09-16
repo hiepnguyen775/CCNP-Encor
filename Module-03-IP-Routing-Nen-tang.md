@@ -1704,5 +1704,5 @@ và đó là toàn bộ nội dung câu "compare EIGRP and OSPF" mà đề ENCOR
 
 ---
 
-**➡️ Tiếp theo:** [Module-04 — OSPF chuyên sâu](Module-04-OSPF-Chuyen-sau.md)
+**➡️ Tiếp theo:** [Module-04A — OSPF: Nền tảng & LSDB](Module-04A-OSPF-Nen-tang-va-LSDB.md)
 *(LSA type 1–7 · Area type · DR/BDR · Network type · Summarization · Virtual-link · Auth · OSPFv3 — **2 tuần, phần nặng nhất của Infrastructure**)*

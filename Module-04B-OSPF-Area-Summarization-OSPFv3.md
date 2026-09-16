@@ -1792,5 +1792,5 @@ LSA có mà route không có = `distribute-list in`, và đó là dấu hiệu c
 
 ---
 
-**➡️ Tiếp theo:** [Module-05 — BGP: eBGP và Path Selection](Module-05-BGP-eBGP-va-Path-Selection.md)
+**➡️ Tiếp theo:** [Module-05A — BGP: Nền tảng & eBGP Peering](Module-05A-BGP-Nen-tang-va-eBGP-Peering.md)
 *(AS · eBGP peering · neighbor states · attribute · **13 bước path selection** · community · filtering — **Tuần 9–10**)*

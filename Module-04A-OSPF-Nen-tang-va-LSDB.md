@@ -47,7 +47,7 @@
 |:---:|---|---|
 | 1 | **OSPF là link-state** | Mỗi router có **bản đồ cả area**, tự tính đường — khác EIGRP chỉ "hỏi hàng xóm" |
 | 2 | **Ba bảng** | Neighbor → **LSDB** → Routing table. LSDB giống nhau, routing table khác nhau |
-| 3 | **Tám neighbor state** | Down → Init → 2-Way → ExStart → Exchange → Loading → **Full**.<br>⭐ Kẹt **ExStart/Exchange = MTU mismatch** |
+| 3 | **Tám neighbor state** | Luồng thường (7 bước): Down → Init → 2-Way → ExStart → Exchange → Loading → **Full**.<br>⭐ Trạng thái thứ 8 là **Attempt** — **chỉ xuất hiện trên NBMA**, không nằm trong luồng thường.<br>⭐ Kẹt **ExStart/Exchange = MTU mismatch** |
 | 4 | **DR/BDR** | Chỉ bầu trên **broadcast / non-broadcast**. ⭐ **KHÔNG có preemption** — priority cao hơn không cướp được |
 | 5 | **Network type quyết định tất cả** | Nó quyết định: có bầu DR không · timer bao nhiêu · có cần `neighbor` không |
 | 6 | **LSA type 1, 2, 3** | **1** = router tự khai · **2** = DR khai segment · **3** = ABR tóm tắt area khác |

@@ -17,11 +17,11 @@
 | **4** | Module-02 | STP sâu · RSTP · PortFast/BPDU Guard/Root Guard/Loop Guard | Infrastructure 30% | 4 switch: ép root bridge, đo lại convergence RSTP vs STP | 4 GB | ☐ |
 | **5** | Module-02 | MST · EtherChannel (LACP/PAgP/static) · load-balancing hash | Infrastructure 30% | MST 2 instance + Layer2/Layer3 EtherChannel | 4 GB | ☐ |
 | **6** | Module-03 | Bảng định tuyến · AD · longest-prefix · static/floating static · redistribute · EIGRP (mức ENCOR) | Infrastructure 30% | Đọc `show ip route`, floating static failover, redistribute static→OSPF | 3 GB | ☐ |
-| **7** | Module-04 | OSPF: neighbor state · DR/BDR · network type · LSA 1-2-3 | Infrastructure 30% | OSPF multi-area 3 router, đọc LSDB từng LSA type | 3 GB | ☐ |
-| **8** | Module-04 | OSPF: LSA 4-5-7 · stub area · summarization · virtual-link · auth · OSPFv3 | Infrastructure 30% | Stub/NSSA + summarization + virtual-link + MD5/SHA auth | 4 GB | ☐ |
-| **9** | Module-05 | BGP: AS · eBGP peering · các loại message · attribute cơ bản | Infrastructure 30% | eBGP 3 AS, advertise network, đọc `show bgp ipv4 unicast` | 4 GB | ☐ |
-| **10** | Module-05 | BGP: **13 bước path selection** · LP/MED/AS-path/Weight · community | Infrastructure 30% | Ép chọn đường bằng Weight → LP → AS-path prepend → MED | 4 GB | ☐ |
-| **11** | Module-06 | HSRP/VRRP/GLBP · object tracking · NAT/PAT nâng cao · IPv6 FHS | Infrastructure 30% | HSRP có preempt + object tracking, test failover | 4 GB | ☐ |
+| **7** | **Module-04A** | OSPF: neighbor state · DR/BDR · network type · LSA 1-2-3 | Infrastructure 30% | OSPF multi-area 3 router, đọc LSDB từng LSA type | 3 GB | ☐ |
+| **8** | **Module-04B** | OSPF: LSA 4-5-7 · stub area · summarization · virtual-link · auth · OSPFv3 | Infrastructure 30% | Stub/NSSA + summarization + virtual-link + MD5/SHA auth | 4 GB | ☐ |
+| **9** | **Module-05A** | BGP: AS · eBGP peering · các loại message · attribute cơ bản | Infrastructure 30% | eBGP 3 AS, advertise network, đọc `show bgp ipv4 unicast` | 4 GB | ☐ |
+| **10** | **Module-05B** | BGP: **13 bước path selection** · LP/MED/AS-path/Weight · community | Infrastructure 30% | Ép chọn đường bằng Weight → LP → AS-path prepend → MED | 4 GB | ☐ |
+| **11** | **Module-06A**<br>**Module-06B** | HSRP/VRRP/GLBP · object tracking · NAT/PAT nâng cao · NTP · Multicast | Infrastructure 30% | HSRP + object tracking failover · NAT dual-ISP route-map · NTP auth | 3 GB | ☐ |
 | **12** | **Module-07A** | Wireless: RF (dBm/EIRP/RSSI/SNR) · band/channel/DFS · CCI vs ACI · 802.11 a→ax · AP mode · antenna | Infrastructure (wireless) | ⭐ **Không cần EVE-NG** — lab bằng chính laptop (`netsh wlan`) + WiFi analyzer + tính RF trên giấy | **0 GB** | ☐ |
 | **13** | **Module-07B** | Split-MAC · CAPWAP · AP join & discovery · WLC selection · FlexConnect · roaming L2/L3 · ⭐ troubleshoot | Infrastructure (wireless) | ⭐ Lab-trên-giấy (join & chẩn đoán) + DevNet Sandbox Catalyst 9800 | **0 GB** | ☐ |
 | **14** | **Module-08** | Hypervisor/vSwitch · **VRF-lite** · **GRE** · **IPsec / GRE over IPsec** · LISP · VXLAN | Virtualization **10%** | 2 VRF **trùng IP** · GRE + OSPF · ⭐ tái hiện **recursive routing** · GRE over IPsec (`QM_IDLE`, encaps/decaps) | **2 GB**<br>*(7 GB nếu cần CSR1000v cho crypto)* | ☐ |
@@ -42,8 +42,8 @@
 |---|:---:|---|---|
 | **1.0 Architecture** | 15% | Module-01 (một phần), **Module-09** | Chủ yếu **khái niệm** — vai trò từng thành phần, chọn design nào cho case nào. Ít cấu hình. |
 | **2.0 Virtualization** | 10% | **Module-08** | VRF-lite & GRE/IPsec → **cấu hình được**. LISP/VXLAN → hiểu cơ chế + đọc output. |
-| **3.0 Infrastructure** | **30%** | **Module-02 → 07** | **Cấu hình + troubleshoot ở mức sâu.** Đây là chỗ ăn điểm/mất điểm nhiều nhất. |
-| **4.0 Network Assurance** | 10% | **Module-11** | Cấu hình được + **đọc output** là chính. |
+| **3.0 Infrastructure** | **30%** | **Module-02 → 07B** | **Cấu hình + troubleshoot ở mức sâu.** Đây là chỗ ăn điểm/mất điểm nhiều nhất. |
+| **4.0 Network Assurance** | 10% | **Module-11**<br>⚠️ + **Module-12** *(mục 4.7)* | Cấu hình được + **đọc output** là chính.<br>⚠️ Mục **4.7 NETCONF/RESTCONF** thuộc domain này nhưng dạy ở Module-12. |
 | **5.0 Security** | 20% | **Module-10** | ACL/CoPP/AAA → cấu hình. 802.1X/TrustSec → hiểu flow + cấu hình cơ bản. |
 | **6.0 Automation** | 15% | **Module-12** | **Đọc code/output** (JSON, XML, Python, YANG) nhiều hơn là viết code. |
 
@@ -102,7 +102,7 @@ Nếu không trả lời được bằng lời của mình (không cần nhìn t
 
 | Phải nắm | Tự hỏi |
 |---|---|
-| 7 neighbor state | Down → Init → 2-Way → ExStart → Exchange → Loading → Full. Kẹt ở ExStart thường do gì? (MTU) |
+| 8 neighbor state | Luồng thường 7 bước: Down → Init → 2-Way → ExStart → Exchange → Loading → Full.<br>Cái thứ 8 là **Attempt** (chỉ NBMA). Kẹt ở ExStart thường do gì? (MTU) |
 | Điều kiện lên neighbor | 5 điều kiện phải khớp: area ID, subnet, hello/dead timer, auth, stub flag, MTU |
 | LSA type | 1 Router, 2 Network, 3 Summary, 4 ASBR-Summary, 5 External, 7 NSSA-External |
 | DR/BDR | Bầu bằng gì? Trên network type nào có bầu, nào không? DR non-preemptive nghĩa là gì? |
