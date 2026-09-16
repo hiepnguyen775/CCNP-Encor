@@ -13,6 +13,74 @@
 
 ---
 
+# 📌 TÓM TẮT — đọc 10 phút là nắm khung
+
+## Module này trả lời một câu hỏi duy nhất
+
+> **"Làm sao hàng trăm router tự vẽ được CÙNG MỘT tấm bản đồ mạng — rồi mỗi con tự tính
+> đường đi ngắn nhất từ chỗ mình?"**
+
+Đó là toàn bộ ý tưởng của OSPF. Mọi thứ còn lại chỉ là **chi tiết của cách vẽ bản đồ đó**.
+
+## Ba bảng — xương sống của cả module
+
+```
+   ① NEIGHBOR TABLE          "Tôi đang nói chuyện được với ai?"
+      show ip ospf neighbor          ← phải thấy FULL
+              │
+              │  trao đổi LSA
+              ▼
+   ② LSDB  (Link-State Database)     "Tấm BẢN ĐỒ của cả area"
+      show ip ospf database          ← MỌI router trong area có bản Y HỆT
+              │
+              │  chạy thuật toán SPF (Dijkstra)
+              ▼
+   ③ ROUTING TABLE                   "Từ CHỖ TÔI, đi đâu thì qua cửa nào?"
+      show ip route ospf             ← mỗi router tính ra KẾT QUẢ KHÁC NHAU
+
+   ⭐ Bản đồ giống nhau, nhưng đường đi khác nhau — vì điểm xuất phát khác nhau.
+```
+
+## 7 ý phải nhớ
+
+| # | Ý | Một câu |
+|:---:|---|---|
+| 1 | **OSPF là link-state** | Mỗi router có **bản đồ cả area**, tự tính đường — khác EIGRP chỉ "hỏi hàng xóm" |
+| 2 | **Ba bảng** | Neighbor → **LSDB** → Routing table. LSDB giống nhau, routing table khác nhau |
+| 3 | **Tám neighbor state** | Down → Init → 2-Way → ExStart → Exchange → Loading → **Full**.<br>⭐ Kẹt **ExStart/Exchange = MTU mismatch** |
+| 4 | **DR/BDR** | Chỉ bầu trên **broadcast / non-broadcast**. ⭐ **KHÔNG có preemption** — priority cao hơn không cướp được |
+| 5 | **Network type quyết định tất cả** | Nó quyết định: có bầu DR không · timer bao nhiêu · có cần `neighbor` không |
+| 6 | **LSA type 1, 2, 3** | **1** = router tự khai · **2** = DR khai segment · **3** = ABR tóm tắt area khác |
+| 7 | ⭐ **Cost = ref-bw / bandwidth** | Mặc định ref-bw 100 Mbps → **mọi link ≥ 100M đều cost 1**. Phải chỉnh, và chỉnh **đồng loạt** |
+
+## Bảng lệnh cốt lõi
+
+| Lệnh | Cho biết gì |
+|---|---|
+| `show ip ospf neighbor` | Neighbor lên chưa — phải `FULL` |
+| `show ip ospf interface <x>` | Network type, cost, timer, DR/BDR là ai |
+| `show ip ospf database` | **LSDB** — tấm bản đồ |
+| `show ip ospf database router` | LSA type 1 chi tiết |
+| `show ip route ospf` | Kết quả cuối: `O` · `O IA` · `O E1/E2` |
+| `show ip protocols` | Đang quảng bá mạng nào, RID là gì |
+| `debug ip ospf adj` | Theo dõi quá trình bắt tay *(chỉ lab)* |
+
+## 🗺️ Bố cục module — đọc theo đúng thứ tự này
+
+| Phần | Tên | Đọc thế nào | Thời gian |
+|:---:|---|---|:---:|
+| **1** | 🧠 **CÁI ĐÓ LÀ GÌ** | 5 ví von, đọc **một mạch**, không lệnh | 45 phút |
+| **2** | ⚙️ **NÓ CHẠY THẾ NÀO** | 12 mục. **Ba mục then chốt: §3.4, §3.9, §3.11** | 5 giờ |
+| **3** | 🧪 **NHÌN THẤY NÓ** | [LAB 04A](Module-04A-LAB.md) — 6 bước | 7 giờ |
+| **4** | 🏗️ **TOPO & KIẾN TRÚC** | Thiết kế area. **Vẽ lại trên giấy** | 45 phút |
+| **📎** | **PHỤ LỤC** | 🔴 **KHÔNG đọc lần đầu** — chỉ tra | — |
+
+> **Nếu bạn chỉ có thời gian cho một thứ:** làm **[LAB 04A bước 2 — đọc LSDB](Module-04A-LAB.md)**.
+> Đó là lúc OSPF thôi là "giao thức tự chạy" và trở thành thứ bạn **nhìn thấy được**.
+> Toàn bộ Module-04B xây thẳng lên đó.
+
+---
+
 ## ✅ 1. Chuẩn bị
 
 | Cần có | Chi tiết |
@@ -40,9 +108,111 @@
 
 ---
 
-## 📘 2. LÝ THUYẾT
+## 🧠 PHẦN 1 — CÁI ĐÓ LÀ GÌ
 
-### 2.1 OSPF trong 1 bảng
+> **Đọc phần này TRƯỚC, đọc một mạch.** Không lệnh, không bảng tra.
+>
+> OSPF là giao thức **khó hình dung nhất** cho tới khi bạn có đúng vài ví von.
+> Năm mục dưới đây là cách nhanh nhất để "nhìn thấy" nó trước khi vào cơ chế.
+>
+> **Tự kiểm tra:** đọc xong mỗi mục, gấp tài liệu lại, nói lại trong 3 câu.
+
+### 2.1 Tại sao có DR — cuộc họp có người chủ trì
+
+**Không có DR** — 10 người trong phòng, ai cũng phải nói riêng với 9 người còn lại:
+`10 × 9 / 2 = 45` cuộc hội thoại. Ai cập nhật gì cũng phải nhắc lại 9 lần.
+
+**Có DR** — 1 người làm **chủ trì**. Ai có thông tin thì nói với chủ trì,
+chủ trì **thông báo lại cho cả phòng**. Chỉ cần **9 kênh liên lạc**.
+
+**Và BDR?** — **phó chủ trì**, ngồi nghe hết mọi thứ. Chủ trì nghỉ thì phó tiếp ngay,
+**không cần họp lại từ đầu**.
+
+**DROther ↔ DROther = 2-Way** — hai người tham dự **biết mặt nhau** (2-Way)
+nhưng **không cần trao đổi tài liệu riêng** với nhau (không cần Full). Mọi thứ qua chủ trì.
+
+🧠 **Một câu để nhớ:** *DR không phải "router mạnh nhất", nó là **người chủ trì cuộc họp**.
+Và vì đổi chủ trì giữa cuộc họp rất tốn công, nên DR là **non-preemptive**.*
+
+### 2.2 Ba bảng OSPF — như chuẩn bị một chuyến đi
+
+| Bảng | Ví von |
+|---|---|
+| **Neighbor table** | Danh sách người bạn đang liên lạc để **xin bản đồ** |
+| **LSDB** | ⭐ **Bản đồ** đã ghép từ mọi mảnh mà bạn bè gửi |
+| **Routing table** | ⭐ **Lộ trình** bạn tự vạch ra sau khi xem bản đồ |
+
+Và **Dijkstra SPF** là **hành động ngồi xem bản đồ rồi vạch lộ trình**.
+
+🧠 **Một câu để nhớ:** *Không có bạn → không có bản đồ → không có lộ trình.
+Troubleshoot OSPF luôn đi theo thứ tự đó: neighbor → LSDB → route.*
+
+### 2.3 LSA type 1, 2, 3 — ba loại giấy tờ
+
+| LSA | Ví von | Ai viết |
+|---|---|---|
+| **Type 1** | ⭐ **"Tờ khai của tôi"**: "Tôi tên R1, tôi có 3 cửa: cửa A nối R2, cửa B nối mạng 10.1.1.0, cửa C là loopback" | Mọi router |
+| **Type 2** | ⭐ **"Biên bản điểm danh"**: "Tại hội trường 10.0.0.0/24 này, có mặt R2, R3, R4" | **DR** |
+| **Type 3** | ⭐ **"Thông báo dán ở cửa"**: "Bên tòa nhà A có phòng 10.1.12.0/30, đi qua tôi, cách 100 bước" | **ABR** |
+
+⭐ **Vì sao ghép Type 1 + Type 2 lại là đủ để vẽ bản đồ:**
+- Type 1 nói "tôi nối vào hội trường X"
+- Type 2 nói "hội trường X có những ai"
+- → Ghép lại: biết **chính xác ai nối với ai** → vẽ được bản đồ → chạy Dijkstra được
+
+Còn **Type 3 không phải bản đồ** — nó chỉ là **danh sách địa chỉ + khoảng cách**.
+Router ở area khác **không thể vẽ được bản đồ area A**.
+
+🧠 **Một câu để nhớ:** ⭐ ***OSPF là link-state TRONG area, và distance-vector GIỮA các area.***
+*Đó là lý do area vừa là ưu điểm (giới hạn SPF) vừa là hạn chế (mất tầm nhìn topology).*
+
+### 2.4 MTU mismatch kẹt ExStart — như gửi phong bì quá khổ
+
+Ở ExStart, hai router gửi nhau **danh mục LSA (DBD)** — có thể là gói lớn.
+
+- R1 có hộp thư khe **1500** — gửi phong bì 1500
+- R2 có hộp thư khe **1400** — ⚠️ phong bì 1500 **không nhét vào được** → rơi mất
+
+R1 chờ mãi không thấy trả lời → **gửi lại → lại rơi → kẹt vĩnh viễn ở ExStart**.
+
+Và điều nguy hiểm: **Hello packet nhỏ nên vẫn qua được** → hai router **vẫn thấy nhau**,
+`show ip ospf neighbor` **vẫn có entry** — chỉ là mãi không lên Full.
+
+🧠 **Một câu để nhớ:** *Thấy `EXSTART` hoặc `EXCHANGE` → nghĩ **MTU** trước mọi thứ khác.
+Hello nhỏ nên qua được, DBD lớn nên rơi — đó là dấu hiệu nhận diện.*
+
+### 2.5 Reference bandwidth — thước đo bị hỏng
+
+Reference mặc định 100 Mbps được thiết kế năm 1998, khi FastEthernet là nhanh nhất.
+
+Giờ bạn đo link 1G, 10G, 100G bằng cái thước chỉ có vạch tới 100 Mbps
+→ **cả ba đều "vượt vạch cuối"** → **cost = 1 hết**.
+
+OSPF nhìn vào và nói: *"3 đường này như nhau"* → chọn bừa → traffic đi đường 1G
+trong khi có đường 100G nằm không.
+
+🧠 **Một câu để nhớ:** *`auto-cost reference-bandwidth 100000` là thay cái thước.
+Nhưng **mọi router phải dùng CÙNG cái thước** — người đo bằng cm, người đo bằng inch
+thì so sánh vô nghĩa.*
+
+---
+
+## ⚙️ PHẦN 2 — NÓ CHẠY THẾ NÀO
+
+> Giờ lắp **cơ chế thật, con số và câu lệnh** vào hình dung bạn vừa có.
+>
+> | Phần 1 (ví von) | → | Phần 2 (cơ chế) |
+> |---|:---:|---|
+> | §2.1 cuộc họp có người chủ trì | → | **§3.8 Network type · §3.9 DR/BDR** |
+> | §2.2 chuẩn bị một chuyến đi | → | **§3.2 Ba bảng của OSPF** |
+> | §2.3 ba loại giấy tờ | → | **§3.11 LSA type 1, 2, 3** |
+> | §2.4 gửi phong bì quá khổ | → | **§3.4 Neighbor state · §3.5 Chín điều kiện** |
+> | §2.5 thước đo bị hỏng | → | **§3.7 Cost & reference-bandwidth** |
+>
+> ⚠️ **Phần này dài (12 mục) — đừng cố đọc hết trong một buổi.**
+> Ba mục quan trọng nhất: **§3.4** (neighbor state), **§3.9** (DR/BDR), **§3.11** (LSA).
+
+### 3.1 OSPF trong 1 bảng
 
 | Thuộc tính | Giá trị |
 |---|---|
@@ -59,7 +229,7 @@
 | Unequal-cost LB | ❌ **Không** (chỉ ECMP — xem Module-03 §2.5) |
 | Max ECMP path | Mặc định 4, tối đa 16–32 tùy platform (`maximum-paths`) |
 
-### 2.2 ⭐ Ba bảng của OSPF
+### 3.2 ⭐ Ba bảng của OSPF
 
 Hiểu 3 bảng này là hiểu cách OSPF vận hành. Mọi lệnh `show` đều thuộc 1 trong 3.
 
@@ -91,7 +261,7 @@ Hiểu 3 bảng này là hiểu cách OSPF vận hành. Mọi lệnh `show` đ�
 > Không có route (bảng 3) thì kiểm tra LSDB (bảng 2). LSDB thiếu thì kiểm tra neighbor (bảng 1).
 > Nhảy thẳng vào `show ip route` là mất thời gian.
 
-### 2.3 Năm loại OSPF packet
+### 3.3 Năm loại OSPF packet
 
 | # | Tên | Viết tắt | Nhiệm vụ | Xuất hiện ở state nào |
 |:---:|---|---|---|---|
@@ -119,7 +289,7 @@ Hiểu 3 bảng này là hiểu cách OSPF vận hành. Mọi lệnh `show` đ�
 | DR / BDR | Không cần khớp |
 | Neighbor list | Dùng để chuyển Init → 2-Way |
 
-### 2.4 ⭐ Tám trạng thái neighbor — đọc để troubleshoot
+### 3.4 ⭐ Tám trạng thái neighbor — đọc để troubleshoot
 
 ```
 DOWN ──▶ ATTEMPT (chỉ NBMA) ──▶ INIT ──▶ 2-WAY ──▶ EXSTART ──▶ EXCHANGE ──▶ LOADING ──▶ FULL
@@ -180,7 +350,7 @@ interface GigabitEthernet0/0
 > ⚠️ `mtu-ignore` chỉ **che triệu chứng**. LSA lớn vẫn có thể bị drop → LSDB không đồng bộ.
 > Luôn ưu tiên **sửa MTU cho khớp**.
 
-### 2.5 ⭐ Chín điều kiện để OSPF lên `FULL`
+### 3.5 ⭐ Chín điều kiện để OSPF lên `FULL`
 
 Đây là **checklist troubleshoot** — học thuộc, dùng suốt sự nghiệp.
 
@@ -206,7 +376,7 @@ interface GigabitEthernet0/0
 > Timer (Hello/Dead/Wait/Retransmit), Authentication, số neighbor.
 > **Chạy lệnh này trên CẢ HAI router rồi so từng dòng.**
 
-### 2.6 Router ID — chọn thế nào và bẫy khi đổi
+### 3.6 Router ID — chọn thế nào và bẫy khi đổi
 
 **Thứ tự ưu tiên:**
 
@@ -244,7 +414,7 @@ show ip protocols | include Router ID
 %OSPF-4-DUP_RTRID_NBR: OSPF detected duplicate router-id 2.2.2.2 from 10.0.12.2 on interface Gi0/0
 ```
 
-### 2.7 Cost & reference-bandwidth
+### 3.7 Cost & reference-bandwidth
 
 ```
 Cost = reference-bandwidth (Mbps) / interface-bandwidth (Mbps)
@@ -293,7 +463,7 @@ show ip ospf interface brief                 ! cột Cost
 show ip ospf interface Gi0/0 | include Cost
 ```
 
-### 2.8 ⭐ Năm loại Network Type — bảng phải thuộc
+### 3.8 ⭐ Năm loại Network Type — bảng phải thuộc
 
 Network type quyết định: **có bầu DR/BDR không**, **timer bao nhiêu**, **tìm neighbor tự động hay tay**.
 
@@ -347,7 +517,7 @@ interface GigabitEthernet0/0
 > ⭐ Đây là **best practice chuẩn công nghiệp** cho link P2P Ethernet. Vừa hội tụ nhanh hơn,
 > vừa giảm kích thước LSDB. Đề ENCOR hỏi về lợi ích này.
 
-### 2.9 ⭐ DR / BDR Election
+### 3.9 ⭐ DR / BDR Election
 
 **Chỉ xảy ra trên network type `broadcast` và `non-broadcast`.**
 
@@ -446,7 +616,7 @@ Neighbor ID     Pri   State           Dead Time   Address         Interface
 | `FULL/DROTHER` | Full với DROther → nghĩa là **mình** là DR hoặc BDR |
 | `FULL/  -` | Trên link **point-to-point** (không có DR/BDR) |
 
-### 2.10 Area — khái niệm và các vai trò router
+### 3.10 Area — khái niệm và các vai trò router
 
 | Khái niệm | Nội dung |
 |---|---|
@@ -503,7 +673,7 @@ show ip ospf border-routers                  ! ABR/ASBR nào đang biết
 show ip ospf interface brief                 ! interface nào thuộc area nào
 ```
 
-### 2.11 ⭐ LSA type 1, 2, 3 (type 4, 5, 7 học ở Module-04B)
+### 3.11 ⭐ LSA type 1, 2, 3 (type 4, 5, 7 học ở Module-04B)
 
 #### Bảng tổng hợp
 
@@ -674,7 +844,7 @@ Link ID         ADV Router      Age  Seq#       Checksum
 > ⭐ **Age tăng liên tục tới 3600 rồi reset về 0** = LSA được refresh bình thường (mỗi 1800 s).
 > ⚠️ **Seq# tăng liên tục rất nhanh** = LSA đang bị **flapping** → có link nhấp nháy ở đâu đó.
 
-### 2.12 Thứ tự ưu tiên route trong OSPF
+### 3.12 Thứ tự ưu tiên route trong OSPF
 
 Khi cùng một prefix xuất hiện dưới nhiều dạng LSA:
 
@@ -692,1115 +862,111 @@ Route `O IA` metric 5000 **vẫn thắng** route `O E1` metric 5.
 
 ---
 
-## 📖 3. HIỂU RÕ HƠN
+## 🧪 PHẦN 3 — NHÌN THẤY NÓ
 
-### 3.1 Tại sao có DR — cuộc họp có người chủ trì
+> LAB đã tách ra file riêng để bạn **mở song song** với lý thuyết.
 
-**Không có DR** — 10 người trong phòng, ai cũng phải nói riêng với 9 người còn lại:
-`10 × 9 / 2 = 45` cuộc hội thoại. Ai cập nhật gì cũng phải nhắc lại 9 lần.
+> ### 👉 **[LAB 04A — Tuần 7: OSPF nền tảng & LSDB](Module-04A-LAB.md)**
 
-**Có DR** — 1 người làm **chủ trì**. Ai có thông tin thì nói với chủ trì,
-chủ trì **thông báo lại cho cả phòng**. Chỉ cần **9 kênh liên lạc**.
+| Bước | Nội dung | Trả lời câu hỏi | Ví von ở Phần 1 | Cơ chế ở Phần 2 |
+|:---:|---|---|---|---|
+| 1 | Verify neighbor | Bắt tay qua mấy bước, kẹt ở đâu = lỗi gì? | §2.4 phong bì quá khổ | §3.4 · §3.5 |
+| 2 | ⭐ **Đọc LSDB** | LSDB chứa gì? LSA 1/2/3 trông ra sao? | §2.2 chuyến đi · §2.3 ba loại giấy tờ | §3.2 · §3.11 |
+| 3 | Verify routing table | LSDB biến thành route bằng cách nào? | §2.2 | §3.12 |
+| 4 | DR/BDR election | Ai làm DR? Vì sao bầu lại không đổi? | §2.1 người chủ trì | §3.9 |
+| 5 | Đổi network type | Point-to-point thì DR biến đi đâu? | §2.1 | §3.8 |
+| 6 | 🚀 Tái hiện 6 lỗi | Sáu lỗi kinh điển — triệu chứng & cách tìm | §2.4 | §3.5 |
 
-**Và BDR?** — **phó chủ trì**, ngồi nghe hết mọi thứ. Chủ trì nghỉ thì phó tiếp ngay,
-**không cần họp lại từ đầu**.
+> ⚠️ **Bước 2 là phần quan trọng nhất của cả Module-04A.**
+> Trước bước này, OSPF là một giao thức "tự chạy" mà bạn chỉ biết kết quả.
+> Sau bước này, bạn **nhìn thấy** cơ sở dữ liệu mà nó dùng để tính toán — và
+> **Module-04B (LSA 4/5/7, stub area, summarization) xây thẳng lên đó.**
 
-**DROther ↔ DROther = 2-Way** — hai người tham dự **biết mặt nhau** (2-Way)
-nhưng **không cần trao đổi tài liệu riêng** với nhau (không cần Full). Mọi thứ qua chủ trì.
+---
 
-🧠 **Một câu để nhớ:** *DR không phải "router mạnh nhất", nó là **người chủ trì cuộc họp**.
-Và vì đổi chủ trì giữa cuộc họp rất tốn công, nên DR là **non-preemptive**.*
+## 🏗️ PHẦN 4 — TOPO & KIẾN TRÚC
 
-### 3.2 Ba bảng OSPF — như chuẩn bị một chuyến đi
+> Bạn vừa học cơ chế OSPF. Phần này trả lời: **thiết kế OSPF thế nào cho một doanh nghiệp thật?**
 
-| Bảng | Ví von |
+### 4.1 Bản đồ: OSPF area trong một doanh nghiệp
+
+```
+                    ┌──────────────────────────────┐
+                    │        AREA 0 (backbone)     │   ⭐ MỌI area khác
+      LÕI           │   ┌──────┐      ┌──────┐     │      PHẢI nối vào đây
+                    │   │Core-1│══════│Core-2│     │
+                    │   └───┬──┘      └──┬───┘     │
+                    └───────┼────────────┼─────────┘
+                       ABR  │            │  ABR      ① ABR = router
+                    ┌───────┴──┐      ┌──┴────────┐     đứng GIỮA 2 area
+                    │  Dist-A  │      │  Dist-B   │
+                    └────┬─────┘      └─────┬─────┘
+                         │                  │
+              ┌──────────┴───┐     ┌────────┴──────────┐
+              │   AREA 1     │     │     AREA 2        │
+              │ (Tòa nhà A)  │     │  (Tòa nhà B)      │
+              │              │     │                   │
+              │ ② LSA 1,2    │     │  ② LSA 1,2        │  ② chỉ lưu hành
+              │    trong area│     │     trong area    │     TRONG area
+              └──────────────┘     └───────────────────┘
+
+   ③ ABR tóm tắt area 1 thành LSA type 3, bơm vào area 0
+   ④ Router trong area 1 KHÔNG biết chi tiết topology area 2 — chỉ biết "đi qua ABR"
+```
+
+### 4.2 Năm quyết định thiết kế — và sai thì hỏng thế nào
+
+| # | Quyết định | Vì sao | 🔴 Sai thì hỏng thế nào |
+|:---:|---|---|---|
+| ① | **Mọi area phải nối vào Area 0** | OSPF chống loop bằng cấu trúc **hình sao**, không phải bằng thuật toán | Area 1 nối thẳng Area 2 không qua Area 0 → **route không lan được**, phải chữa cháy bằng virtual-link |
+| ② | **Chia area khi nào?** | LSDB càng lớn, SPF chạy càng lâu, mọi router phải giữ bản sao | Nhồi 200 router vào Area 0 → **mỗi lần flap là toàn mạng tính lại SPF** |
+| ③ | **Đặt ABR ở Distribution** | ABR là chỗ **tóm tắt** — phải nằm ở ranh giới tự nhiên | Đặt ABR ở access → tóm tắt sai chỗ, không giảm được LSDB |
+| ④ | **Chỉnh `reference-bandwidth` GIỐNG NHAU mọi router** | Mặc định 100 Mbps → **mọi link ≥ 100M đều cost 1** | Chỉnh một nửa số router → ⭐ **cost không đồng nhất → chọn đường sai, rất khó tìm ra** |
+| ⑤ | **Router ID đặt tay bằng loopback** | RID tự chọn đổi theo interface, và **đổi RID = reset toàn bộ neighbor** | Không đặt tay → một hôm loopback lên/xuống là **OSPF reset cả vùng** |
+
+### 4.3 Ba sự thật mà chỉ người đi làm mới biết
+
+| Sự thật | Giải thích |
 |---|---|
-| **Neighbor table** | Danh sách người bạn đang liên lạc để **xin bản đồ** |
-| **LSDB** | ⭐ **Bản đồ** đã ghép từ mọi mảnh mà bạn bè gửi |
-| **Routing table** | ⭐ **Lộ trình** bạn tự vạch ra sau khi xem bản đồ |
+| ⭐ **MTU mismatch là lỗi OSPF phổ biến nhất** | Neighbor kẹt ở **ExStart/Exchange** mãi. Vì hai bên trao đổi DBD mà MTU khác nhau → không ai chịu ai. Triệu chứng rất đặc trưng, nhớ là tìm ra trong 1 phút |
+| ⭐ **DR không có preemption** | Router priority cao hơn **KHÔNG cướp** được DR đang tại vị. Muốn đổi DR phải **clear process** hoặc tắt interface. Nhiều người tưởng đổi priority là xong |
+| ⭐ **Đổi `reference-bandwidth` phải làm ĐỒNG LOẠT** | Đây là thay đổi nguy hiểm âm thầm nhất của OSPF: mạng vẫn chạy, nhưng **traffic đi đường sai** vì cost hai bên tính theo hai thước đo khác nhau |
 
-Và **Dijkstra SPF** là **hành động ngồi xem bản đồ rồi vạch lộ trình**.
+### 4.4 Những thứ này sẽ lớn lên thành gì
 
-🧠 **Một câu để nhớ:** *Không có bạn → không có bản đồ → không có lộ trình.
-Troubleshoot OSPF luôn đi theo thứ tự đó: neighbor → LSDB → route.*
-
-### 3.3 LSA type 1, 2, 3 — ba loại giấy tờ
-
-| LSA | Ví von | Ai viết |
+| Bạn vừa học | Sẽ thành | Ở module |
 |---|---|---|
-| **Type 1** | ⭐ **"Tờ khai của tôi"**: "Tôi tên R1, tôi có 3 cửa: cửa A nối R2, cửa B nối mạng 10.1.1.0, cửa C là loopback" | Mọi router |
-| **Type 2** | ⭐ **"Biên bản điểm danh"**: "Tại hội trường 10.0.0.0/24 này, có mặt R2, R3, R4" | **DR** |
-| **Type 3** | ⭐ **"Thông báo dán ở cửa"**: "Bên tòa nhà A có phòng 10.1.12.0/30, đi qua tôi, cách 100 bước" | **ABR** |
+| LSA type 1, 2, 3 | LSA 4, 5, 7 · stub/NSSA · summarization | **Module-04B** |
+| Area, ABR | Virtual-link · OSPF authentication · OSPFv3 | **Module-04B** |
+| Cost, chọn đường | 13 bước path selection của BGP | **Module-05B** |
+| Neighbor state, troubleshoot | Quy trình chẩn đoán 6 tầng cho wireless | **Module-07B** |
+| Thiết kế area | Thiết kế campus 2-tier/3-tier, SD-Access underlay | **Module-09** |
 
-⭐ **Vì sao ghép Type 1 + Type 2 lại là đủ để vẽ bản đồ:**
-- Type 1 nói "tôi nối vào hội trường X"
-- Type 2 nói "hội trường X có những ai"
-- → Ghép lại: biết **chính xác ai nối với ai** → vẽ được bản đồ → chạy Dijkstra được
+### 4.5 Vẽ lại để nhớ
 
-Còn **Type 3 không phải bản đồ** — nó chỉ là **danh sách địa chỉ + khoảng cách**.
-Router ở area khác **không thể vẽ được bản đồ area A**.
+> **Bài tập 15 phút, trên giấy.**
+>
+> 1. Vẽ lại sơ đồ §4.1 **không nhìn tài liệu**
+> 2. Đánh dấu ① → ④, ghi rõ **LSA type nào đi tới đâu**
+> 3. Trả lời: *"Vì sao router trong Area 1 KHÔNG cần biết topology chi tiết của Area 2?"*
 
-🧠 **Một câu để nhớ:** ⭐ ***OSPF là link-state TRONG area, và distance-vector GIỮA các area.***
-*Đó là lý do area vừa là ưu điểm (giới hạn SPF) vừa là hạn chế (mất tầm nhìn topology).*
+<details>
+<summary>Đáp án câu 3</summary>
 
-### 3.4 MTU mismatch kẹt ExStart — như gửi phong bì quá khổ
+Vì **ABR tóm tắt** Area 2 thành **LSA type 3** (Summary LSA) rồi bơm vào Area 0, và Area 0
+lại bơm tiếp vào Area 1. LSA type 3 chỉ nói *"mạng X tồn tại, chi phí Y, đi qua tôi"* —
+**không mang chi tiết router nào nối router nào**.
 
-Ở ExStart, hai router gửi nhau **danh mục LSA (DBD)** — có thể là gói lớn.
+**Lợi ích:** router Area 1 giữ LSDB nhỏ hơn, SPF chạy nhanh hơn, và **một link flap ở Area 2
+không làm Area 1 phải tính lại SPF** — nó chỉ thấy cost thay đổi.
 
-- R1 có hộp thư khe **1500** — gửi phong bì 1500
-- R2 có hộp thư khe **1400** — ⚠️ phong bì 1500 **không nhét vào được** → rơi mất
+Đây chính là lý do **chia area** tồn tại, và là nền của **summarization** ở Module-04B.
 
-R1 chờ mãi không thấy trả lời → **gửi lại → lại rơi → kẹt vĩnh viễn ở ExStart**.
-
-Và điều nguy hiểm: **Hello packet nhỏ nên vẫn qua được** → hai router **vẫn thấy nhau**,
-`show ip ospf neighbor` **vẫn có entry** — chỉ là mãi không lên Full.
-
-🧠 **Một câu để nhớ:** *Thấy `EXSTART` hoặc `EXCHANGE` → nghĩ **MTU** trước mọi thứ khác.
-Hello nhỏ nên qua được, DBD lớn nên rơi — đó là dấu hiệu nhận diện.*
-
-### 3.5 Reference bandwidth — thước đo bị hỏng
-
-Reference mặc định 100 Mbps được thiết kế năm 1998, khi FastEthernet là nhanh nhất.
-
-Giờ bạn đo link 1G, 10G, 100G bằng cái thước chỉ có vạch tới 100 Mbps
-→ **cả ba đều "vượt vạch cuối"** → **cost = 1 hết**.
-
-OSPF nhìn vào và nói: *"3 đường này như nhau"* → chọn bừa → traffic đi đường 1G
-trong khi có đường 100G nằm không.
-
-🧠 **Một câu để nhớ:** *`auto-cost reference-bandwidth 100000` là thay cái thước.
-Nhưng **mọi router phải dùng CÙNG cái thước** — người đo bằng cm, người đo bằng inch
-thì so sánh vô nghĩa.*
-
----
-
-## 🧪 4. LAB 04A — Topology multi-area + broadcast segment
-
-### 4.1 Topology
-
-```
-   ┌─ AREA 1 ─┐        ┌────────── AREA 0 (broadcast) ──────────┐
-                                                                  
-  ┌────┐              ┌────┐        ┌─────────┐        ┌────┐
-  │ R1 │══════════════│ R2 │────────│ BRIDGE  │────────│ R3 │
-  └────┘  10.1.12.0/30└────┘ Gi0/1  │  (SW)   │ Gi0/1  └────┘
-   Lo0: 1.1.1.1        Gi0/0        │10.0.0.0 │         Lo0: 3.3.3.3
-   Lo1: 172.16.1.0/24  ABR          │   /24   │         Lo1: 172.16.3.0/24
-                                    └────┬────┘           (AREA 2)
-                                         │ Gi0/1
-                                      ┌──┴─┐
-                                      │ R4 │
-                                      └────┘
-                                    Lo0: 4.4.4.4
-                                    Lo1: 172.16.4.0/24
-                                        (AREA 3)
-```
-
-| Node | Interface | IP | Area | Vai trò |
-|---|---|---|:---:|---|
-| **R1** | Lo0 | 1.1.1.1/32 | 1 | Internal Router (area 1) |
-| | Lo1 | 172.16.1.1/24 | 1 | |
-| | Gi0/0 | 10.1.12.1/30 | 1 | |
-| **R2** | Lo0 | 2.2.2.2/32 | 0 | ⭐ **ABR** (area 1 + area 0) |
-| | Gi0/0 | 10.1.12.2/30 | 1 | |
-| | Gi0/1 | 10.0.0.2/24 | 0 | Vào bridge |
-| **R3** | Lo0 | 3.3.3.3/32 | 0 | ⭐ **ABR** (area 0 + area 2) |
-| | Lo1 | 172.16.3.1/24 | 2 | |
-| | Gi0/1 | 10.0.0.3/24 | 0 | Vào bridge |
-| **R4** | Lo0 | 4.4.4.4/32 | 0 | ⭐ **ABR** (area 0 + area 3) |
-| | Lo1 | 172.16.4.1/24 | 3 | |
-| | Gi0/1 | 10.0.0.4/24 | 0 | Vào bridge |
-
-**RAM: 4× 512 MB = 2 GB** ✅ · Bridge của EVE-NG **không tốn RAM**.
-
-### 4.2 Dựng trong EVE-NG
-
-1. Add new lab: `LAB-04A-OSPF-MultiArea`
-2. Add node: **4× vIOS**, RAM 512, Ethernets **4**, prefix `R`
-3. Click phải vùng trắng → **Network** → Type **Bridge**, name `SW-AREA0`
-4. Nối dây:
-   - `R1 Gi0/0` ↔ `R2 Gi0/0`
-   - `R2 Gi0/1` ↔ `SW-AREA0`
-   - `R3 Gi0/1` ↔ `SW-AREA0`
-   - `R4 Gi0/1` ↔ `SW-AREA0`
-5. Start all nodes
-
-> 💡 **Object Bridge** là switch ảo thuần L2 của EVE-NG — dùng để tạo **segment broadcast**
-> cho ≥3 router. Không ăn RAM, không cần cấu hình.
-
-### 4.3 Config đầy đủ
-
-**R1** (Internal Router, area 1):
-```
-enable
-configure terminal
-hostname R1
-no ip domain lookup
-!
-interface Loopback0
- ip address 1.1.1.1 255.255.255.255
-!
-interface Loopback1
- ip address 172.16.1.1 255.255.255.0
-!
-interface GigabitEthernet0/0
- description ---> To R2 (AREA 1)
- ip address 10.1.12.1 255.255.255.252
- no shutdown
-!
-router ospf 1
- router-id 1.1.1.1
- auto-cost reference-bandwidth 100000
- network 1.1.1.1 0.0.0.0 area 1
- network 172.16.1.0 0.0.0.255 area 1
- network 10.1.12.0 0.0.0.3 area 1
- passive-interface Loopback0
- passive-interface Loopback1
-!
-line con 0
- exec-timeout 0 0
- logging synchronous
-end
-write memory
-```
-
-**R2** (ABR: area 1 + area 0):
-```
-enable
-configure terminal
-hostname R2
-no ip domain lookup
-!
-interface Loopback0
- ip address 2.2.2.2 255.255.255.255
-!
-interface GigabitEthernet0/0
- description ---> To R1 (AREA 1)
- ip address 10.1.12.2 255.255.255.252
- no shutdown
-!
-interface GigabitEthernet0/1
- description ---> To BRIDGE (AREA 0)
- ip address 10.0.0.2 255.255.255.0
- no shutdown
-!
-router ospf 1
- router-id 2.2.2.2
- auto-cost reference-bandwidth 100000
- network 2.2.2.2 0.0.0.0 area 0
- network 10.1.12.0 0.0.0.3 area 1
- network 10.0.0.0 0.0.0.255 area 0
- passive-interface Loopback0
-!
-line con 0
- exec-timeout 0 0
- logging synchronous
-end
-write memory
-```
-
-**R3** (ABR: area 0 + area 2):
-```
-enable
-configure terminal
-hostname R3
-no ip domain lookup
-!
-interface Loopback0
- ip address 3.3.3.3 255.255.255.255
-!
-interface Loopback1
- description ---> AREA 2
- ip address 172.16.3.1 255.255.255.0
-!
-interface GigabitEthernet0/1
- description ---> To BRIDGE (AREA 0)
- ip address 10.0.0.3 255.255.255.0
- no shutdown
-!
-router ospf 1
- router-id 3.3.3.3
- auto-cost reference-bandwidth 100000
- network 3.3.3.3 0.0.0.0 area 0
- network 10.0.0.0 0.0.0.255 area 0
- network 172.16.3.0 0.0.0.255 area 2
- passive-interface Loopback0
- passive-interface Loopback1
-!
-line con 0
- exec-timeout 0 0
- logging synchronous
-end
-write memory
-```
-
-**R4** (ABR: area 0 + area 3):
-```
-enable
-configure terminal
-hostname R4
-no ip domain lookup
-!
-interface Loopback0
- ip address 4.4.4.4 255.255.255.255
-!
-interface Loopback1
- description ---> AREA 3
- ip address 172.16.4.1 255.255.255.0
-!
-interface GigabitEthernet0/1
- description ---> To BRIDGE (AREA 0)
- ip address 10.0.0.4 255.255.255.0
- no shutdown
-!
-router ospf 1
- router-id 4.4.4.4
- auto-cost reference-bandwidth 100000
- network 4.4.4.4 0.0.0.0 area 0
- network 10.0.0.0 0.0.0.255 area 0
- network 172.16.4.0 0.0.0.255 area 3
- passive-interface Loopback0
- passive-interface Loopback1
-!
-line con 0
- exec-timeout 0 0
- logging synchronous
-end
-write memory
-```
-
-> 💡 **Về `passive-interface Loopback0`:** loopback không có neighbor nên gửi Hello là vô ích.
-> `passive-interface` **vẫn quảng bá subnet** nhưng **không gửi Hello** — tiết kiệm và an toàn hơn.
-> Ở production nên dùng `passive-interface default` rồi `no passive-interface <uplink>`.
-
----
-
-### Bước 1 — Verify neighbor (Bảng 1)
-
-```
-R2# show ip ospf neighbor
-```
-**Output mẫu:**
-```
-Neighbor ID     Pri   State           Dead Time   Address         Interface
-1.1.1.1           1   FULL/BDR        00:00:35    10.1.12.1       GigabitEthernet0/0
-3.3.3.3           1   FULL/DROTHER    00:00:33    10.0.0.3        GigabitEthernet0/1
-4.4.4.4           1   FULL/BDR        00:00:31    10.0.0.4        GigabitEthernet0/1
-```
-
-⭐ **Điền bảng — chạy `show ip ospf neighbor` trên cả 4 router:**
-
-| Router | Neighbor & State | Ai là DR trên segment 10.0.0.0/24? | Ai là BDR? |
-|---|---|---|---|
-| R1 | | — (link P2P) | — |
-| R2 | | | |
-| R3 | | | |
-| R4 | | | |
-
-**Xác nhận DR/BDR:**
-```
-R2# show ip ospf interface GigabitEthernet0/1 | include State|Priority|Designated|Backup
-```
-**Output mẫu:**
-```
-  State DROTHER, Priority 1, Designated Router (ID) 4.4.4.4, Interface address 10.0.0.4
-  Backup Designated router (ID) 3.3.3.3, Interface address 10.0.0.3
-```
-
-✅ **Checkpoint bước 1:**
-
-| Kiểm tra | Mong đợi |
-|---|---|
-| Trên bridge (area 0): có đúng **1 DR** và **1 BDR** | ✅ |
-| DR = router có **Router ID cao nhất** (priority đều = 1) → **R4 (4.4.4.4)** | ✅ |
-| BDR = Router ID cao thứ 2 → **R3 (3.3.3.3)** | ✅ |
-| ⭐ Giữa 2 DROther → state là **`2WAY/DROTHER`** | ⭐ ✅ **BÌNH THƯỜNG** |
-| R1↔R2 (link P2P) → state `FULL/BDR` hoặc `FULL/  -` | ✅ |
-
-> ⭐ **Chú ý:** ở topology này chỉ có R2 là DROther trên segment (R3=BDR, R4=DR),
-> nên không thấy `2WAY/DROTHER`. Bước 4 sẽ ép tình huống đó xuất hiện.
-
-**Xem chi tiết mọi thông số của interface — lệnh quan trọng nhất:**
-```
-R2# show ip ospf interface GigabitEthernet0/1
-```
-**Output mẫu:**
-```
-GigabitEthernet0/1 is up, line protocol is up
-  Internet Address 10.0.0.2/24, Area 0, Attached via Network Statement
-  Process ID 1, Router ID 2.2.2.2, Network Type BROADCAST, Cost: 100
-  Topology-MTID    Cost    Disabled    Shutdown      Topology Name
-        0           100       no          no            Base
-  Transmit Delay is 1 sec, State DROTHER, Priority 1
-  Designated Router (ID) 4.4.4.4, Interface address 10.0.0.4
-  Backup Designated router (ID) 3.3.3.3, Interface address 10.0.0.3
-  Timer intervals configured, Hello 10, Dead 40, Wait 40, Retransmit 5
-    oob-resync timeout 40
-    Hello due in 00:00:03
-  Supports Link-local Signaling (LLS)
-  Cisco NSF helper support enabled
-  IETF NSF helper support enabled
-  Index 1/1/1, flood queue length 0
-  Next 0x0(0)/0x0(0)/0x0(0)
-  Last flood scan length is 3, maximum is 5
-  Last flood scan time is 0 msec, maximum is 1 msec
-  Neighbor Count is 2, Adjacent neighbor count is 2
-    Adjacent with neighbor 3.3.3.3  (Backup Designated Router)
-    Adjacent with neighbor 4.4.4.4  (Designated Router)
-  Suppress hello for 0 neighbor(s)
-```
-
-⭐ **Bảng đọc output này — đây là lệnh bạn sẽ dùng 1000 lần:**
-
-| Dòng | Nghĩa | Dùng để kiểm tra |
-|---|---|---|
-| `Area 0` | Area của interface | ⭐ Điều kiện #4 |
-| `Attached via Network Statement` | Vào OSPF bằng `network` (hay `ip ospf area`) | Điều kiện #2 |
-| `Network Type BROADCAST` | ⭐ Loại network | ⭐ Có bầu DR không |
-| `Cost: 100` | Cost = 100000/1000 = 100 | reference-bandwidth |
-| `State DROTHER, Priority 1` | Vai trò + priority | DR election |
-| `Designated Router (ID) 4.4.4.4` | ⭐ Ai là DR | |
-| `Hello 10, Dead 40` | ⭐ Timer | ⭐ Điều kiện #6 |
-| `Wait 40` | Thời gian chờ trước khi bầu DR | Vì sao P2P hội tụ nhanh hơn |
-| `Neighbor Count is 2, Adjacent neighbor count is 2` | ⭐ 2 neighbor, cả 2 đều **Full** | |
-| *(không có dòng auth)* | Không bật authentication | Điều kiện #7 |
-
----
-
-### Bước 2 — ⭐ Đọc LSDB (Bảng 2) — phần quan trọng nhất module
-
-```
-R1# show ip ospf database
-```
-**Output mẫu (R1 — chỉ ở area 1):**
-```
-            OSPF Router with ID (1.1.1.1) (Process ID 1)
-
-                Router Link States (Area 1)
-
-Link ID         ADV Router      Age  Seq#       Checksum Link count
-1.1.1.1         1.1.1.1         120  0x80000004 0x00A3B1 3
-2.2.2.2         2.2.2.2         118  0x80000003 0x001C2D 2
-
-                Summary Net Link States (Area 1)
-
-Link ID         ADV Router      Age  Seq#       Checksum
-2.2.2.2         2.2.2.2         115  0x80000001 0x004E5F
-3.3.3.3         2.2.2.2         115  0x80000001 0x00617A
-4.4.4.4         2.2.2.2         115  0x80000001 0x00738C
-10.0.0.0        2.2.2.2         115  0x80000001 0x0085AE
-172.16.3.0      2.2.2.2         110  0x80000001 0x0097C0
-172.16.4.0      2.2.2.2         110  0x80000001 0x00A9D2
-```
-
-⭐ **Nhận xét PHẢI rút ra — điền vào:**
-
-| Câu hỏi | Trả lời của bạn |
-|---|---|
-| R1 có mấy **Router LSA (Type 1)**? Của ai? | |
-| R1 có **Network LSA (Type 2)** không? Vì sao? | |
-| Ai là **ADV Router** của mọi Summary LSA (Type 3)? Vì sao? | |
-| `172.16.3.0` và `172.16.4.0` thuộc area nào? R1 biết topology của chúng không? | |
-| R1 có thấy LSA nào của **area 2 / area 3** không (Router LSA)? | |
-
-<details><summary>Đáp án</summary>
-
-| Câu hỏi | Đáp án |
-|---|---|
-| Router LSA (Type 1)? | **2 cái**: của R1 (1.1.1.1) và R2 (2.2.2.2) — **chỉ router trong area 1** |
-| Network LSA (Type 2)? | ⭐ **KHÔNG có.** Link R1↔R2 là **point-to-point** (serial-like) nên **không có DR** → không sinh Type 2. Segment broadcast nằm ở area 0, R1 không thấy |
-| ADV Router của mọi Type 3? | ⭐ **2.2.2.2 (R2)** — vì **R2 là ABR duy nhất** của area 1. Mọi thông tin từ area khác đều do R2 "kể lại" |
-| `172.16.3.0`, `172.16.4.0` | Thuộc **area 2** và **area 3**. R1 ⭐ **KHÔNG biết topology** của chúng — chỉ biết "đi qua R2, cost X" |
-| LSA của area 2/3? | ⭐ **KHÔNG có Router LSA nào.** Type 1 và Type 2 **không bao giờ ra khỏi area**. R1 chỉ nhận **Type 3** |
-
-⭐ **Đây là bằng chứng thực nghiệm cho câu:** *"OSPF là link-state TRONG area,
-distance-vector GIỮA các area."*
 </details>
 
-**So sánh với LSDB của R2 (ABR, thấy 2 area):**
-```
-R2# show ip ospf database
-```
-**Output mẫu:**
-```
-            OSPF Router with ID (2.2.2.2) (Process ID 1)
-
-                Router Link States (Area 0)
-
-Link ID         ADV Router      Age  Seq#       Checksum Link count
-2.2.2.2         2.2.2.2         200  0x80000004 0x00112A 2
-3.3.3.3         3.3.3.3         198  0x80000005 0x00223B 2
-4.4.4.4         4.4.4.4         195  0x80000005 0x00334C 2
-
-                Net Link States (Area 0)
-
-Link ID         ADV Router      Age  Seq#       Checksum
-10.0.0.4        4.4.4.4         190  0x80000002 0x00445D
-
-                Summary Net Link States (Area 0)
-
-Link ID         ADV Router      Age  Seq#       Checksum
-1.1.1.1         2.2.2.2         185  0x80000001 0x00556E
-10.1.12.0       2.2.2.2         185  0x80000001 0x00667F
-172.16.1.0      2.2.2.2         185  0x80000001 0x00788A
-172.16.3.0      3.3.3.3         180  0x80000001 0x00899B
-172.16.4.0      4.4.4.4         180  0x80000001 0x009AAC
-
-                Router Link States (Area 1)
-
-Link ID         ADV Router      Age  Seq#       Checksum Link count
-1.1.1.1         1.1.1.1         120  0x80000004 0x00A3B1 3
-2.2.2.2         2.2.2.2         118  0x80000003 0x001C2D 2
-
-                Summary Net Link States (Area 1)
-...
-```
-
-⭐ **Nhận xét:**
-- R2 có **2 khối `Router Link States`** — một cho area 0, một cho area 1 → **ABR giữ LSDB riêng cho từng area**
-- Có **`Net Link States (Area 0)`** với `Link ID 10.0.0.4` và `ADV Router 4.4.4.4`
-  → ⭐ **LSA Type 2 do DR (R4) sinh ra**, LS ID = **IP interface của DR**
-- Trong `Summary (Area 0)`: `172.16.3.0` do **3.3.3.3** sinh, `172.16.4.0` do **4.4.4.4** sinh
-  → mỗi ABR tự quảng bá area của mình
-
-#### Xem chi tiết từng loại LSA
-
-**a) Type 1 — Router LSA:**
-```
-R1# show ip ospf database router 1.1.1.1
-```
-**Output mẫu:**
-```
-                Router Link States (Area 1)
-
-  LS age: 145
-  Options: (No TOS-capability, DC)
-  LS Type: Router Links
-  Link State ID: 1.1.1.1
-  Advertising Router: 1.1.1.1
-  LS Seq Number: 80000004
-  Checksum: 0xA3B1
-  Length: 60
-   Number of Links: 3
-
-    Link connected to: another Router (point-to-point)
-     (Link ID) Neighboring Router ID: 2.2.2.2
-     (Link Data) Router Interface address: 10.1.12.1
-       TOS 0 Metrics: 100
-
-    Link connected to: a Stub Network
-     (Link ID) Network/subnet number: 10.1.12.0
-     (Link Data) Network Mask: 255.255.255.252
-       TOS 0 Metrics: 100
-
-    Link connected to: a Stub Network
-     (Link ID) Network/subnet number: 172.16.1.0
-     (Link Data) Network Mask: 255.255.255.0
-       TOS 0 Metrics: 1
-```
-
-⭐ **Đọc:** R1 khai 3 link — 1 link **point-to-point** tới R2, 2 link **stub network**
-(subnet `10.1.12.0/30` và LAN `172.16.1.0/24`).
-
-> 💡 Loopback0 (`1.1.1.1/32`) cũng là stub network nhưng có thể hiển thị riêng —
-> tùy IOS version. Nếu bạn thấy `Number of Links: 4` thì đó là bình thường.
-
-**b) Type 2 — Network LSA (chỉ trên segment broadcast):**
-```
-R2# show ip ospf database network
-```
-**Output mẫu:**
-```
-                Net Link States (Area 0)
-
-  LS age: 210
-  Options: (No TOS-capability, DC)
-  LS Type: Network Links
-  Link State ID: 10.0.0.4 (address of Designated Router)
-  Advertising Router: 4.4.4.4
-  LS Seq Number: 80000002
-  Checksum: 0x445D
-  Length: 36
-  Network Mask: /24
-        Attached Router: 4.4.4.4
-        Attached Router: 3.3.3.3
-        Attached Router: 2.2.2.2
-```
-
-⭐ **Đọc:**
-- `Link State ID: 10.0.0.4 (address of Designated Router)` → ⭐ **LS ID = IP của DR**, không phải Router ID
-- `Advertising Router: 4.4.4.4` → **DR sinh ra LSA này**
-- `Attached Router` × 3 → cả 3 router trên segment
-
-**c) Type 3 — Summary LSA:**
-```
-R1# show ip ospf database summary 172.16.3.0
-```
-**Output mẫu:**
-```
-                Summary Net Link States (Area 1)
-
-  LS age: 165
-  Options: (No TOS-capability, DC, Upward)
-  LS Type: Summary Links(Network)
-  Link State ID: 172.16.3.0 (summary Network Number)
-  Advertising Router: 2.2.2.2
-  LS Seq Number: 80000001
-  Checksum: 0x97C0
-  Length: 28
-  Network Mask: /24
-        MTID: 0         Metric: 101
-```
-
-⭐ **Đọc:**
-- `Advertising Router: 2.2.2.2` → **R2 (ABR) sinh ra**, dù mạng gốc thuộc R3
-- `Metric: 101` → cost từ **R2** tới `172.16.3.0` (100 qua bridge + 1 loopback)
-- R1 sẽ **cộng thêm** cost từ R1 tới R2 (100) → **201**
-
-**Kiểm tra dự đoán:**
-```
-R1# show ip route 172.16.3.0
-```
-**Output mẫu:**
-```
-Routing entry for 172.16.3.0/24
-  Known via "ospf 1", distance 110, metric 201, type inter area
-  Last update from 10.1.12.2 on GigabitEthernet0/0, 00:03:12 ago
-```
-✅ **`metric 201` = 101 (trong LSA) + 100 (R1→R2)** · `type inter area` → **`O IA`**
-
-**d) Lệnh tổng hợp hữu ích:**
-```
-R2# show ip ospf database database-summary
-```
-**Output mẫu:**
-```
-            OSPF Router with ID (2.2.2.2) (Process ID 1)
-
-Area 0 database summary
-  LSA Type      Count    Delete   Maxage
-  Router        3        0        0
-  Network       1        0        0
-  Summary Net   5        0        0
-  Summary ASBR  0        0        0
-  Type-7 Ext    0        0        0
-  Opaque Link   0        0        0
-  Opaque Area   0        0        0
-  Subtotal      9        0        0
-
-Area 1 database summary
-  LSA Type      Count    Delete   Maxage
-  Router        2        0        0
-  Network       0        0        0
-  Summary Net   6        0        0
-  ...
-```
-⭐ **Đây là cách nhanh nhất đếm LSA theo type và area.** Chú ý:
-`Area 0` có **1 Network LSA** (segment broadcast) · `Area 1` có **0 Network LSA** (link P2P).
-
-```
-R1# show ip ospf database self-originate         ! LSA do CHÍNH R1 sinh
-R1# show ip ospf database adv-router 2.2.2.2     ! mọi LSA do R2 sinh
-```
-
-✅ **Checkpoint bước 2:**
-
-| Kiểm tra | Mong đợi |
-|---|---|
-| R1: có **2** Router LSA (R1, R2) — không có LSA của R3/R4 | ⭐ ✅ |
-| R1: **0** Network LSA (link P2P) | ✅ |
-| R1: mọi Summary LSA đều có `ADV Router = 2.2.2.2` | ⭐ ✅ |
-| R2: có **2 khối** `Router Link States` (Area 0 + Area 1) | ✅ |
-| R2: Network LSA có `Link State ID` = **IP của DR** (`10.0.0.4`) | ⭐ ✅ |
-| Metric trong `show ip route` = metric trong LSA 3 **+** cost tới ABR | ⭐ ✅ |
-| `show ip ospf database database-summary`: Area 0 có 1 Network LSA, Area 1 có 0 | ✅ |
-
 ---
 
-### Bước 3 — Verify routing table (Bảng 3)
-
-```
-R1# show ip route ospf
-```
-**Output mẫu:**
-```
-      2.0.0.0/32 is subnetted, 1 subnets
-O IA     2.2.2.2 [110/101] via 10.1.12.2, 00:05:11, GigabitEthernet0/0
-      3.0.0.0/32 is subnetted, 1 subnets
-O IA     3.3.3.3 [110/201] via 10.1.12.2, 00:05:11, GigabitEthernet0/0
-      4.0.0.0/32 is subnetted, 1 subnets
-O IA     4.4.4.4 [110/201] via 10.1.12.2, 00:05:11, GigabitEthernet0/0
-      10.0.0.0/8 is variably subnetted, 4 subnets, 3 masks
-O IA     10.0.0.0/24 [110/200] via 10.1.12.2, 00:05:11, GigabitEthernet0/0
-      172.16.0.0/16 is variably subnetted, 4 subnets, 2 masks
-O IA     172.16.3.0/24 [110/201] via 10.1.12.2, 00:05:11, GigabitEthernet0/0
-O IA     172.16.4.0/24 [110/201] via 10.1.12.2, 00:05:11, GigabitEthernet0/0
-```
-
-⭐ **Nhận xét:** **mọi route** trên R1 đều là **`O IA`** (inter-area) — vì R1 ở area 1,
-mọi thứ khác đều nằm ngoài area 1.
-
-**So sánh với R3 (ở area 0):**
-```
-R3# show ip route ospf
-```
-**Output mẫu:**
-```
-O        2.2.2.2 [110/100] via 10.0.0.2, 00:05:30, GigabitEthernet0/1      ← intra-area
-O        4.4.4.4 [110/100] via 10.0.0.4, 00:05:30, GigabitEthernet0/1      ← intra-area
-O IA     1.1.1.1 [110/201] via 10.0.0.2, 00:05:11, GigabitEthernet0/1      ← inter-area
-O IA     10.1.12.0/30 [110/200] via 10.0.0.2, 00:05:11, GigabitEthernet0/1
-O IA     172.16.1.0/24 [110/201] via 10.0.0.2, 00:05:11, GigabitEthernet0/1
-O IA     172.16.4.0/24 [110/101] via 10.0.0.4, 00:05:11, GigabitEthernet0/1
-```
-⭐ R3 có **cả `O` (intra) và `O IA` (inter)** — vì R3 ở area 0 nên các router area 0 khác là intra-area.
-
-**Test kết nối toàn mạng:**
-```
-R1# ping 172.16.3.1 source 172.16.1.1
-R1# ping 172.16.4.1 source 172.16.1.1
-R1# traceroute 172.16.4.1 source 172.16.1.1
-```
-**Output mẫu traceroute:**
-```
-  1 10.1.12.2 2 msec 1 msec 1 msec        ← R2 (ABR)
-  2 10.0.0.4 3 msec 2 msec 2 msec         ← R4 qua bridge
-```
-
-✅ **Checkpoint bước 3:**
-
-| Kiểm tra | Mong đợi |
-|---|---|
-| R1: **mọi** route OSPF là `O IA` | ✅ |
-| R3: có cả `O` và `O IA` | ✅ |
-| Metric `O IA` = metric trong LSA 3 + cost tới ABR | ⭐ ✅ |
-| Ping full-mesh giữa 172.16.1.1 ↔ 172.16.3.1 ↔ 172.16.4.1 | ✅ |
-| `traceroute` đi qua đúng ABR | ✅ |
-
----
-
-### Bước 4 — ⭐ Thao tác DR/BDR Election
-
-#### 4a) Xác nhận DR hiện tại
-
-```
-R2# show ip ospf interface Gi0/1 | include Designated|Backup
-  Designated Router (ID) 4.4.4.4, Interface address 10.0.0.4
-  Backup Designated router (ID) 3.3.3.3, Interface address 10.0.0.3
-```
-✅ Priority đều = 1 → **Router ID cao nhất thắng**: R4 = DR, R3 = BDR, R2 = DROther.
-
-#### 4b) ⭐ Chứng minh NON-PREEMPTIVE (bẫy đề quan trọng nhất)
-
-```
-! Trên R2 — đặt priority CAO NHẤT
-R2(config)# interface GigabitEthernet0/1
-R2(config-if)# ip ospf priority 255
-```
-
-Chờ 60 giây rồi kiểm tra:
-```
-R2# show ip ospf interface Gi0/1 | include State|Priority|Designated
-```
-**Output mẫu:**
-```
-  Transmit Delay is 1 sec, State DROTHER, Priority 255
-  Designated Router (ID) 4.4.4.4, Interface address 10.0.0.4
-```
-
-⭐ **KẾT QUẢ: R2 vẫn là `DROTHER` dù priority 255!** R4 (priority 1) **vẫn là DR**.
-
-🎓 **Đây chính là non-preemptive.** Đề ENCOR hỏi đúng tình huống này.
-
-#### 4c) Buộc bầu lại — 2 cách
-
-**Cách 1 — `clear ip ospf process` trên mọi router của segment:**
-```
-R2# clear ip ospf process
-Reset ALL OSPF processes? [no]: yes
-R3# clear ip ospf process
-Reset ALL OSPF processes? [no]: yes
-R4# clear ip ospf process
-Reset ALL OSPF processes? [no]: yes
-```
-
-**Cách 2 — shut/no shut interface của DR và BDR:**
-```
-R4(config)# interface Gi0/1
-R4(config-if)# shutdown
-! chờ vài giây
-R4(config-if)# no shutdown
-R3(config)# interface Gi0/1
-R3(config-if)# shutdown
-R3(config-if)# no shutdown
-```
-
-**Kiểm tra lại (chờ ~40 s cho Wait timer):**
-```
-R2# show ip ospf interface Gi0/1 | include State|Designated|Backup
-```
-**Output mẫu:**
-```
-  Transmit Delay is 1 sec, State DR, Priority 255
-  Designated Router (ID) 2.2.2.2, Interface address 10.0.0.2
-  Backup Designated router (ID) 4.4.4.4, Interface address 10.0.0.4
-```
-✅ Giờ **R2 = DR** (priority 255), **R4 = BDR** (Router ID cao nhất trong số còn lại).
-
-#### 4d) Ép router KHÔNG bao giờ làm DR
-
-```
-R2(config)# interface GigabitEthernet0/1
-R2(config-if)# ip ospf priority 0
-```
-Chờ, rồi:
-```
-R2# show ip ospf interface Gi0/1 | include State|Priority
-  Transmit Delay is 1 sec, State DROTHER, Priority 0
-```
-⭐ **Priority 0 = luôn là DROther**, không bao giờ được bầu.
-
-#### 4e) ⭐ Tạo tình huống `2WAY/DROTHER`
-
-Đặt **cả R2 và R3** priority 0 → chỉ R4 có thể làm DR:
-```
-R2(config)# interface Gi0/1
-R2(config-if)# ip ospf priority 0
-R3(config)# interface Gi0/1
-R3(config-if)# ip ospf priority 0
-R4(config)# interface Gi0/1
-R4(config-if)# ip ospf priority 255
-```
-Rồi `clear ip ospf process` trên cả 3.
-
-```
-R2# show ip ospf neighbor
-```
-**Output mẫu:**
-```
-Neighbor ID     Pri   State           Dead Time   Address         Interface
-1.1.1.1           1   FULL/  -        00:00:35    10.1.12.1       GigabitEthernet0/0
-3.3.3.3           0   2WAY/DROTHER    00:00:33    10.0.0.3        GigabitEthernet0/1
-4.4.4.4         255   FULL/DR         00:00:31    10.0.0.4        GigabitEthernet0/1
-```
-
-⭐ **`3.3.3.3 → 2WAY/DROTHER`** — R2 và R3 đều DROther nên **không cần Full với nhau**.
-**ĐÂY LÀ BÌNH THƯỜNG, KHÔNG PHẢI LỖI.**
-
-Và chú ý: **không có BDR** (vì chỉ R4 có priority > 0) → nếu R4 chết, phải bầu DR mới từ đầu.
-
-**Kiểm tra vẫn đủ route:**
-```
-R2# ping 172.16.3.1 source 2.2.2.2
-```
-✅ Vẫn thông — vì thông tin đi qua DR.
-
-#### 4f) Dọn dẹp — trả về mặc định
-
-```
-R2(config)# interface Gi0/1
-R2(config-if)# no ip ospf priority
-R3(config)# interface Gi0/1
-R3(config-if)# no ip ospf priority
-R4(config)# interface Gi0/1
-R4(config-if)# no ip ospf priority
-! rồi clear ip ospf process trên cả 3
-```
-
-✅ **Checkpoint bước 4 — điền bảng:**
-
-| Cấu hình | DR | BDR | Bài học |
-|---|---|---|---|
-| Priority đều 1 | | | Router ID cao nhất thắng |
-| R2 priority 255 (không clear) | | | ⭐ |
-| Sau `clear ip ospf process` | | | |
-| R2 & R3 priority 0, R4 = 255 | | | ⭐ `2WAY/DROTHER` xuất hiện |
-
----
-
-### Bước 5 — ⭐ Network Type: đổi Ethernet sang point-to-point
-
-**a) Xem trạng thái hiện tại của link R1↔R2:**
-```
-R1# show ip ospf interface Gi0/0 | include Network Type|State|Designated|Wait
-```
-**Output mẫu:**
-```
-  Process ID 1, Router ID 1.1.1.1, Network Type BROADCAST, Cost: 100
-  Transmit Delay is 1 sec, State BDR, Priority 1
-  Designated Router (ID) 2.2.2.2, Interface address 10.1.12.2
-  Timer intervals configured, Hello 10, Dead 40, Wait 40, Retransmit 5
-```
-⚠️ Đây là link Ethernet **chỉ có 2 router** mà **vẫn bầu DR/BDR** — vô nghĩa.
-
-**b) Đếm LSA trước khi đổi:**
-```
-R1# show ip ospf database database-summary | begin Area 1
-```
-Ghi lại số `Network` LSA của area 1.
-
-**c) Đổi sang point-to-point (CẢ 2 ĐẦU):**
-```
-R1(config)# interface GigabitEthernet0/0
-R1(config-if)# ip ospf network point-to-point
-!
-R2(config)# interface GigabitEthernet0/0
-R2(config-if)# ip ospf network point-to-point
-```
-
-**d) Kiểm tra:**
-```
-R1# show ip ospf interface Gi0/0 | include Network Type|State|Designated|Wait|Hello
-```
-**Output mẫu:**
-```
-  Process ID 1, Router ID 1.1.1.1, Network Type POINT_TO_POINT, Cost: 100
-  Transmit Delay is 1 sec, State POINT_TO_POINT
-  Timer intervals configured, Hello 10, Dead 40, Wait 40, Retransmit 5
-```
-⭐ `State POINT_TO_POINT` · ⭐ **không còn dòng `Designated Router`**
-
-```
-R1# show ip ospf neighbor
-```
-**Output mẫu:**
-```
-Neighbor ID     Pri   State           Dead Time   Address         Interface
-2.2.2.2           0   FULL/  -        00:00:38    10.1.12.2       GigabitEthernet0/0
-```
-⭐ `FULL/  -` — **không có vai trò DR/BDR** · `Pri 0` (priority vô nghĩa trên P2P)
-
-```
-R1# show ip ospf database database-summary | begin Area 1
-```
-✅ Số `Network` LSA của area 1 = **0** (nếu trước đó đã là 0 thì confirm không tăng).
-
-**e) ⚠️ Test lỗi: đổi 1 bên thôi**
-```
-R2(config)# interface Gi0/0
-R2(config-if)# ip ospf network broadcast          ! cố ý lệch
-```
-```
-R1# show ip ospf neighbor
-```
-→ Neighbor **mất** (hoặc kẹt, tùy IOS). Log có thể báo lỗi.
-
-**Sửa lại:**
-```
-R2(config-if)# ip ospf network point-to-point
-```
-
-✅ **Checkpoint bước 5:**
-
-| Kiểm tra | Mong đợi |
-|---|---|
-| `Network Type POINT_TO_POINT` trên cả 2 router | ✅ |
-| `show ip ospf neighbor` → state `FULL/  -` | ⭐ ✅ |
-| Không còn dòng `Designated Router` | ✅ |
-| Area 1 không có Network LSA (Type 2) | ⭐ ✅ |
-| Đổi 1 bên thôi → neighbor mất | ⭐ ✅ |
-
----
-
-### Bước 6 — 🚀 LAB nâng cao: tái hiện & sửa 6 lỗi kinh điển
-
-Làm từng lỗi, **tự chẩn đoán trước khi xem đáp án**, rồi sửa.
-
-#### Lỗi 1 — 🔴 MTU mismatch → kẹt `EXSTART`
-
-```
-R1(config)# interface GigabitEthernet0/0
-R1(config-if)# mtu 1400
-```
-Chờ ~60 s (hoặc `clear ip ospf process`):
-```
-R1# show ip ospf neighbor
-```
-**Output mẫu:**
-```
-Neighbor ID     Pri   State           Dead Time   Address         Interface
-2.2.2.2           0   EXSTART/  -     00:00:35    10.1.12.2       GigabitEthernet0/0
-```
-⭐ **Kẹt `EXSTART`!**
-
-**Chẩn đoán:**
-```
-R1# show interfaces Gi0/0 | include MTU
-  MTU 1400 bytes, BW 1000000 Kbit/sec, DLY 10 usec,
-R2# show interfaces Gi0/0 | include MTU
-  MTU 1500 bytes, BW 1000000 Kbit/sec, DLY 10 usec,
-```
-```
-R1# debug ip ospf adj
-! Output sẽ báo:
-%OSPF-5-ADJCHG: Process 1, Nbr 2.2.2.2 on GigabitEthernet0/0 from EXSTART to DOWN,
-                Neighbor Down: Too many retransmissions
-R1# undebug all
-```
-
-**Sửa:**
-```
-R1(config)# interface GigabitEthernet0/0
-R1(config-if)# no mtu
-```
-✅ Neighbor lên `FULL` sau vài giây.
-
-> ⭐ **Ghi vào `SO-TAY-LOI.md`:** `EXSTART` hoặc `EXCHANGE` → **kiểm tra MTU trước mọi thứ khác**.
-
-#### Lỗi 2 — Area mismatch
-
-```
-R1(config)# router ospf 1
-R1(config-router)# no network 10.1.12.0 0.0.0.3 area 1
-R1(config-router)# network 10.1.12.0 0.0.0.3 area 5      ! cố ý sai area
-```
-```
-R1# show ip ospf neighbor
-! → Trống hoặc mất neighbor 2.2.2.2
-R1# show ip ospf interface Gi0/0 | include Area
-  Internet Address 10.1.12.1/30, Area 5, Attached via Network Statement
-R2# show ip ospf interface Gi0/0 | include Area
-  Internet Address 10.1.12.2/30, Area 1, Attached via Network Statement
-```
-⭐ **`Area 5` vs `Area 1`** → không lên neighbor.
-
-**Chẩn đoán bằng debug:**
-```
-R2# debug ip ospf adj
-%OSPF-4-ERRRCV: Received invalid packet: mismatched area ID, from backbone area
-                must be virtual-link but not found from 10.1.12.1, GigabitEthernet0/0
-R2# undebug all
-```
-
-**Sửa:**
-```
-R1(config)# router ospf 1
-R1(config-router)# no network 10.1.12.0 0.0.0.3 area 5
-R1(config-router)# network 10.1.12.0 0.0.0.3 area 1
-```
-
-#### Lỗi 3 — Timer mismatch
-
-```
-R1(config)# interface Gi0/0
-R1(config-if)# ip ospf hello-interval 5
-```
-```
-R1# show ip ospf neighbor
-! → mất neighbor
-R1# show ip ospf interface Gi0/0 | include Timer
-  Timer intervals configured, Hello 5, Dead 20, Wait 20, Retransmit 5
-R2# show ip ospf interface Gi0/0 | include Timer
-  Timer intervals configured, Hello 10, Dead 40, Wait 40, Retransmit 5
-```
-⭐ Chú ý: đổi hello 10→5, IOS **tự tính dead = 4×5 = 20**.
-
-**Sửa (2 lựa chọn):**
-```
-! Cách A — trả về mặc định
-R1(config-if)# no ip ospf hello-interval
-
-! Cách B — đặt giống nhau cả 2 đầu (nếu muốn hội tụ nhanh)
-R1(config-if)# ip ospf hello-interval 3
-R1(config-if)# ip ospf dead-interval 12
-R2(config-if)# ip ospf hello-interval 3
-R2(config-if)# ip ospf dead-interval 12
-```
-
-#### Lỗi 4 — Duplicate Router ID
-
-```
-R3(config)# router ospf 1
-R3(config-router)# router-id 4.4.4.4          ! trùng với R4
-R3# clear ip ospf process
-Reset ALL OSPF processes? [no]: yes
-```
-**Quan sát log:**
-```
-R2#
-%OSPF-4-DUP_RTRID_NBR: OSPF detected duplicate router-id 4.4.4.4 from 10.0.0.3
-                       on interface GigabitEthernet0/1
-```
-```
-R2# show ip ospf neighbor
-! → neighbor nhấp nháy, LSDB bất thường
-R2# show ip ospf database router
-! → LSA type 1 của 4.4.4.4 có Seq# tăng RẤT NHANH (2 router cùng ghi đè)
-```
-
-**Sửa:**
-```
-R3(config)# router ospf 1
-R3(config-router)# router-id 3.3.3.3
-R3# clear ip ospf process
-```
-
-> ⭐ **Dấu hiệu nhận diện duplicate Router ID:** `Seq#` của một LSA type 1 **tăng liên tục rất nhanh**
-> (2 router tranh nhau ghi đè cùng 1 LSA).
-
-#### Lỗi 5 — `passive-interface` sai chỗ
-
-```
-R2(config)# router ospf 1
-R2(config-router)# passive-interface GigabitEthernet0/0
-```
-```
-R2# show ip ospf neighbor
-! → mất neighbor 1.1.1.1
-R2# show ip protocols | include Passive
-    Passive Interface(s):
-      GigabitEthernet0/0
-      Loopback0
-```
-⭐ Nhưng chú ý: `show ip route` trên R2 **vẫn có** subnet `10.1.12.0/30` (connected)
-và R2 **vẫn quảng bá** nó — `passive-interface` chỉ **không gửi Hello**.
-
-**Sửa:**
-```
-R2(config-router)# no passive-interface GigabitEthernet0/0
-```
-
-#### Lỗi 6 — `reference-bandwidth` lệch
-
-```
-R1(config)# router ospf 1
-R1(config-router)# auto-cost reference-bandwidth 100        ! chỉ R1 đổi
-```
-```
-R1# show ip ospf interface brief
-Interface    PID   Area   IP Address/Mask     Cost  State Nbrs F/C
-Gi0/0        1     1      10.1.12.1/30        1     P2P   1/1     ← cost 1
-Lo1          1     1      172.16.1.1/24       1     LOOP  0/0
-
-R2# show ip ospf interface brief
-Interface    PID   Area   IP Address/Mask     Cost  State Nbrs F/C
-Gi0/0        1     1      10.1.12.2/30        100   P2P   1/1     ← cost 100
-```
-⭐ **Cùng một link mà 2 router tính cost khác nhau (1 vs 100).**
-
-Neighbor **vẫn lên Full** (cost không phải điều kiện adjacency) — nhưng
-**đường đi được chọn có thể sai**, và trong topology phức tạp có thể gây **routing loop**.
-
-```
-R1# show ip route ospf | include 172.16.3.0
-! metric khác so với trước
-```
-
-**Sửa:**
-```
-R1(config-router)# auto-cost reference-bandwidth 100000
-```
-
-> ⭐ **Bài học:** đây là loại lỗi **không làm mất neighbor** nên rất khó phát hiện —
-> nó chỉ làm traffic đi đường sai. **Luôn verify `show ip ospf | include Reference bandwidth`
-> trên mọi router** khi nhận bàn giao một mạng OSPF.
-
-✅ **Checkpoint bước 6:** tái hiện và sửa được **cả 6 lỗi**, và với mỗi lỗi bạn nói được:
-**(a) triệu chứng · (b) lệnh chẩn đoán · (c) cách sửa**.
-
----
-
-## 💡 5. THỰC CHIẾN ĐI LÀM
+## 💡 4.6 Thực chiến đi làm
 
 | Chủ đề | Thi dạy | Thực tế đi làm |
 |---|---|---|
@@ -1822,6 +988,20 @@ R1(config-router)# auto-cost reference-bandwidth 100000
 | **`Seq#` tăng nhanh** | Không dạy | ⭐ Dấu hiệu **LSA flapping** (link nhấp nháy) hoặc **duplicate Router ID**. `show ip ospf database router` rồi so `Seq#` sau vài phút |
 | **Số router / area** | Không có con số cứng | ⭐ Hướng dẫn thực tế: **≤ 50 router/area**, **≤ 3 area/ABR** — nhưng phụ thuộc CPU/RAM thiết bị và độ ổn định link. Quan trọng hơn: **link ổn định**, vì link flapping làm SPF chạy liên tục |
 | **Tài liệu hóa** | Không có | ⭐ Vẽ sơ đồ ghi rõ: area nào, ABR nào, Router ID nào, reference-bandwidth bao nhiêu, DR/BDR ép ở đâu. Không có tài liệu = không ai dám sửa |
+
+---
+
+# 📎 PHỤ LỤC — TRA CỨU
+
+> 🔴 **KHÔNG đọc phần này ở lần học đầu tiên.**
+>
+> | Khi nào | Mở mục nào |
+> |---|---|
+> | Đang lab mà lỗi | **Gỡ lỗi nhanh** (§7) — quy trình 5 bước cho OSPF |
+> | Quên lệnh | **Hộp lệnh** (§7.1) |
+> | Tuần 20, ôn thi | **Bẫy đề** (§6) + **Quiz** (§8) |
+> | Gặp từ lạ | **Thuật ngữ** (§9) |
+> | Tự chấm | **Đúc kết** (§10) |
 
 ---
 

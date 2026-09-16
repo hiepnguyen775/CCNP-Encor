@@ -57,7 +57,7 @@ Tôi sẽ không nói với bạn "3 tháng có CCNP". Đây là những gì th�
 | [Module-01-Packet-Forwarding-va-Kien-truc-Thiet-bi.md](Module-01-Packet-Forwarding-va-Kien-truc-Thiet-bi.md)<br>+ 🧪 [**Module-01-LAB.md**](Module-01-LAB.md) | Control/Data/Management plane, Process switching → CEF, RIB vs FIB, CAM/TCAM, SDM<br>⭐ **Có trang TÓM TẮT 10 phút + lộ trình đọc 3 mức + LAB tách riêng** | Tuần 3 |
 | [Module-02-Layer2-STP-RSTP-MST-EtherChannel.md](Module-02-Layer2-STP-RSTP-MST-EtherChannel.md)<br>+ 🧪 [**LAB Tuần 4**](Module-02-LAB-Tuan4.md) · 🧪 [**LAB Tuần 5**](Module-02-LAB-Tuan5.md) | STP sâu, RSTP, MST, các loại Guard + UDLD, EtherChannel LACP/PAgP<br>⭐ **Có trang TÓM TẮT 10 phút + bố cục 4 phần + LAB tách theo tuần** | Tuần 4–5 |
 | [Module-03-IP-Routing-Nen-tang.md](Module-03-IP-Routing-Nen-tang.md)<br>+ 🧪 [**Module-03-LAB.md**](Module-03-LAB.md) | Bảng định tuyến, AD, longest-prefix, static + **IP SLA/track**, redistribute, EIGRP↔OSPF<br>⭐ **Có trang TÓM TẮT 10 phút + bố cục 4 phần + LAB tách riêng** | Tuần 6 |
-| [Module-04A-OSPF-Nen-tang-va-LSDB.md](Module-04A-OSPF-Nen-tang-va-LSDB.md) | Neighbor states, network type, **DR/BDR**, **LSA type 1–3**, đọc LSDB | Tuần 7 |
+| [Module-04A-OSPF-Nen-tang-va-LSDB.md](Module-04A-OSPF-Nen-tang-va-LSDB.md)<br>+ 🧪 [**Module-04A-LAB.md**](Module-04A-LAB.md) | Neighbor states, network type, **DR/BDR**, **LSA type 1–3**, đọc LSDB<br>⭐ **Có trang TÓM TẮT 10 phút + bố cục 4 phần + LAB tách riêng** | Tuần 7 |
 | [Module-04B-OSPF-Area-Summarization-OSPFv3.md](Module-04B-OSPF-Area-Summarization-OSPFv3.md) | LSA 4–5–7, **area type** (stub/NSSA), **summarization**, filtering, virtual-link, auth, OSPFv3 | Tuần 8 |
 | [Module-05A-BGP-Nen-tang-va-eBGP-Peering.md](Module-05A-BGP-Nen-tang-va-eBGP-Peering.md) | eBGP peering, 6 neighbor state, 3 bảng BGP, `network` statement, attribute | Tuần 9 |
 | [Module-05B-BGP-Path-Selection-va-Filtering.md](Module-05B-BGP-Path-Selection-va-Filtering.md) | ⭐ **13 bước path selection**, Weight/LocPref/prepend/MED, community, filtering, `aggregate-address` | Tuần 10 |
@@ -120,7 +120,7 @@ thay đổi nguy hiểm (tắt CEF, shutdown link…).
 | 2 | **Thước đo của Phần 1:** gấp tài liệu lại, giải thích cho đồng nghiệp trong **3 câu**. Không nói được = chưa hiểu |
 | 3 | **LAB của module nào chỉ được hỏng vì lý do của module đó** — không kéo theo phụ thuộc thừa |
 
-> ⚙️ **Tình trạng chuyển đổi:** các module **P0, 01, 02, 03** đã theo khuôn này.
+> ⚙️ **Tình trạng chuyển đổi:** các module **P0, 01, 02, 03, 04A** đã theo khuôn này.
 > Những module còn lại đang dùng bố cục cũ (12 khối) và sẽ được chuyển dần theo đúng
 > thứ tự bạn học tới — xem [mục 7](#7-trạng-thái-biên-soạn).
 
