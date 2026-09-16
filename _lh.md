@@ -1,26 +1,26 @@
-# LAB 08 — Tuần 14: VRF · GRE · IPsec
+# LAB 09 — Tuần 15: Thiết kế & QoS
 
-> 📘 **Lý thuyết:** [Module-08](Module-08-Virtualization-va-Overlay.md) —
-> đọc **Phần 1** và **Phần 2 mục §4 (VRF), §5 (GRE), §6–7 (IPsec)** trước khi làm.
+> 📘 **Lý thuyết:** [Module-09](Module-09-Architecture-va-QoS.md) —
+> đọc **Phần 1** và **Phần 2 mục §3 (campus), §7 (SD-WAN), §8 (SD-Access), §9 (QoS)** trước khi làm.
 >
-> ⏱️ **Thời gian:** ~5 giờ · 💾 **RAM:** 2 GB *(hoặc ~7 GB nếu phải dùng CSR1000v cho crypto)*
-> · 🧰 **Cần:** EVE-NG + 3× vIOS
+> ⏱️ **Thời gian:** ~3 giờ · 💾 **RAM:** 1 GB — nhẹ nhất repo · 🧰 **Cần:** giấy bút + 2× vIOS
 
 ---
 
-## Lab này trả lời 6 câu hỏi
+## ⭐ Module "học bằng đầu" — Domain 1.0 không có mục nào bắt cấu hình
 
-| # | Câu hỏi | Bước |
-|:---:|---|:---:|
-| 1 | Hai interface **cùng một IP** trên một router — làm sao được? | 1 |
-| 2 | Vì sao gán VRF xong thì **IP biến mất**? | 1 |
-| 3 | Vì sao `ping <ip>` **không bao giờ** tới host trong VRF? | 1 |
-| 4 | Gói đi qua Internet mà ISP **không biết** mạng nội bộ — bằng cách nào? | 2 |
-| 5 | Tunnel lên rồi xuống liên tục — vì sao, và sửa thế nào? | 3 |
-| 6 | Bắt gói trước/sau khi bật IPsec — khác nhau thế nào? | 5, §11.5 |
+Toàn bộ Domain 1.0 dùng từ *Explain · Analyze · Differentiate · Describe*.
+Nên lab ở đây chủ yếu là **lab-trên-giấy** — đúng dạng câu hỏi của đề.
 
-> ⭐ **Bước 3 (tái hiện recursive routing) là bước giá trị nhất.**
-> Lab hỏng dạy nhiều hơn lab chạy — bạn sẽ thấy tunnel flapping thật và hiểu vì sao.
+| LAB | Nội dung | Cần gì | Bắt buộc? |
+|---|---|---|:---:|
+| **A** | ⭐⭐ **Chọn thiết kế** — 10 tình huống | Giấy bút | ⭐⭐ **Có** |
+| **B** | QoS trên EVE-NG (MQC, LLQ, shaping) | 2× vIOS | ⭐⭐ **Có** |
+| **C** | ⭐⭐ **Điền bảng thành phần SD-WAN / SD-Access** | Giấy bút | ⭐⭐ **Có** |
+| **D** | Nhìn DNA Center & vManage thật | DevNet Sandbox | Nên |
+
+> ⭐ **LAB C là bài đáng làm nhất.** Điền được bảng 4 thành phần SD-WAN và 5 fabric role
+> SD-Access **từ trí nhớ** là bạn đã nắm phần lớn câu hỏi của mục 1.4 và 1.5.
 
 ---
 
@@ -28,11 +28,10 @@
 
 | Điều cần biết | Chi tiết |
 |---|---|
-| ⚠️ **Kiểm tra crypto TRƯỚC** | Gõ `crypto isakmp policy 10` trên R1. Báo `% Invalid input` thì image thiếu `securityk9` — đổi R1/R2 sang **CSR1000v**, hoặc bỏ bước 5 và đọc kỹ cấu hình |
-| ⭐ **VRF: gán VRF TRƯỚC, đặt IP SAU** | Làm ngược thì IP bị xóa. Trên thiết bị thật, nếu đang SSH qua chính interface đó thì **mất kết nối** |
-| ⭐ **Ping trong VRF phải gõ `vrf`** | `ping vrf KHACH-A <ip>` — quên là dùng bảng global, không bao giờ tới |
-| **Bước 3 và 6 là cố ý phá** | Làm xong nhớ sửa lại |
-| **Lỗi > 15 phút** | Ghi vào [`SO-TAY-LOI.md`](SO-TAY-LOI.md) |
+| **Viết đáp án TRƯỚC khi mở gợi ý** | LAB A và C chỉ có giá trị nếu bạn tự làm trước |
+| **LAB B: đổi DSCP sang ToS** | `ping ... tos <n>` nhận **ToS**, không phải DSCP. ⭐ `ToS = DSCP × 4` (EF 46 → 184) |
+| 🔴 **Đừng cố dựng SD-WAN on-prem** | vManage + vSmart + vBond + 2 vEdge = **20+ GB RAM**. Máy bạn không kham nổi, **và đề không hỏi cấu hình** |
+| **Sandbox là môi trường dùng chung** | ⭐ Chỉ **XEM**, đừng đổi cấu hình |
 
 ---
 

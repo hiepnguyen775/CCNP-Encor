@@ -15,6 +15,78 @@
 
 ---
 
+# 📌 TÓM TẮT — đọc 10 phút là nắm khung
+
+## Module này trả lời một câu hỏi duy nhất
+
+> **Xếp thiết bị mạng thế nào cho một doanh nghiệp — và vì sao xếp kiểu này
+> chứ không phải kiểu kia?**
+
+## ⭐ Module có tỉ lệ điểm/công sức TỐT NHẤT cả kỳ thi
+
+```
+   Domain 1.0 Architecture = 15% đề
+
+   Toàn bộ dùng từ:  Explain · Analyze · Differentiate · Describe
+   KHÔNG có một chữ "Configure" nào.
+
+   ┌─────────────────────────────────────────────────────┐
+   │  Infrastructure (30%)  →  ~4-5 giờ học cho mỗi 1%   │
+   │  Architecture   (15%)  →  ⭐ ~0.7 giờ cho mỗi 1%     │
+   └─────────────────────────────────────────────────────┘
+
+   Nghĩa là: 15% số điểm lấy được CHỈ BẰNG HỌC BẢNG.
+   Không cần dựng lab SD-WAN 20 GB RAM.
+```
+
+🔴 **Nhưng có bẫy ngược:** vì dễ nên nhiều người học qua loa, rồi tắc ở câu
+*vBond làm gì* / *Control Plane Node chạy giao thức nào*.
+⭐ **Hai bảng thành phần SD-WAN và SD-Access phải thuộc như bảng cửu chương.**
+
+## Ba mục chiếm 2/3 số câu
+
+| Mục | Phải thuộc cái gì |
+|---|---|
+| ⭐⭐ **§7 SD-WAN** | **vManage** (quản lý) · **vSmart** (OMP, control — 🔴 **KHÔNG chở data**) · **vBond** (🔴 **thành phần DUY NHẤT cần IP public**) · **cEdge** (data qua IPsec) |
+| ⭐⭐ **§8 SD-Access** | **LISP** (control) + **VXLAN** (data) + **TrustSec** (policy), trên nền **VRF**.<br>5 fabric role · ⭐ **anycast gateway** thay thế FHRP |
+| ⭐⭐ **§9 QoS** | **DiffServ** · ⭐ **LLQ cho voice** · ⭐ **Policing VỨT / Shaping CHỜ** · WRED |
+
+## 7 ý phải nhớ
+
+| # | Ý | Một câu |
+|:---:|---|---|
+| 1 | **ACL đặt ở Distribution** | Access quá nhiều thiết bị · **Core phải giữ đơn giản và nhanh** |
+| 2 | **2-tier hay 3-tier?** | Cần Core riêng khi có **≥ 3 khối distribution** *(n khối full-mesh cần n(n−1)/2 link)* |
+| 3 | **Spine-Leaf cho DC** | Vì traffic DC là **East-West**, và cần **luôn đúng 2 hop** |
+| 4 | ⭐⭐ **SD-WAN 3 câu chốt** | IP public → **vBond** · chạy OMP → **vSmart** · traffic qua vSmart? → 🔴 **KHÔNG** |
+| 5 | ⭐⭐ **SD-Access 3 plane** | **LISP** control · **VXLAN** data · **TrustSec** policy · **VN = VRF** |
+| 6 | ⭐⭐ **Anycast gateway** | Mọi edge node **cùng IP + cùng MAC** → thay thế HSRP hoàn toàn |
+| 7 | ⭐⭐ **Voice: 150 / 30 / 1** | Latency ≤ **150 ms** · jitter ≤ **30 ms** · loss ≤ **1 %** · MOS > 4.0 |
+
+## Bảng số QoS phải thuộc
+
+| Nhóm | Giá trị |
+|---|---|
+| ⭐ **DSCP** | **EF = 46** *(voice)* · **CS3 = 24** *(signaling)* · **CS6 = 48** *(network control)* · **AF41 = 34** *(video)* · **CS1 = 8** *(scavenger)* · **DF = 0** |
+| ⭐ **Công thức** | `AFxy = 8x + 2y` · `CSx = 8x` · 🔴 **y CAO = DỄ BỊ VỨT hơn** |
+| ⭐ **Giới hạn** | Priority queue **≤ 33%** băng thông link |
+| ⭐ **CoS** | 3 bit, **CHỈ tồn tại trên trunk** *(nằm trong tag 802.1Q)* |
+
+## 🗺️ Bố cục module
+
+| Phần | Tên | Thời gian |
+|:---:|---|:---:|
+| **1** | 🧠 **CÁI ĐÓ LÀ GÌ** — 4 ví von | 45 phút |
+| **2** | ⚙️ **NÓ CHẠY THẾ NÀO** — ⭐ **§7, §8, §9 chiếm 2/3 số câu** | 5 giờ |
+| **3** | 🧪 **NHÌN THẤY NÓ** — [LAB 09](Module-09-LAB.md), ⭐ **RAM 1 GB, nhẹ nhất repo** | 3 giờ |
+| **4** | 🏗️ **TOPO & KIẾN TRÚC** — SD-WAN vs SD-Access | 45 phút |
+| **📎** | **PHỤ LỤC** — 🔴 không đọc lần đầu | — |
+
+> 🔴 **Đừng cố dựng SD-WAN on-prem.** vManage + vSmart + vBond + 2 vEdge = **20+ GB RAM**.
+> Máy bạn không kham nổi, **và đề KHÔNG hỏi cấu hình**. Dùng **DevNet Sandbox** để *nhìn* là đủ.
+
+---
+
 ## ⭐ 0. Phạm vi — module "tỉ lệ điểm/công sức tốt nhất" của cả kỳ thi
 
 ### 0.1 Đọc cái này trước
@@ -70,9 +142,83 @@ gặp câu *"vBond làm gì"* / *"Control Plane Node của SD-Access chạy giao
 
 ---
 
-## 📘 2. THIẾT KẾ CAMPUS (blueprint 1.1.a)
+## 🧠 PHẦN 1 — CÁI ĐÓ LÀ GÌ
 
-### 2.1 ⭐⭐ Ba lớp kinh điển
+> **Đọc phần này TRƯỚC, đọc một mạch.** Không lệnh, không bảng tra.
+>
+> Module-09 toàn khái niệm kiến trúc trừu tượng (SD-WAN, SD-Access, QoS).
+> Bốn ví von dưới đây biến chúng thành chuyện đời thường.
+>
+> **Tự kiểm tra:** đọc xong mỗi mục, gấp tài liệu lại, nói lại trong 3 câu.
+
+### 2.1 Ba lớp campus là ba vai trò trong một công ty
+
+- ⭐ **Access = lễ tân** — tiếp xúc trực tiếp với khách (người dùng), kiểm tra giấy tờ (802.1X), rất đông.
+- ⭐ **Distribution = quản lý tầng** — ⭐ **nơi ra quyết định và áp quy định** (ACL, policy, gateway).
+  ⭐ Nó là **ranh giới**: dưới nó là L2, trên nó là L3.
+- ⭐ **Core = đường cao tốc** — ⭐ **không có đèn đỏ, không có trạm thu phí, không có biển cấm.**
+  ⭐ Chỉ có một nhiệm vụ: **chạy thật nhanh**.
+
+🔴 ⭐ **Vì thế đặt ACL vào Core giống như đặt trạm thu phí giữa đường cao tốc** — sai chỗ.
+
+### 2.2 SD-WAN: bốn con người trong một công ty vận tải
+
+- ⭐ **vBond = anh bảo vệ ở cổng.** ⭐ **Xe mới tới thì gặp anh này TRƯỚC.** Anh kiểm giấy tờ (chứng thư),
+  rồi chỉ: *"vào trong gặp giám đốc và điều độ viên"*. ⭐ **Anh phải đứng ở ngoài cổng → phải có địa chỉ ai cũng tìm được (IP public).**
+- ⭐ **vManage = giám đốc.** Bạn nói chuyện với ông này. Ông ra chính sách, xem báo cáo.
+- ⭐ **vSmart = điều độ viên.** ⭐ Ông cầm bản đồ, biết tất cả tuyến đường, **bảo từng xe đi đường nào**.
+  🔴 ⭐ **Nhưng ông KHÔNG lái xe, và hàng hóa KHÔNG đi qua bàn ông.**
+- ⭐ **vEdge/cEdge = tài xế.** ⭐ **Chở hàng thật.** Xe này nói chuyện thẳng với xe kia (IPsec), không qua điều độ.
+
+⭐ **Và BFD/AAR = tài xế liên tục báo về "đường này đang kẹt"** → điều độ viên đổi tuyến cho hàng ưu tiên.
+
+### 2.3 SD-Access: anycast gateway là "cửa ra vào ở mọi bức tường"
+
+⭐ Mạng truyền thống: cả tòa nhà có **một cửa chính** (gateway ở distribution). ⭐ Bạn ở tầng 5 muốn ra ngoài
+thì phải đi bộ xuống tầng trệt. ⭐ **HSRP** chỉ là *"có hai bác bảo vệ thay phiên gác cái cửa đó"*.
+
+⭐⭐ **SD-Access: MỌI bức tường đều là cửa ra, và mọi cửa đều mang CÙNG một số nhà.**
+⭐ Bạn đứng ở đâu cũng có cửa ngay cạnh, ⭐ **và vì mọi cửa cùng số nhà nên bạn chuyển chỗ mà
+không phải đổi địa chỉ, không phải hỏi lại đường (không ARP lại).**
+
+⭐ **Đó là toàn bộ ý nghĩa của anycast gateway** — và là lý do SD-Access **không cần HSRP**.
+
+### 2.4 QoS: sân bay giờ cao điểm
+
+- ⭐ **Marking (DSCP)** = ⭐ **in hạng vé lên boarding pass**. Làm **một lần ở quầy check-in**
+  (⭐ **trust boundary, càng gần nguồn càng tốt**), sau đó ai cũng chỉ cần nhìn tấm vé.
+- ⭐⭐ **LLQ** = ⭐ **làn ưu tiên đi thẳng ra cửa**. ⭐ Voice đi làn này.
+  🔴 ⭐ **Nhưng nếu cho 80% hành khách vào làn ưu tiên thì nó hết là ưu tiên** → ⭐ **giới hạn 33%**.
+- ⭐ **CBWFQ** = ⭐ **mỗi hạng vé được đảm bảo một số quầy làm thủ tục** — chắc chắn được phục vụ,
+  ⭐ **nhưng không hứa là nhanh**.
+- ⭐ **Policing** = ⭐ **hành lý quá cân thì VỨT LẠI.** ⭐ **Shaping** = ⭐ **cho chờ chuyến sau.**
+- ⭐ **WRED** = ⭐ **thấy sắp quá tải thì mời rải rác vài người đổi chuyến TRƯỚC KHI vỡ trận**,
+  thay vì để đến lúc đầy rồi ⭐ **đuổi hết một loạt** (tail drop) làm cả sân bay hỗn loạn cùng lúc
+  (⭐ **TCP global synchronization**).
+
+⭐ **Và trust boundary = "không tin hành khách tự in vé hạng thương gia ở nhà"** —
+🔴 ⭐ **đó chính là lý do không tin DSCP từ PC người dùng.**
+
+
+---
+
+## ⚙️ PHẦN 2 — NÓ CHẠY THẾ NÀO
+
+> | Phần 1 (ví von) | → | Phần 2 (cơ chế) |
+> |---|:---:|---|
+> | §2.1 ba vai trò trong công ty | → | **§3 Thiết kế campus (Access/Dist/Core)** |
+> | §2.2 công ty vận tải | → | **§7 SD-WAN** 🔴 ⭐⭐ |
+> | §2.3 cửa ra ở mọi bức tường | → | **§8 SD-Access (anycast gateway)** 🔴 ⭐⭐ |
+> | §2.4 sân bay giờ cao điểm | → | **§9 QoS** 🔴 ⭐⭐ |
+>
+> ⭐ **Ba mục in đỏ (§7, §8, §9) chiếm khoảng 2/3 số câu của Domain 1.0.**
+> Thiếu thời gian thì học ba mục đó trước, phần còn lại đọc bảng là đủ.
+
+---
+
+## 📘 3. THIẾT KẾ CAMPUS (blueprint 1.1.a)
+
+### 3.1 ⭐⭐ Ba lớp kinh điển
 
 ```
         ┌──────────────────────────────────┐
@@ -98,7 +244,7 @@ gặp câu *"vBond làm gì"* / *"Control Plane Node của SD-Access chạy giao
 > 🔴 ⭐⭐ **Câu hỏi đề kinh điển:** *"Nên đặt ACL/policy ở lớp nào?"*
 > ⭐ **DISTRIBUTION.** ⭐ Access thì quá nhiều thiết bị (khó quản lý), ⭐ **Core thì phải giữ cho nhanh và đơn giản.**
 
-### 2.2 ⭐⭐ 2-tier (Collapsed Core) vs 3-tier
+### 3.2 ⭐⭐ 2-tier (Collapsed Core) vs 3-tier
 
 ```
    ═══ 3-TIER ═══                    ═══ 2-TIER (Collapsed Core) ═══
@@ -123,7 +269,7 @@ gặp câu *"vBond làm gì"* / *"Control Plane Node của SD-Access chạy giao
 > ⭐ Cisco thường lấy mốc ⭐ **3 khối distribution trở lên → tách Core.**
 > *(Toán học: n khối full-mesh cần `n(n−1)/2` link. 3 khối = 3 link (còn OK), 6 khối = 15 link (thảm họa).)*
 
-### 2.3 ⭐ Access layer: L2 access vs Routed access
+### 3.3 ⭐ Access layer: L2 access vs Routed access
 
 | | ⭐ **Layer 2 access** *(truyền thống)* | ⭐ **Routed access** *(L3 xuống tận access)* |
 |---|---|---|
@@ -137,7 +283,7 @@ gặp câu *"vBond làm gì"* / *"Control Plane Node của SD-Access chạy giao
 ⭐ **Xu hướng hiện đại:** ⭐ **routed access** (và SD-Access dùng underlay routed access).
 ⭐ **Nhưng nhiều nơi vẫn cần L2 access** vì ứng dụng cũ đòi cùng subnet.
 
-### 2.4 ⭐⭐ Spine-Leaf — vì sao Data Center KHÔNG dùng 3-tier
+### 3.4 ⭐⭐ Spine-Leaf — vì sao Data Center KHÔNG dùng 3-tier
 
 ```
         ┌─────────┐   ┌─────────┐   ┌─────────┐
@@ -163,7 +309,7 @@ gặp câu *"vBond làm gì"* / *"Control Plane Node của SD-Access chạy giao
 > ⭐⭐ **Câu chốt:** ⭐ **"3-tier tối ưu cho North-South. Spine-Leaf tối ưu cho East-West và độ trễ ĐỀU."**
 > ⭐ **Đây là lý do ảo hóa/microservices làm DC phải đổi kiến trúc** — traffic server↔server bùng nổ.
 
-### 2.5 ⭐ Capacity planning & oversubscription
+### 3.5 ⭐ Capacity planning & oversubscription
 
 > ⭐ **Oversubscription** = tổng băng thông **phía dưới** lớn hơn băng thông **lên trên** bao nhiêu lần.
 
@@ -187,9 +333,9 @@ gặp câu *"vBond làm gì"* / *"Control Plane Node của SD-Access chạy giao
 
 ---
 
-## 📘 3. HIGH AVAILABILITY (blueprint 1.1.b)
+## 📘 4. HIGH AVAILABILITY (blueprint 1.1.b)
 
-### 3.1 ⭐⭐ Bảng dự phòng theo từng tầng
+### 4.1 ⭐⭐ Bảng dự phòng theo từng tầng
 
 | Tầng | Kỹ thuật | ⭐ Chống hỏng cái gì |
 |---|---|---|
@@ -202,7 +348,7 @@ gặp câu *"vBond làm gì"* / *"Control Plane Node của SD-Access chạy giao
 | **Phần mềm** | ⭐ **ISSU** (nâng cấp không gián đoạn) | Downtime khi nâng cấp |
 | **Site** | Data center thứ hai, DR | Mất cả một site |
 
-### 3.2 ⭐⭐ SSO · NSF · GR — ba chữ hay lẫn nhau
+### 4.2 ⭐⭐ SSO · NSF · GR — ba chữ hay lẫn nhau
 
 | | ⭐ **SSO** (Stateful Switchover) | ⭐ **NSF** (Nonstop Forwarding) | ⭐ **GR** (Graceful Restart) |
 |---|---|---|---|
@@ -214,7 +360,7 @@ gặp câu *"vBond làm gì"* / *"Control Plane Node của SD-Access chạy giao
 > ⭐⭐ **Ba cái này đi CÙNG NHAU:** ⭐ **SSO** chuyển sang sup dự phòng · ⭐ **NSF** giữ cho gói vẫn chảy
 > trong lúc đó · ⭐ **GR** làm hàng xóm không rút route của bạn. ⭐ **Thiếu một cái là vẫn rớt.**
 
-### 3.3 ⭐ Gộp nhiều switch thành một
+### 4.3 ⭐ Gộp nhiều switch thành một
 
 | Công nghệ | Nền tảng | Ý tưởng |
 |---|---|---|
@@ -235,9 +381,9 @@ gặp câu *"vBond làm gì"* / *"Control Plane Node của SD-Access chạy giao
 
 ---
 
-## 📘 4. THIẾT KẾ WLAN (blueprint 1.2)
+## 📘 5. THIẾT KẾ WLAN (blueprint 1.2)
 
-### 4.1 ⭐⭐ Sáu mô hình triển khai WLAN (1.2.a)
+### 5.1 ⭐⭐ Sáu mô hình triển khai WLAN (1.2.a)
 
 | Mô hình | Điều khiển ở đâu | Data đi đâu | ⭐ Dùng khi |
 |---|---|---|---|
@@ -252,7 +398,7 @@ gặp câu *"vBond làm gì"* / *"Control Plane Node của SD-Access chạy giao
 > · ⭐ **Cloud-managed** (Meraki): ⭐ **chỉ QUẢN LÝ ở cloud, DATA vẫn ra thẳng LAN tại chỗ**
 > · ⭐ **Cloud-hosted WLC** (9800-CL trên AWS/Azure): WLC là VM trên cloud, ⭐ **AP vẫn dựng CAPWAP tới nó**
 
-### 4.2 ⭐ Location Services (1.2.b)
+### 5.2 ⭐ Location Services (1.2.b)
 
 | Kỹ thuật | Cách hoạt động | ⭐ Độ chính xác |
 |---|---|---|
@@ -271,7 +417,7 @@ gặp câu *"vBond làm gì"* / *"Control Plane Node của SD-Access chạy giao
 > ⭐ Vì trilateration cần **bao vây** mục tiêu. ⭐ AP chỉ đặt giữa trần → mọi client đều "ở giữa" →
 > ⭐ **định vị sai bét.** ⭐ Cisco khuyến nghị AP đặt so le kiểu **zig-zag**, khoảng cách ~12–21 m.
 
-### 4.3 ⭐ Client density (1.2.c)
+### 5.3 ⭐ Client density (1.2.c)
 
 ⭐ Đã học kỹ ở ⭐ **[Module-07A §4.2](Module-07A-Wireless-RF-802.11-AP-Antenna.md)**. ⭐ **Ôn nhanh:**
 
@@ -284,9 +430,9 @@ gặp câu *"vBond làm gì"* / *"Control Plane Node của SD-Access chạy giao
 
 ---
 
-## 📘 5. ON-PREM vs CLOUD (blueprint 1.3)
+## 📘 6. ON-PREM vs CLOUD (blueprint 1.3)
 
-### 5.1 ⭐ Ba mô hình dịch vụ
+### 6.1 ⭐ Ba mô hình dịch vụ
 
 ```
    AI QUẢN CÁI GÌ:              On-Prem    IaaS     PaaS     SaaS
@@ -308,7 +454,7 @@ gặp câu *"vBond làm gì"* / *"Control Plane Node của SD-Access chạy giao
 ⭐ **Mô hình triển khai:** ⭐ **Public** (AWS/Azure/GCP) · ⭐ **Private** (cloud riêng trong DC của bạn —
 ⭐ **cụm Proxmox của bạn chính là private cloud**) · ⭐ **Hybrid** (kết hợp) · **Multi-cloud** (nhiều NCC).
 
-### 5.2 ⭐⭐ Bốn cách kết nối tới Cloud — bảng phải nhớ
+### 6.2 ⭐⭐ Bốn cách kết nối tới Cloud — bảng phải nhớ
 
 | Cách | Đường đi | Độ trễ / ổn định | Chi phí | ⭐ Dùng khi |
 |---|---|---|---|---|
@@ -320,7 +466,7 @@ gặp câu *"vBond làm gì"* / *"Control Plane Node của SD-Access chạy giao
 ⭐ **Router ảo trong cloud:** ⭐ **Cisco Catalyst 8000v / CSR1000v** — chạy IOS-XE **dưới dạng VM trên AWS/Azure**
 → ⭐ dựng được IPsec/BGP/VRF ngay trong VPC. ⭐ **Đây chính là NFV** (Module-08 §2.3).
 
-### 5.3 ⭐ Chọn On-prem hay Cloud
+### 6.3 ⭐ Chọn On-prem hay Cloud
 
 | Tiêu chí | ⭐ **On-premises** | ⭐ **Cloud** |
 |---|---|---|
@@ -337,9 +483,9 @@ gặp câu *"vBond làm gì"* / *"Control Plane Node của SD-Access chạy giao
 
 ---
 
-## 📘 6. 🔴 ⭐⭐ SD-WAN (blueprint 1.4)
+## 📘 7. 🔴 ⭐⭐ SD-WAN (blueprint 1.4)
 
-### 6.1 ⭐ Vấn đề của WAN truyền thống
+### 7.1 ⭐ Vấn đề của WAN truyền thống
 
 | 🔴 Vấn đề | ⭐ SD-WAN giải quyết |
 |---|---|
@@ -350,7 +496,7 @@ gặp câu *"vBond làm gì"* / *"Control Plane Node của SD-Access chạy giao
 | ⭐ Router mới phải có **kỹ sư đến tận nơi** | ⭐⭐ **ZTP / PnP** — cắm điện + mạng là tự cấu hình |
 | ⭐ Không biết đường nào đang tốt | ⭐⭐ **BFD đo loss/latency/jitter liên tục** → **AAR** tự chuyển |
 
-### 6.2 ⭐⭐ BỐN THÀNH PHẦN — bảng QUAN TRỌNG NHẤT của §6
+### 7.2 ⭐⭐ BỐN THÀNH PHẦN — bảng QUAN TRỌNG NHẤT của §6
 
 ```
    ┌──────────────┐   ┌──────────────┐   ┌──────────────┐
@@ -388,7 +534,7 @@ gặp câu *"vBond làm gì"* / *"Control Plane Node của SD-Access chạy giao
 ⭐ *(Trên Cisco Catalyst SD-WAN đời mới, tên gọi đã đổi: **SD-WAN Manager** (vManage) ·
 **SD-WAN Controller** (vSmart) · **SD-WAN Validator** (vBond). ⭐ **Đề vẫn dùng tên cũ — biết cả hai.**)*
 
-### 6.3 ⭐⭐ OMP, TLOC, Color — ba thuật ngữ phải hiểu
+### 7.3 ⭐⭐ OMP, TLOC, Color — ba thuật ngữ phải hiểu
 
 | Thuật ngữ | Nghĩa |
 |---|---|
@@ -403,7 +549,7 @@ gặp câu *"vBond làm gì"* / *"Control Plane Node của SD-Access chạy giao
 > `(10.0.0.1, mpls, ipsec)` và `(10.0.0.1, biz-internet, ipsec)`.
 > ⭐ **Nhờ có 2 TLOC, vSmart biết có 2 đường tới site đó** và có thể ra chính sách chọn đường.
 
-### 6.4 ⭐ Chính sách & Application-Aware Routing
+### 7.4 ⭐ Chính sách & Application-Aware Routing
 
 | Loại chính sách | Áp ở đâu | Làm gì |
 |---|---|---|
@@ -420,7 +566,7 @@ gặp câu *"vBond làm gì"* / *"Control Plane Node của SD-Access chạy giao
 được chỉ tới ⭐ **vBond** → vBond xác thực (chứng thư + serial) → giới thiệu tới ⭐ **vManage** →
 ⭐ **tải template về** → tham gia overlay. ⭐ **Không cần kỹ sư đến tận nơi.**
 
-### 6.5 ⭐ WAN truyền thống vs SD-WAN
+### 7.5 ⭐ WAN truyền thống vs SD-WAN
 
 | | ⭐ **WAN truyền thống** | ⭐⭐ **SD-WAN** |
 |---|---|---|
@@ -434,9 +580,9 @@ gặp câu *"vBond làm gì"* / *"Control Plane Node của SD-Access chạy giao
 
 ---
 
-## 📘 7. 🔴 ⭐⭐ SD-ACCESS (blueprint 1.5)
+## 📘 8. 🔴 ⭐⭐ SD-ACCESS (blueprint 1.5)
 
-### 7.1 ⭐⭐ Nhắc lại nền tảng từ Module-08
+### 8.1 ⭐⭐ Nhắc lại nền tảng từ Module-08
 
 > ⭐⭐ **Câu thần chú (đã học ở [Module-08 §8.5](Module-08-Virtualization-va-Overlay.md)):**
 >
@@ -447,7 +593,7 @@ gặp câu *"vBond làm gì"* / *"Control Plane Node của SD-Access chạy giao
 > | ⭐⭐ **Policy plane** | ⭐ **TrustSec (SGT)** | "Ai được nói chuyện với ai" *(Module-10)* |
 > | ⭐ **Nền** | ⭐ **VRF** | ⭐ **VN (Virtual Network) trong SD-Access CHÍNH LÀ VRF** |
 
-### 7.2 ⭐⭐ Kiến trúc tổng
+### 8.2 ⭐⭐ Kiến trúc tổng
 
 ```
    ┌──────────────────┐        ┌──────────────────┐
@@ -472,7 +618,7 @@ gặp câu *"vBond làm gì"* / *"Control Plane Node của SD-Access chạy giao
               PC / phone / AP / IoT
 ```
 
-### 7.3 ⭐⭐ NĂM FABRIC ROLE — bảng PHẢI HỌC THUỘC
+### 8.3 ⭐⭐ NĂM FABRIC ROLE — bảng PHẢI HỌC THUỘC
 
 | Role | ⭐⭐ Làm gì | ⭐ Chạy gì |
 |---|---|---|
@@ -498,7 +644,7 @@ gặp câu *"vBond làm gì"* / *"Control Plane Node của SD-Access chạy giao
 > 3. ⭐ *"Node nào bọc gói VXLAN?"* → ⭐ **Edge Node** (và Border node ở chiều ra)
 > 4. ⭐ *"Intermediate node có biết về fabric không?"* → 🔴 ⭐ **KHÔNG — nó chỉ định tuyến IP underlay**
 
-### 7.4 ⭐⭐ Anycast Gateway — khái niệm hay nhất của SD-Access
+### 8.4 ⭐⭐ Anycast Gateway — khái niệm hay nhất của SD-Access
 
 ```
    TẤT CẢ Edge Node đều dùng CÙNG một IP gateway VÀ CÙNG một MAC cho mỗi subnet
@@ -521,7 +667,7 @@ gặp câu *"vBond làm gì"* / *"Control Plane Node của SD-Access chạy giao
 > ⭐⭐ **So sánh giúp bạn nhớ:** mạng truyền thống dùng ⭐ **HSRP** để hai router **chia nhau** một IP ảo
 > ở **một chỗ**. ⭐ **SD-Access dùng anycast gateway để TẤT CẢ switch cùng có một IP ở MỌI chỗ.**
 
-### 7.5 ⭐⭐ SD-Access Wireless — chỗ có bẫy
+### 8.5 ⭐⭐ SD-Access Wireless — chỗ có bẫy
 
 ```
    CONTROL plane:  Fabric AP ══ CAPWAP control ══► Fabric WLC   (như bình thường)
@@ -538,7 +684,7 @@ gặp câu *"vBond làm gì"* / *"Control Plane Node của SD-Access chạy giao
 > ⭐ **Lợi ích:** ⭐ **wired và wireless dùng CHUNG một chính sách, chung một SGT, chung một VN** —
 > ⭐ đây là mục tiêu *"policy nhất quán"* của SD-Access.
 
-### 7.6 ⭐⭐ Segmentation: VN vs SGT
+### 8.6 ⭐⭐ Segmentation: VN vs SGT
 
 | | ⭐⭐ **VN** (Virtual Network) | ⭐⭐ **SGT** (Scalable Group Tag) |
 |---|---|---|
@@ -552,7 +698,7 @@ gặp câu *"vBond làm gì"* / *"Control Plane Node của SD-Access chạy giao
 > ⭐⭐ **Cách nhớ:** ⭐ **VN = những TÒA NHÀ riêng biệt** (không có cửa nối nhau) ·
 > ⭐ **SGT = quy định ai được vào PHÒNG nào trong cùng một tòa nhà.**
 
-### 7.7 ⭐ Underlay, Overlay, Transit
+### 8.7 ⭐ Underlay, Overlay, Transit
 
 | | Chi tiết |
 |---|---|
@@ -565,7 +711,7 @@ gặp câu *"vBond làm gì"* / *"Control Plane Node của SD-Access chạy giao
 > 🔴 ⭐ **Bẫy thiết kế thật:** ⭐ **VN cách ly TUYỆT ĐỐI** → mọi thứ dùng chung (DHCP, DNS, AD, in ấn)
 > ⭐ **phải đi vòng qua fusion router**. ⭐ **Quên thiết kế fusion router = fabric dựng xong nhưng không ai làm việc được.**
 
-### 7.8 ⭐ DNA Center — bốn workflow
+### 8.8 ⭐ DNA Center — bốn workflow
 
 | Workflow | Làm gì |
 |---|---|
@@ -577,7 +723,7 @@ gặp câu *"vBond làm gì"* / *"Control Plane Node của SD-Access chạy giao
 ⭐ **Yêu cầu triển khai thực tế:** ⭐ **DNA Center** (appliance, đắt) + ⭐ **ISE** + ⭐ **switch đủ đời**
 (Catalyst 9000 series) + ⭐ **license DNA Advantage**. ⭐ **Không phải mạng nào cũng làm được SD-Access.**
 
-### 7.9 ⭐⭐ SD-WAN vs SD-Access — đừng lẫn hai cái
+### 8.9 ⭐⭐ SD-WAN vs SD-Access — đừng lẫn hai cái
 
 | | ⭐ **SD-WAN** | ⭐ **SD-Access** |
 |---|---|---|
@@ -593,9 +739,9 @@ gặp câu *"vBond làm gì"* / *"Control Plane Node của SD-Access chạy giao
 
 ---
 
-## 📘 8. 🔴 ⭐⭐ QoS (blueprint 1.6)
+## 📘 9. 🔴 ⭐⭐ QoS (blueprint 1.6)
 
-### 8.1 ⭐ Bốn thứ QoS chống lại
+### 9.1 ⭐ Bốn thứ QoS chống lại
 
 | Vấn đề | Nghĩa | ⭐ Ngưỡng cho **VOICE** *(phải nhớ!)* |
 |---|---|---|
@@ -609,7 +755,7 @@ gặp câu *"vBond làm gì"* / *"Control Plane Node của SD-Access chạy giao
 >
 > ⭐ *(Video tương tác, tham khảo: latency ~200–400 ms · jitter ~30–50 ms · loss ~0.1–1 %.)*
 
-### 8.2 ⭐⭐ Ba mô hình QoS
+### 9.2 ⭐⭐ Ba mô hình QoS
 
 | Mô hình | Cách hoạt động | ⭐ Thực tế |
 |---|---|---|
@@ -621,7 +767,7 @@ gặp câu *"vBond làm gì"* / *"Control Plane Node của SD-Access chạy giao
 > ⭐⭐ **DiffServ = phân hạng vé máy bay** (hạng thương gia lên trước — ⭐ **hãng không cần nhớ tên bạn,
 > chỉ cần nhìn tấm vé**).
 
-### 8.3 ⭐⭐ Classification & Marking
+### 9.3 ⭐⭐ Classification & Marking
 
 | Nơi đánh dấu | Trường | Số bit | Giá trị | ⭐ Ghi chú |
 |---|---|:---:|---|---|
@@ -681,7 +827,7 @@ gặp câu *"vBond làm gì"* / *"Control Plane Node của SD-Access chạy giao
 | 🔴 ⭐ **KHÔNG tin PC người dùng** | ⭐ **Ai cũng có thể tự đặt DSCP EF cho game của mình** → cướp hết ưu tiên của voice |
 | ⭐ Không tin thì làm gì | ⭐ **Ghi đè về 0** (`DF`), hoặc phân loại lại bằng ACL/NBAR |
 
-### 8.4 ⭐⭐ Queuing — xếp hàng
+### 9.4 ⭐⭐ Queuing — xếp hàng
 
 | Cơ chế | Cách hoạt động | ⭐ Ghi chú |
 |---|---|---|
@@ -696,7 +842,7 @@ gặp câu *"vBond làm gì"* / *"Control Plane Node của SD-Access chạy giao
 > 2. ⭐⭐ **Priority queue nên ≤ 33% băng thông link.** ⭐ Nếu để quá lớn → ⭐ **các lớp khác bị bỏ đói**
 >    (priority queue có **policer** ngầm, nhưng thiết kế vẫn sai).
 
-### 8.5 ⭐⭐ Congestion Avoidance — WRED
+### 9.5 ⭐⭐ Congestion Avoidance — WRED
 
 | | ⭐ **Tail Drop** *(mặc định)* | ⭐⭐ **WRED** (Weighted Random Early Detection) |
 |---|---|---|
@@ -709,7 +855,7 @@ gặp câu *"vBond làm gì"* / *"Control Plane Node của SD-Access chạy giao
 >    ⭐ **UDP không quan tâm** — vứt gói UDP chỉ làm hỏng chất lượng, không làm nó chậm lại.
 > 2. 🔴 ⭐⭐ **TUYỆT ĐỐI KHÔNG áp WRED lên hàng đợi VOICE (LLQ).** ⭐ Voice là UDP và **không chịu được mất gói**.
 
-### 8.6 ⭐⭐ Policing vs Shaping — bảng đề hỏi rất nhiều
+### 9.6 ⭐⭐ Policing vs Shaping — bảng đề hỏi rất nhiều
 
 ```
    POLICING                            SHAPING
@@ -741,7 +887,7 @@ gặp câu *"vBond làm gì"* / *"Control Plane Node của SD-Access chạy giao
 ⭐ **Token bucket (chỉ cần hiểu ý):** ⭐ **CIR** (tốc độ cam kết) · ⭐ **Bc** (burst cho phép mỗi chu kỳ) ·
 ⭐ **Be** (burst vượt mức). ⭐ Có token thì gói được đi, hết token thì bị vứt/chờ.
 
-### 8.7 ⭐⭐ Wireless QoS
+### 9.7 ⭐⭐ Wireless QoS
 
 | Khái niệm | Chi tiết |
 |---|---|
@@ -757,7 +903,7 @@ gặp câu *"vBond làm gì"* / *"Control Plane Node của SD-Access chạy giao
 | 1 | ⭐⭐ **CAPWAP phải mang QoS ra HEADER NGOÀI.** ⭐ Traffic client nằm **bên trong** tunnel CAPWAP → mạng có dây **không nhìn thấy** DSCP bên trong. ⭐ **AP/WLC phải COPY DSCP ra header CAPWAP ngoài**, nếu không QoS **vô hình** trên đoạn AP↔WLC |
 | 2 | ⭐ **Ánh xạ DSCP ↔ UP.** ⭐ Cách cũ (`DSCP >> 3`) khiến ⭐ **EF (46) rơi vào UP 5 = hàng đợi VIDEO**, không phải voice! ⭐ **RFC 8325** sửa lại — ⭐ Cisco hiện khuyến nghị theo **RFC 8325** |
 
-### 8.8 ⭐ MQC — cấu hình QoS bằng 3 bước
+### 9.8 ⭐ MQC — cấu hình QoS bằng 3 bước
 
 > ⭐ Blueprint 1.6 chỉ nói *"Describe"*, nhưng ⭐ **MQC rất đơn giản và giúp bạn hiểu bản chất** —
 > ⭐ **đáng bỏ 30 phút lab** (§10.2).
@@ -807,7 +953,7 @@ show policy-map
 ⭐ **AutoQoS:** `auto qos voip cisco-phone` / `auto qos trust` — ⭐ Cisco tự sinh cấu hình QoS theo best practice.
 ⭐ **Rất hay để bắt đầu**, sau đó chỉnh tay.
 
-### 8.9 ⭐ Mô hình 12 lớp của Cisco (chỉ cần nhận diện)
+### 9.9 ⭐ Mô hình 12 lớp của Cisco (chỉ cần nhận diện)
 
 | Lớp | ⭐ Marking | Hàng đợi |
 |---|---|---|
@@ -827,307 +973,130 @@ show policy-map
 > ⭐ **Không cần thuộc cả 12 dòng.** ⭐ **Thuộc 5 dòng in đậm là đủ cho đề:**
 > ⭐ **EF=46 (voice) · CS3=24 (signaling) · CS6=48 (network control) · AF41=34 (video call) · CS1=8 (scavenger) · DF=0.**
 
----
+## 🧪 PHẦN 3 — NHÌN THẤY NÓ
 
-## 📖 9. HIỂU RÕ HƠN
+> ### 👉 **[LAB 09 — Tuần 15: Thiết kế & QoS](Module-09-LAB.md)**
 
-### 9.1 Ba lớp campus là ba vai trò trong một công ty
+> ⭐ **Domain 1.0 không có mục nào bắt cấu hình** — toàn *Explain / Analyze / Describe*.
+> Nên lab ở đây chủ yếu là **lab-trên-giấy**, đúng dạng câu hỏi của đề.
 
-- ⭐ **Access = lễ tân** — tiếp xúc trực tiếp với khách (người dùng), kiểm tra giấy tờ (802.1X), rất đông.
-- ⭐ **Distribution = quản lý tầng** — ⭐ **nơi ra quyết định và áp quy định** (ACL, policy, gateway).
-  ⭐ Nó là **ranh giới**: dưới nó là L2, trên nó là L3.
-- ⭐ **Core = đường cao tốc** — ⭐ **không có đèn đỏ, không có trạm thu phí, không có biển cấm.**
-  ⭐ Chỉ có một nhiệm vụ: **chạy thật nhanh**.
+| LAB | Nội dung | Ví von ở Phần 1 | Cơ chế ở Phần 2 |
+|---|---|---|---|
+| **A** | ⭐⭐ Chọn thiết kế (10 tình huống) | §2.1 ba vai trò trong công ty | §3 · §5 |
+| **B** | QoS trên EVE-NG (MQC, LLQ, shaping) | §2.4 sân bay giờ cao điểm | §9 |
+| **C** | ⭐⭐ Điền bảng SD-WAN / SD-Access | §2.2 công ty vận tải · §2.3 cửa ở mọi bức tường | §7 · §8 |
+| **D** | Nhìn DNA Center & vManage thật | — | §7 · §8 |
 
-🔴 ⭐ **Vì thế đặt ACL vào Core giống như đặt trạm thu phí giữa đường cao tốc** — sai chỗ.
-
-### 9.2 SD-WAN: bốn con người trong một công ty vận tải
-
-- ⭐ **vBond = anh bảo vệ ở cổng.** ⭐ **Xe mới tới thì gặp anh này TRƯỚC.** Anh kiểm giấy tờ (chứng thư),
-  rồi chỉ: *"vào trong gặp giám đốc và điều độ viên"*. ⭐ **Anh phải đứng ở ngoài cổng → phải có địa chỉ ai cũng tìm được (IP public).**
-- ⭐ **vManage = giám đốc.** Bạn nói chuyện với ông này. Ông ra chính sách, xem báo cáo.
-- ⭐ **vSmart = điều độ viên.** ⭐ Ông cầm bản đồ, biết tất cả tuyến đường, **bảo từng xe đi đường nào**.
-  🔴 ⭐ **Nhưng ông KHÔNG lái xe, và hàng hóa KHÔNG đi qua bàn ông.**
-- ⭐ **vEdge/cEdge = tài xế.** ⭐ **Chở hàng thật.** Xe này nói chuyện thẳng với xe kia (IPsec), không qua điều độ.
-
-⭐ **Và BFD/AAR = tài xế liên tục báo về "đường này đang kẹt"** → điều độ viên đổi tuyến cho hàng ưu tiên.
-
-### 9.3 SD-Access: anycast gateway là "cửa ra vào ở mọi bức tường"
-
-⭐ Mạng truyền thống: cả tòa nhà có **một cửa chính** (gateway ở distribution). ⭐ Bạn ở tầng 5 muốn ra ngoài
-thì phải đi bộ xuống tầng trệt. ⭐ **HSRP** chỉ là *"có hai bác bảo vệ thay phiên gác cái cửa đó"*.
-
-⭐⭐ **SD-Access: MỌI bức tường đều là cửa ra, và mọi cửa đều mang CÙNG một số nhà.**
-⭐ Bạn đứng ở đâu cũng có cửa ngay cạnh, ⭐ **và vì mọi cửa cùng số nhà nên bạn chuyển chỗ mà
-không phải đổi địa chỉ, không phải hỏi lại đường (không ARP lại).**
-
-⭐ **Đó là toàn bộ ý nghĩa của anycast gateway** — và là lý do SD-Access **không cần HSRP**.
-
-### 9.4 QoS: sân bay giờ cao điểm
-
-- ⭐ **Marking (DSCP)** = ⭐ **in hạng vé lên boarding pass**. Làm **một lần ở quầy check-in**
-  (⭐ **trust boundary, càng gần nguồn càng tốt**), sau đó ai cũng chỉ cần nhìn tấm vé.
-- ⭐⭐ **LLQ** = ⭐ **làn ưu tiên đi thẳng ra cửa**. ⭐ Voice đi làn này.
-  🔴 ⭐ **Nhưng nếu cho 80% hành khách vào làn ưu tiên thì nó hết là ưu tiên** → ⭐ **giới hạn 33%**.
-- ⭐ **CBWFQ** = ⭐ **mỗi hạng vé được đảm bảo một số quầy làm thủ tục** — chắc chắn được phục vụ,
-  ⭐ **nhưng không hứa là nhanh**.
-- ⭐ **Policing** = ⭐ **hành lý quá cân thì VỨT LẠI.** ⭐ **Shaping** = ⭐ **cho chờ chuyến sau.**
-- ⭐ **WRED** = ⭐ **thấy sắp quá tải thì mời rải rác vài người đổi chuyến TRƯỚC KHI vỡ trận**,
-  thay vì để đến lúc đầy rồi ⭐ **đuổi hết một loạt** (tail drop) làm cả sân bay hỗn loạn cùng lúc
-  (⭐ **TCP global synchronization**).
-
-⭐ **Và trust boundary = "không tin hành khách tự in vé hạng thương gia ở nhà"** —
-🔴 ⭐ **đó chính là lý do không tin DSCP từ PC người dùng.**
+> ⭐ **LAB C là bài đáng làm nhất module.** Nếu bạn điền được **từ trí nhớ** bảng
+> 4 thành phần SD-WAN (vManage/vSmart/vBond/cEdge) và 5 fabric role SD-Access
+> (Control Plane/Border/Edge/Intermediate/Fabric WLC), bạn đã nắm phần lớn
+> câu hỏi của mục **1.4** và **1.5** — hai mục chiếm nhiều điểm nhất Domain 1.0.
 
 ---
 
-## 🧪 10. LAB 09
+## 🏗️ PHẦN 4 — TOPO & KIẾN TRÚC
 
-| LAB | Cần gì | Thời gian | Bắt buộc? |
-|---|---|:---:|:---:|
-| **A** — Lab-trên-giấy: chọn design | Bút + giấy | 30 phút | ⭐⭐ **Bắt buộc** |
-| **B** — QoS trên EVE-NG (2 router) | ⭐ 2× vIOS (~1 GB) | 60 phút | ⭐⭐ **Bắt buộc** |
-| **C** — Lab-trên-giấy: điền bảng thành phần | Bút + giấy | 20 phút | ⭐⭐ **Bắt buộc** |
-| **D** — DevNet Sandbox: DNA Center & vManage | Trình duyệt | 45 phút | ⭐ Rất nên |
+> Module này **vốn đã là** module kiến trúc. Phần 4 ở đây làm việc khác: **gộp mọi thứ lại
+> thành một bức tranh doanh nghiệp hoàn chỉnh**, và chỉ ra chỗ hai giải pháp SD-* gặp nhau.
 
----
+### 4.1 Bản đồ: SD-WAN và SD-Access gặp nhau ở đâu
 
-### LAB A — ⭐⭐ Chọn thiết kế (30 phút, trên giấy)
+```
+   ══════════ GIỮA CÁC SITE  →  SD-WAN ══════════
 
-> ⭐ **Đây đúng dạng câu hỏi của Domain 1.0.** Viết đáp án **trước khi** mở gợi ý.
+      Chi nhánh A ─────┐                    ┌───── Chi nhánh B
+                       │  vManage (quản lý) │
+                       ├─ vSmart  (OMP)     ┤
+                       │  vBond   (gác cổng)│
+      Trụ sở ──────────┘   Data plane: IPsec └───── Data center
 
-| # | Tình huống | Câu hỏi |
-|:---:|---|---|
-| 1 | Công ty 1 tòa nhà, 4 tầng, 300 nhân viên | 2-tier hay 3-tier? Vì sao? |
-| 2 | Đại học 6 tòa nhà, mỗi tòa 1 khối distribution | 2-tier hay 3-tier? Vì sao? |
-| 3 | Data center mới, chủ yếu chạy microservices | Kiến trúc nào? Vì sao? |
-| 4 | 40 chi nhánh, WLC ở HQ, WAN 20 Mbps hay đứt | Mô hình WLAN nào? |
-| 5 | Bệnh viện muốn tìm được máy thở ở đâu, sai số < 2 m | Công nghệ gì? Yêu cầu thiết kế AP? |
-| 6 | Cần chạy ứng dụng tài chính, tuân thủ nghiêm, độ trễ thấp | On-prem hay cloud? |
-| 7 | Chi nhánh có MPLS 10 Mbps + Internet 200 Mbps, muốn voice luôn tốt | Giải pháp? Cơ chế nào? |
-| 8 | Campus muốn camera **không bao giờ** nói chuyện được với máy nhân viên | VN hay SGT? |
-| 9 | Trong phòng kế toán, muốn máy thực tập sinh không truy cập được server lương | VN hay SGT? |
-| 10 | Link vật lý 1 Gbps, hợp đồng nhà mạng 300 Mbps, hay bị mất gói voice | Policing hay shaping? Ở đâu? |
 
-<details><summary>⭐ Đáp án LAB A</summary>
+   ══════════ TRONG MỘT CAMPUS  →  SD-ACCESS ══════════
 
-| # | ⭐ Đáp án |
-|:---:|---|
-| 1 | ⭐ **2-tier (collapsed core).** Chỉ 1 khối distribution → **không cần Core riêng**. Rẻ hơn, đơn giản hơn |
-| 2 | ⭐ **3-tier.** 6 khối distribution → full-mesh cần **15 link** → ⭐ **phải có Core** làm điểm tập trung |
-| 3 | ⭐ **Spine-Leaf.** Microservices = ⭐ **traffic East-West khổng lồ** · cần ⭐ **độ trễ đều (luôn 2 hop)** · ⭐ ECMP dùng hết đường, không STP. ⭐ Overlay **VXLAN + EVPN** |
-| 4 | ⭐ **Distributed / FlexConnect + local switching.** ⭐ WAN 20 Mbps không kham nổi CAPWAP data của 40 site. ⭐ Thêm **local auth + FlexConnect Group** để sống sót khi đứt WAN *(07B §5)* |
-| 5 | ⭐ **Cisco Hyperlocation (AoA)** — RSSI trilateration chỉ đạt 5–10 m. 🔴 ⭐ **Yêu cầu thiết kế: phải có AP ở CHU VI khu vực**, không chỉ ở giữa |
-| 6 | ⭐ **On-premises** (hoặc private cloud). Lý do: ⭐ **tuân thủ/chủ quyền dữ liệu dễ chứng minh** · ⭐ **độ trễ thấp nhất tới người dùng nội bộ** · toàn quyền kiểm soát. ⭐ *(Có thể hybrid: dữ liệu nhạy cảm on-prem, phần co giãn trên cloud.)* |
-| 7 | ⭐ **SD-WAN với AAR (Application-Aware Routing).** ⭐ **BFD đo loss/latency/jitter trên cả hai đường**; định nghĩa **SLA class cho voice**; ⭐ traffic voice **tự chuyển sang đường nào đạt SLA**. ⭐ Dùng được **cả hai** đường thay vì để Internet nằm không |
-| 8 | ⭐⭐ **VN (Virtual Network) = VRF** — ⭐ **macro-segmentation, cách ly TUYỆT ĐỐI.** ⭐ Nhớ thiết kế **fusion router** nếu camera cần dịch vụ chung (NTP/DHCP) |
-| 9 | ⭐⭐ **SGT** — ⭐ **micro-segmentation TRONG CÙNG một VN.** ISE gán SGT khi 802.1X xác thực |
-| 10 | ⭐⭐ **Shaping, ở router phía mình, chiều OUTBOUND, shape xuống 300 Mbps.** ⭐ Lý do: nếu không shape, router bắn 1 Gbps → ⭐ **nhà mạng policing và vứt NGẪU NHIÊN (vứt cả voice)**. ⭐ Shape ở mình → **mình tự quyết ai bị chờ** → lồng LLQ bên trong shaper (hierarchical QoS) để voice vẫn đi trước |
+      ┌──────────────────────────────────────────────┐
+      │  DNA Center (tự động hoá) + ISE (danh tính)  │
+      ├──────────────────────────────────────────────┤
+      │  Control plane : LISP    "host X ở đâu"      │
+      │  Data plane    : VXLAN   (mang VNI + SGT)    │
+      │  Policy plane  : TrustSec                    │
+      │  Nền           : VRF  (= Virtual Network)    │
+      └──────────────────────────────────────────────┘
+
+   🔴 HAI GIẢI PHÁP KHÁC NHAU — đừng lẫn:
+      SD-WAN  = giữa các THÀNH PHỐ  (OMP + IPsec)
+      SD-Access = trong một TÒA NHÀ (LISP + VXLAN)
+```
+
+### 4.2 Bảng gỡ rối — SD-WAN vs SD-Access
+
+| | ⭐ **SD-WAN** | ⭐ **SD-Access** |
+|---|---|---|
+| Phạm vi | ⭐ **WAN — giữa các SITE** | ⭐ **CAMPUS — trong một site** |
+| Controller | **vManage · vSmart · vBond** | **DNA Center + ISE** |
+| Control plane | ⭐ **OMP** | ⭐ **LISP** |
+| Data plane | ⭐ **IPsec** | ⭐ **VXLAN** |
+| Policy | Chính sách tập trung trên vSmart | ⭐ **TrustSec / SGT** |
+| Giải quyết | Chi phí & chất lượng đường WAN | Phân đoạn & chính sách nhất quán |
+
+> ⭐ **Mẹo nhớ:** **W**AN = giữa các thành phố (**O**MP) · **A**ccess = trong tòa nhà (**L**ISP).
+
+### 4.3 Ba sự thật mà chỉ người đi làm mới biết
+
+| Sự thật | Giải thích |
+|---|---|
+| ⭐⭐ **vSmart KHÔNG chở dữ liệu** | Nó chỉ là control plane. Traffic người dùng đi **thẳng giữa các cEdge** qua IPsec. Và ⭐ **vBond là thành phần DUY NHẤT bắt buộc có IP public** |
+| ⭐⭐ **SD-Access bỏ hẳn FHRP** | **Anycast gateway** cho phép *mọi* edge node cùng một IP+MAC → không còn Active/Standby. Đây là lý do Module-06A nói *"SD-Access không cần HSRP"* |
+| 🔴 ⭐⭐ **VN cách ly TUYỆT ĐỐI** | Dựng SD-Access xong mà DHCP/DNS không chạy — vì dịch vụ chung **phải đi qua fusion router**. Đây là lỗi triển khai phổ biến nhất |
+
+### 4.4 QoS — bốn cặp đối lập thay được cả mục §9
+
+| | Cái này | vs | Cái kia |
+|---|---|:---:|---|
+| **Mô hình** | ⭐ **DiffServ** (đánh dấu theo lớp) | vs | IntServ (RSVP — không mở rộng được) |
+| **Hàng đợi** | ⭐⭐ **LLQ** — đảm bảo **ĐỘ TRỄ** *(cho voice)* | vs | CBWFQ — chỉ đảm bảo **BĂNG THÔNG** |
+| **Vượt tốc độ** | ⭐ **Policing** — **VỨT** *(in + out)* | vs | **Shaping** — **CHỜ** *(chỉ out)* |
+| **Chống nghẽn** | ⭐ **WRED** — vứt sớm *(chỉ TCP)* | vs | Tail drop — gây **TCP global sync** |
+
+⭐⭐ **Ba nhóm số phải thuộc:**
+**Voice = 150 ms / 30 ms / 1 %** · **EF=46 · CS3=24 · CS6=48 · AF41=34 · CS1=8 · DF=0** *(`AFxy = 8x+2y`)*
+· **priority queue ≤ 33%**
+
+### 4.5 Những thứ này sẽ lớn lên thành gì
+
+| Bạn vừa học | Sẽ thành | Ở module |
+|---|---|---|
+| TrustSec/SGT *(policy plane)* | ⭐ Cấu hình **TrustSec, SGACL, SXP** | **Module-10 §8** |
+| QoS marking, trust boundary | Đo chất lượng thật bằng **IP SLA (MOS, jitter)** | **Module-11 §7** |
+| DNA Center 4 workflow | ⭐ **Assurance**: Path Trace, Network Time Travel | **Module-11 §9** |
+| SD-WAN AAR (đo bằng BFD) | Nguyên lý giống **IP SLA + track** *(M03, M06A)* | — |
+
+### 4.6 Vẽ lại để nhớ
+
+> **Bài tập 20 phút, trên giấy. Đây là bài tập quan trọng nhất Module-09.**
+>
+> 1. Vẽ lại **cả hai** sơ đồ ở §4.1 **không nhìn tài liệu**
+> 2. Điền bảng 4 thành phần SD-WAN và 5 fabric role SD-Access
+> 3. Trả lời: *Traffic người dùng trong SD-WAN có đi qua vSmart không? Vì sao?*
+
+<details>
+<summary>Đáp án câu 3</summary>
+
+🔴 ⭐⭐ **KHÔNG.**
+
+**vSmart là CONTROL plane** — nó chạy **OMP** để phân phối **route, TLOC và chính sách**
+cho các edge. Nhưng traffic người dùng đi **thẳng giữa các cEdge/vEdge** qua **IPsec tunnel**.
+
+⭐ **Ẩn dụ:** vSmart là **điều độ viên** — ông cầm bản đồ và bảo từng xe đi đường nào,
+**nhưng hàng hóa không đi qua bàn ông**.
+
+*(Câu này là một trong ba câu đề hỏi đi hỏi lại về SD-WAN. Hai câu còn lại:
+**thành phần nào cần IP public** → vBond · **ai chạy OMP** → vSmart.)*
+
 </details>
 
 ---
 
-### LAB B — ⭐⭐ QoS trên EVE-NG (60 phút)
-
-**Topology:** `R1 ──Gi0/0── R2` (2× vIOS, ~1 GB)
-
-```
-!═══════ R1 ═══════
-interface GigabitEthernet0/0
- ip address 10.0.0.1 255.255.255.252
- no shutdown
-
-! ─── ① CLASS-MAP ───
-class-map match-all VOICE
- match dscp ef
-class-map match-all SIGNALING
- match dscp cs3
-class-map match-all SCAVENGER
- match dscp cs1
-
-! ─── ② POLICY-MAP ───
-policy-map WAN-OUT
- class VOICE
-  priority percent 10
- class SIGNALING
-  bandwidth percent 5
- class SCAVENGER
-  bandwidth percent 1
- class class-default
-  fair-queue
-  random-detect
-
-! ─── ③ ÁP LÊN INTERFACE ───
-interface GigabitEthernet0/0
- service-policy output WAN-OUT
-```
-
-✅ **Checkpoint B.1 — ⭐⭐ lệnh quan trọng nhất của QoS:**
-```
-R1# show policy-map interface GigabitEthernet0/0
-
- Service-policy output: WAN-OUT
-   Class-map: VOICE (match-all)
-     0 packets, 0 bytes
-     Match: dscp ef (46)
-     Priority: 10% (100000 kbps), burst bytes 2500000, b/w exceed drops: 0
-   Class-map: SIGNALING (match-all)
-     Match: dscp cs3 (24)
-     bandwidth 5% (50000 kbps)
-   Class-map: class-default (match-any)
-     Fair-queue: per-flow queue limit 16
-     Exp-weight-constant: 9 (1/512)      ← WRED đang bật
-```
-
-✅ **Checkpoint B.2 — ⭐ sinh traffic có DSCP và xem bộ đếm tăng:**
-```
-R1# ping 10.0.0.2 tos 184 repeat 100
-!     tos 184 = DSCP 46 (EF)   [184 = 46 × 4, vì DSCP nằm ở 6 bit CAO của byte ToS]
-
-R1# show policy-map interface Gi0/0 | section VOICE
-   Class-map: VOICE (match-all)
-     100 packets, 11400 bytes        ← BỘ ĐẾM ĐÃ TĂNG!
-     Match: dscp ef (46)
-```
-> 💡 ⭐⭐ **Công thức đổi DSCP → ToS: `ToS = DSCP × 4`.**
-> ⭐ EF(46)→184 · CS3(24)→96 · CS6(48)→192 · CS1(8)→32 · AF41(34)→136.
-> ⭐ **Thử ping với `tos 96` và xem class SIGNALING tăng** — bạn vừa tự chứng minh classification hoạt động.
-
-✅ **Checkpoint B.3 — ⭐ thêm shaping (hierarchical QoS):**
-```
-policy-map SHAPE-100M
- class class-default
-  shape average 100000000
-  service-policy WAN-OUT        ! queue lồng BÊN TRONG shaper
-!
-interface GigabitEthernet0/0
- no service-policy output WAN-OUT
- service-policy output SHAPE-100M
-```
-```
-R1# show policy-map interface Gi0/0 | include shape|Shaping|Target
-    shape (average) cir 100000000, bc 400000, be 400000
-    target shape rate 100000000
-```
-
-✅ **Checkpoint B.4 — 🔴 ⭐ cố ý làm sai để hiểu:**
-```
-! Thử áp WRED lên class VOICE:
-R1(config)# policy-map WAN-OUT
-R1(config-pmap)# class VOICE
-R1(config-pmap-c)# random-detect
-```
-⭐ **Quan sát:** IOS **từ chối** hoặc cảnh báo — ⭐ **không cho dùng WRED cùng `priority`.**
-> 💡 ⭐⭐ **Bài học:** ⭐ **WRED và LLQ không đi với nhau.** ⭐ Voice là UDP, **không chịu được mất gói**,
-> và priority queue không có chỗ cho "vứt sớm ngẫu nhiên".
-
-✅ **Checkpoint B.5 — ⭐ thử `priority percent 80`:**
-```
-R1(config-pmap-c)# priority percent 80
-```
-⭐ **Quan sát:** IOS có thể **báo lỗi vượt băng thông khả dụng**, hoặc chấp nhận nhưng ⭐ **không còn chỗ
-cho các class khác**.
-> 💡 ⭐ **Bài học:** ⭐ **priority queue ≤ 33%.** ⭐ Cho tất cả vào làn ưu tiên = không còn ưu tiên.
-
----
-
-### LAB C — ⭐⭐ Điền bảng thành phần (20 phút, trên giấy)
-
-> ⭐ **Che đáp án. Điền từ trí nhớ. Đây là dạng câu hỏi đề ra nhiều nhất của 1.4 và 1.5.**
-
-**Bảng 1 — SD-WAN:**
-
-| Thành phần | Plane | Làm gì | Cần IP public? | Chở data? |
-|---|---|---|---|---|
-| vManage | ____ | ____ | ____ | ____ |
-| vSmart | ____ | ____ | ____ | ____ |
-| vBond | ____ | ____ | ____ | ____ |
-| vEdge/cEdge | ____ | ____ | ____ | ____ |
-
-**Bảng 2 — SD-Access:**
-
-| Fabric role | Chạy giao thức gì | Làm gì |
-|---|---|---|
-| Control Plane Node | ____ | ____ |
-| Border Node | ____ | ____ |
-| Edge Node | ____ | ____ |
-| Intermediate Node | ____ | ____ |
-
-**Bảng 3 — điền nhanh:**
-
-| Câu | Trả lời |
-|---|---|
-| SD-Access: control / data / policy plane dùng gì? | ____ / ____ / ____ |
-| SD-WAN: control plane protocol? data plane? | ____ / ____ |
-| VN = ? · SGT dùng để làm gì? | ____ |
-| DSCP của: Voice · Signaling · Network Control · Video call · Scavenger | ____ |
-| Ngưỡng voice: latency · jitter · loss | ____ |
-| Policing vs Shaping: cái nào vứt, cái nào chờ, chiều nào? | ____ |
-
-<details><summary>⭐ Đáp án LAB C</summary>
-
-**Bảng 1:**
-| Thành phần | Plane | Làm gì | IP public? | Chở data? |
-|---|---|---|---|---|
-| ⭐ **vManage** | Management | GUI/API, template, giám sát | Không bắt buộc | ❌ |
-| ⭐ **vSmart** | Control | ⭐ **Chạy OMP**, phân phối route/TLOC/policy | Không bắt buộc | 🔴 ⭐ **KHÔNG** |
-| ⭐ **vBond** | Orchestration | Xác thực & giới thiệu thiết bị mới, phát hiện NAT | ⭐⭐ **CÓ — duy nhất** | ❌ |
-| ⭐ **vEdge/cEdge** | Data | ⭐ **Forward traffic thật** qua IPsec | (tùy transport) | ⭐ **CÓ** |
-
-**Bảng 2:**
-| Role | Giao thức | Làm gì |
-|---|---|---|
-| ⭐ **Control Plane Node** | ⭐⭐ **LISP MS/MR** | CSDL "host nào ở đâu" (HTDB) |
-| ⭐ **Border Node** | LISP PxTR + VRF-lite handoff | Cửa ra vào fabric (internal/external/anywhere) |
-| ⭐ **Edge Node** | ⭐⭐ **LISP xTR** | Cắm endpoint · bọc/mở VXLAN · ⭐ **anycast gateway** · áp SGT |
-| ⭐ **Intermediate Node** | ⭐ Chỉ IP routing (IS-IS) | 🔴 ⭐ **Không biết gì về fabric** |
-
-**Bảng 3:**
-| Câu | ⭐ Trả lời |
-|---|---|
-| SD-Access 3 plane | ⭐ **LISP** / ⭐ **VXLAN** / ⭐ **TrustSec (SGT)** |
-| SD-WAN | ⭐ **OMP** / ⭐ **IPsec** |
-| VN = ? SGT? | ⭐ **VN = VRF (macro-segmentation)** · ⭐ **SGT = micro-segmentation trong cùng VN** |
-| DSCP | ⭐ **EF=46 · CS3=24 · CS6=48 · AF41=34 · CS1=8** |
-| Ngưỡng voice | ⭐⭐ **≤150 ms · ≤30 ms · ≤1 %** |
-| Policing/Shaping | ⭐ **Policing VỨT (in+out)** · ⭐ **Shaping CHỜ (chỉ out)** |
-</details>
-
----
-
-### LAB D — 🚀 DevNet Sandbox: nhìn DNA Center & vManage thật (45 phút)
-
-| Bước | Làm |
-|:---:|---|
-| 1 | `developer.cisco.com/site/sandbox/` → đăng nhập |
-| 2 | Tìm sandbox ⭐ **"DNA Center"** và ⭐ **"SD-WAN"** — ưu tiên **Always-On** |
-| 3 | ⚠️ ⭐ **Lấy URL + tài khoản từ chính trang sandbox** (Cisco đổi định kỳ) |
-
-⭐ **Trên DNA Center — tìm 4 thứ:**
-
-| # | Tìm gì | Ở đâu | Liên hệ |
-|:---:|---|---|:---:|
-| 1 | ⭐ **4 workflow** Design/Policy/Provision/Assurance | Menu chính | §7.8 |
-| 2 | ⭐ **Virtual Network (VN)** đã tạo | Policy → Virtual Network | §7.6 |
-| 3 | ⭐ **Scalable Group (SGT)** và ma trận chính sách | Policy → Group-Based Access Control | §7.6 |
-| 4 | ⭐ **Fabric role** của từng thiết bị | Provision → Fabric | §7.3 |
-
-⭐ **Trên vManage — tìm 4 thứ:**
-
-| # | Tìm gì | Ở đâu | Liên hệ |
-|:---:|---|---|:---:|
-| 1 | ⭐ **Danh sách controller** (vManage/vSmart/vBond) | Monitor → Network / Administration → Controllers | §6.2 |
-| 2 | ⭐⭐ **TLOC và Color** của từng edge | Monitor → Devices → *(chọn)* → Real Time → **Control TLOC** | §6.3 |
-| 3 | ⭐ **OMP routes** | Monitor → Devices → Real Time → **OMP Routes** | §6.3 |
-| 4 | ⭐ **Application-Aware Routing / SLA** | Configuration → Policies · Monitor → Applications | §6.4 |
-
-> ⚠️ ⭐ **Sandbox always-on là môi trường DÙNG CHUNG — chỉ XEM, đừng đổi cấu hình.**
-
-✅ **Checkpoint D:** trả lời được — ⭐ *"Trong sandbox này có bao nhiêu VN? Edge nào có mấy TLOC và color gì?"*
-
----
-
-## 💡 11. THỰC CHIẾN ĐI LÀM
+## 💡 4.7 Thực chiến đi làm
 
 | # | Tình huống thật | ⭐ Điều người mới làm sai | ⭐ Cách làm đúng |
 |:---:|---|---|---|
@@ -1148,6 +1117,20 @@ cho các class khác**.
 > 1. ⭐ **"ACL ở distribution. Core chỉ để chạy nhanh."**
 > 2. ⭐ **"Voice = EF = LLQ. Và nhớ 150/30/1."**
 > 3. ⭐ **"SD-WAN dùng OMP+IPsec giữa các site. SD-Access dùng LISP+VXLAN trong campus."**
+
+---
+
+# 📎 PHỤ LỤC — TRA CỨU
+
+> 🔴 **KHÔNG đọc phần này ở lần học đầu tiên.**
+>
+> | Khi nào | Mở mục nào |
+> |---|---|
+> | Đang lab mà lỗi | **Gỡ lỗi nhanh** (§13) |
+> | Quên lệnh | **Hộp lệnh** (§13.1) |
+> | Tuần 20, ôn thi | **Bẫy đề** (§12) + **Quiz** (§14) |
+> | Gặp từ lạ | **Thuật ngữ** (§15) |
+> | Tự chấm | **Đúc kết** (§16) |
 
 ---
 
