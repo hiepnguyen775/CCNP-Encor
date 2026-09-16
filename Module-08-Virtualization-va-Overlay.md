@@ -11,6 +11,87 @@
 
 ---
 
+# 📌 TÓM TẮT — đọc 10 phút là nắm khung
+
+## Module này trả lời một câu hỏi duy nhất
+
+> **Làm sao chở mạng RIÊNG của mình đi qua một mạng mà mình KHÔNG kiểm soát —
+> và giữ nó tách biệt, an toàn?**
+
+Năm công nghệ trong module đều là **một ý tưởng duy nhất: BỌC gói của mình vào gói của người khác.**
+
+## Bức tranh toàn module
+
+```
+   ① VRF      — chia MỘT router thành NHIỀU bảng route độc lập
+                (hai khách hàng dùng trùng IP vẫn được)
+                          │
+   ② GRE      — bọc gói IP vào một gói IP mới  (+24 byte)
+                ✅ chở được multicast → chạy được OSPF
+                🔴 KHÔNG mã hóa
+                          │
+   ③ IPsec    — mã hóa   (ESP protocol 50)
+                ✅ an toàn
+                🔴 KHÔNG chở được multicast
+                          │
+   ④ GRE over IPsec  =  ② + ③   ⭐ TRỌNG TÂM CỦA MODULE
+                ✅ vừa chạy được routing, vừa mã hóa
+                          │
+   ⑤ LISP + VXLAN  — overlay của Data Center  🟡 chỉ cần HIỂU
+                LISP = "host X ở đâu"  ·  VXLAN = "chở frame đi"
+```
+
+## 🔴 Bẫy phân bổ thời gian — đọc kỹ dòng này
+
+| Chủ đề | Blueprint dùng từ | Nghĩa |
+|---|---|---|
+| ⭐⭐ **VRF · GRE · IPsec** | 🔴 **"Configure and verify"** | **PHẢI GÕ ĐƯỢC.** Phải lab |
+| 🟡 **LISP · VXLAN** | 🟡 **"Describe"** | **Chỉ cần nói được.** Không cần cấu hình |
+| 🟡 Hypervisor, vSwitch | 🟡 "Describe" | ⭐ Bạn làm DevOps Proxmox — phần này gần như **miễn phí** |
+
+> 🔴 **Sai lầm điển hình:** dành 3 ngày mê mẩn VXLAN EVPN (rất hot, rất hay)
+> rồi vào phòng thi **không cấu hình nổi GRE over IPsec**.
+
+## 7 ý phải nhớ
+
+| # | Ý | Một câu |
+|:---:|---|---|
+| 1 | ⭐⭐ **VRF = nhiều bảng route trên một router** | Hai VRF **dùng trùng IP vẫn chạy** — đó là siêu năng lực của nó |
+| 2 | 🔴 ⭐⭐ **Hai bẫy VRF** | (a) gán VRF vào interface **xóa mất IP** · (b) quên gõ `vrf` trong `ping` = dùng bảng global |
+| 3 | ⭐⭐ **GRE: 24 byte, KHÔNG mã hóa, CHỞ được multicast** | Tunnel IP MTU mặc định = **1476** |
+| 4 | ⭐⭐ **IPsec: mã hóa, KHÔNG chở multicast** | ESP = protocol **50** · IKE = **UDP 500** · NAT-T = **UDP 4500** |
+| 5 | ⭐⭐ **GRE over IPsec dùng `transport mode`** | Vì GRE đã thêm IP header rồi |
+| 6 | 🔴 ⭐⭐ **Recursive routing** | *Đường tới tunnel destination KHÔNG được đi qua chính tunnel* → `%TUN-5-RECURDOWN` |
+| 7 | ⭐⭐ **LISP + VXLAN + TrustSec = SD-Access** | LISP điều khiển · VXLAN dữ liệu · TrustSec chính sách · **trên nền VRF** |
+
+## Bảng lệnh cốt lõi
+
+| Lệnh | Cho biết gì |
+|---|---|
+| `show vrf` | VRF nào tồn tại, interface nào thuộc nó |
+| ⭐ `show ip route vrf <TEN>` | Bảng route **của riêng VRF đó** |
+| ⭐⭐ `ping vrf <TEN> <ip>` | **Đừng quên chữ `vrf`** — quên là dùng bảng global |
+| `show interface tunnel0` | up/up? **transport MTU 1476**? keepalive? |
+| ⭐ `show ip route <tunnel-dest>` | **Có trỏ qua Tunnel0 không** (phát hiện recursive) |
+| ⭐⭐ `show crypto isakmp sa` | Phase 1 — **`QM_IDLE` = tốt** · `MM_NO_STATE` = hỏng |
+| ⭐⭐ `show crypto ipsec sa` | Phase 2 — **`encaps`/`decaps` có cùng tăng không** |
+
+## 🗺️ Bố cục module
+
+| Phần | Tên | Thời gian |
+|:---:|---|:---:|
+| **1** | 🧠 **CÁI ĐÓ LÀ GÌ** — 5 ví von | 45 phút |
+| **2** | ⚙️ **NÓ CHẠY THẾ NÀO** — ⭐ **§4–7 là phần phải gõ được** | 4 giờ |
+| **3** | 🧪 **NHÌN THẤY NÓ** — [LAB 08](Module-08-LAB.md), 6 bước | 5 giờ |
+| **4** | 🏗️ **TOPO & KIẾN TRÚC** — overlay ở WAN và ở DC | 45 phút |
+| **📎** | **PHỤ LỤC** — 🔴 không đọc lần đầu | — |
+
+> ⭐ **Bài lab thuyết phục nhất module:** bắt gói bằng Wireshark **trước và sau** khi bật IPsec.
+> Trước: thấy rõ IP nội bộ và cả gói OSPF bên trong. Sau: chỉ thấy **ESP** và một khối byte vô nghĩa.
+> Chụp hai ảnh đó dán vào `SO-TAY-LOI.md` — nhìn một lần nhớ cả đời.
+
+---
+
 ## ⭐ 0. Phạm vi
 
 ### 0.1 Bảng "Configure" vs "Describe" — quyết định bạn học sâu tới đâu
@@ -72,9 +153,92 @@ R1(config)# crypto isakmp policy 10
 
 ---
 
-## 📘 2. DEVICE VIRTUALIZATION (blueprint 2.1)
+## 🧠 PHẦN 1 — CÁI ĐÓ LÀ GÌ
 
-### 2.1 ⭐ Hypervisor Type 1 vs Type 2
+> **Đọc phần này TRƯỚC, đọc một mạch.** Không lệnh, không bảng tra.
+>
+> Module-08 gom 5 công nghệ nghe rất "cao siêu" (VRF, GRE, IPsec, LISP, VXLAN).
+> Năm ví von dưới đây biến chúng thành thứ đời thường.
+>
+> **Tự kiểm tra:** đọc xong mỗi mục, gấp tài liệu lại, nói lại trong 3 câu.
+
+### 2.1 VRF là "nhiều công ty thuê chung một tòa nhà"
+
+⭐ Một tòa nhà (**router vật lý**), nhiều công ty thuê (**VRF**):
+- ⭐ Mỗi công ty có **danh bạ nội bộ riêng** (bảng route riêng)
+- ⭐ Công ty A có **"phòng 101"**, công ty B **cũng có "phòng 101"** — ⭐ **không xung đột** vì hai danh bạ tách biệt
+- ⭐ Nhân viên A **không thể** gọi sang phòng của B (mặc định cách ly)
+- ⭐ Muốn hai bên nói chuyện → phải ⭐ **cố ý bắc một đường dây** (route leaking)
+- ⭐ Và bạn phải **nói rõ mình đang tra danh bạ của công ty nào** → ⭐ **đó chính là `ping vrf KHACH-A`**
+
+🔴 ⭐ **Quên nói tên công ty (quên `vrf`) → bạn đang tra nhầm danh bạ tòa nhà (global table) → không thấy ai cả.**
+
+### 2.2 GRE là "phong bì", IPsec là "hộp niêm phong"
+
+- ⭐ **GRE = cho lá thư vào PHONG BÌ** và ghi địa chỉ mới bên ngoài.
+  ⭐ Bưu điện (Internet) chỉ nhìn phong bì, không cần hiểu bên trong viết gì.
+  🔴 ⭐ **Nhưng phong bì TRONG SUỐT** — ai cầm cũng đọc được.
+- ⭐ **IPsec = HỘP KIM LOẠI NIÊM PHONG.** An toàn tuyệt đối,
+  🔴 ⭐ **nhưng hộp này chỉ nhận bưu phẩm gửi cho MỘT người cụ thể** — không gửi được **thư báo chung cho cả khu phố** (multicast).
+- ⭐⭐ **GRE over IPsec = cho phong bì vào hộp niêm phong.**
+  ⭐ Vừa gửi được thư báo chung (routing protocol), vừa không ai đọc trộm được.
+
+⭐ **Và "transport mode" nghĩa là:** ⭐ **phong bì đã có địa chỉ rồi, hộp không cần ghi địa chỉ lần nữa** —
+⭐ đỡ tốn 20 byte.
+
+### 2.3 Recursive routing là "muốn tới nhà phải đi qua chính nhà đó"
+
+⭐ Bạn hỏi đường tới nhà bạn X. Người ta chỉ: ⭐ *"đi theo con đường tắt qua nhà X"*.
+⭐ Nhưng muốn dùng con đường tắt đó, bạn **phải tới được nhà X trước**. ⭐ **Vòng luẩn quẩn.**
+
+⭐ Router thông minh hơn bạn — nó phát hiện vòng lặp và ⭐ **tự đóng con đường tắt lại**:
+`%TUN-5-RECURDOWN`.
+
+⭐ **Cách tránh duy nhất:** ⭐ **đường tới nhà X phải học từ NGUỒN KHÁC** (đường lớn = underlay),
+⭐ **không được học từ chính con đường tắt** (overlay).
+
+### 2.4 LISP là DNS, BGP là danh bạ giấy
+
+- ⭐ **BGP/IGP = phát cho mọi người một cuốn danh bạ dày cộp**, ai cũng phải giữ **toàn bộ** thông tin,
+  ⭐ và mỗi khi có một số điện thoại đổi thì **in lại cho tất cả** (**PUSH**).
+- ⭐⭐ **LISP = DNS.** ⭐ Bạn **không giữ** danh bạ nào cả. Cần gọi ai thì ⭐ **hỏi tổng đài** (Map Resolver),
+  ⭐ được trả lời thì **ghi nhớ tạm** (map-cache), lần sau khỏi hỏi (**PULL**).
+- ⭐ **Lợi ích:** người ta chuyển nhà (VM migration) thì ⭐ **chỉ cần báo tổng đài** — không cần in lại danh bạ toàn cầu.
+
+### 2.5 VXLAN là "gửi cả cái phòng qua đường bưu điện"
+
+- ⭐ **GRE** gửi **một lá thư** (gói IP) qua bưu điện.
+- ⭐⭐ **VXLAN** gửi **cả một căn phòng có địa chỉ nội bộ riêng** (nguyên frame Ethernet + VNI).
+  ⭐ Bên nhận mở ra và ⭐ **đặt căn phòng đó vào đúng tầng của mình** — hai máy ở hai data center
+  ⭐ **cảm giác như đang cắm chung một switch**, dù thực tế cách nhau hàng nghìn km và ở giữa toàn router.
+
+⭐ **Vì gửi cả căn phòng nên hộp phải to hơn** → ⭐ **50 byte overhead, và underlay phải bật jumbo frame.**
+
+
+---
+
+## ⚙️ PHẦN 2 — NÓ CHẠY THẾ NÀO
+
+> | Phần 1 (ví von) | → | Phần 2 (cơ chế) |
+> |---|:---:|---|
+> | §2.1 nhiều công ty thuê chung tòa nhà | → | **§4 VRF** ⭐⭐ |
+> | §2.2 phong bì trong suốt · hộp niêm phong | → | **§5 GRE · §6 IPsec · §7 GRE over IPsec** ⭐⭐ |
+> | §2.3 muốn tới nhà phải đi qua chính nhà đó | → | **§5.3 Recursive routing** |
+> | §2.4 LISP là DNS | → | **§8 LISP** 🟡 |
+> | §2.5 gửi cả căn phòng qua bưu điện | → | **§9 VXLAN** 🟡 |
+>
+> 🔴 ⭐ **Chú ý mức độ — đây là bẫy phân bổ thời gian của module này:**
+> ⭐ **VRF + GRE + IPsec là "Configure and verify"** → **phải gõ được**.
+> 🟡 **LISP + VXLAN là "Describe"** → **chỉ cần nói được**.
+>
+> Sai lầm điển hình: dành 3 ngày mê mẩn VXLAN EVPN (rất hot) rồi vào phòng thi
+> **không cấu hình nổi GRE over IPsec**.
+
+---
+
+## 📘 3. DEVICE VIRTUALIZATION (blueprint 2.1)
+
+### 3.1 ⭐ Hypervisor Type 1 vs Type 2
 
 ```
    ═══ TYPE 1 (bare metal) ═══          ═══ TYPE 2 (hosted) ═══
@@ -114,7 +278,7 @@ R1(config)# crypto isakmp policy 10
 | ⭐ **Live migration / vMotion** | ⭐ Chuyển VM đang chạy sang host khác **không tắt máy**. 🔴 ⭐ **Đây là lý do DC cần VXLAN** (§8) |
 | **Container** | ⭐ Chia sẻ **kernel** của host, không có OS riêng → nhẹ hơn VM rất nhiều. *(Docker, LXC)* |
 
-### 2.2 ⭐ Virtual Machine — thành phần
+### 3.2 ⭐ Virtual Machine — thành phần
 
 | Thành phần ảo | Tương ứng vật lý |
 |---|---|
@@ -128,7 +292,7 @@ R1(config)# crypto isakmp policy 10
 > 🔴 ⭐ **Hệ quả thực tế:** một host vật lý cắm 1 sợi cáp có thể làm switch học **hàng chục MAC trên một port** —
 > ⭐ **đây là lý do KHÔNG bật `switchport port-security maximum 1` trên port nối host ảo hóa.**
 
-### 2.3 ⭐⭐ Virtual Switching (2.1.c) — phần đề hỏi nhiều nhất của mục 2.1
+### 3.3 ⭐⭐ Virtual Switching (2.1.c) — phần đề hỏi nhiều nhất của mục 2.1
 
 ```
         ┌──────────────── HOST VẬT LÝ (hypervisor) ────────────────┐
@@ -201,9 +365,9 @@ R1(config)# crypto isakmp policy 10
 
 ---
 
-## 📘 3. ⭐⭐ VRF (blueprint 2.2.a — CONFIGURE AND VERIFY)
+## 📘 4. ⭐⭐ VRF (blueprint 2.2.a — CONFIGURE AND VERIFY)
 
-### 3.1 VRF là gì
+### 4.1 VRF là gì
 
 > ⭐⭐ **VRF (Virtual Routing and Forwarding)** = ⭐ **chia MỘT router thật thành NHIỀU router logic**,
 > mỗi cái có ⭐ **bảng định tuyến RIÊNG**, hoàn toàn cách ly nhau.
@@ -247,7 +411,7 @@ R1(config)# crypto isakmp policy 10
 
 > ⭐ **Nhớ:** ⭐ **ENCOR = VRF-lite.** Không cần học MPLS. ⭐ **RD chỉ cần gõ cho đúng cú pháp.**
 
-### 3.2 ⭐⭐ Cấu hình VRF — hai cú pháp, đừng lẫn
+### 4.2 ⭐⭐ Cấu hình VRF — hai cú pháp, đừng lẫn
 
 ```
 ! ═══════ CÚ PHÁP CŨ (legacy, chỉ IPv4) ═══════
@@ -286,7 +450,7 @@ interface GigabitEthernet0/1
 
 ⭐ **Chuyển cú pháp cũ sang mới:** `vrf upgrade-cli multi-af-mode common-policies vrf <tên>`
 
-### 3.3 ⭐⭐ Định tuyến bên trong VRF — mọi lệnh đều phải "khai báo VRF"
+### 4.3 ⭐⭐ Định tuyến bên trong VRF — mọi lệnh đều phải "khai báo VRF"
 
 ```
 ! ═══ Static route trong VRF ═══
@@ -316,7 +480,7 @@ router bgp 65001
  exit-address-family
 ```
 
-### 3.4 ⭐⭐ Verify VRF — mọi lệnh show/ping/traceroute cũng phải khai VRF
+### 4.4 ⭐⭐ Verify VRF — mọi lệnh show/ping/traceroute cũng phải khai VRF
 
 ```
 show vrf                                    ! liệt kê VRF + interface thuộc về nó
@@ -350,7 +514,7 @@ copy running-config tftp://10.10.10.5/cfg vrf KHACH-A
 > ```
 > ⭐ **VRF không hỏng. Lệnh của bạn hỏng.** ⭐ Đây là điều đầu tiên phải kiểm tra khi troubleshoot VRF.
 
-### 3.5 ⭐ Route leaking — khi cần cho 2 VRF nói chuyện
+### 4.5 ⭐ Route leaking — khi cần cho 2 VRF nói chuyện
 
 ⭐ Mặc định các VRF **hoàn toàn cách ly**. Muốn thông nhau (VD: mọi khách hàng cùng dùng chung một
 DNS server / Internet gateway), có 3 cách:
@@ -364,7 +528,7 @@ DNS server / Internet gateway), có 3 cách:
 > ⭐ **Cho ENCOR:** ⭐ **biết rằng route leaking cần cấu hình CỐ Ý** là đủ.
 > ⭐ Nhớ từ khóa **`global`** trong static route — đề có thể hỏi dòng đó nghĩa gì.
 
-### 3.6 ⭐ VRF dùng để làm gì ngoài đời
+### 4.6 ⭐ VRF dùng để làm gì ngoài đời
 
 | Tình huống | Vì sao dùng VRF |
 |---|---|
@@ -377,9 +541,9 @@ DNS server / Internet gateway), có 3 cách:
 
 ---
 
-## 📘 4. ⭐⭐ GRE (blueprint 2.2.b — CONFIGURE AND VERIFY)
+## 📘 5. ⭐⭐ GRE (blueprint 2.2.b — CONFIGURE AND VERIFY)
 
-### 4.1 GRE là gì và giải quyết vấn đề gì
+### 5.1 GRE là gì và giải quyết vấn đề gì
 
 > ⭐⭐ **GRE (Generic Routing Encapsulation)** — RFC 2784. ⭐ Bọc gói của bạn vào **một gói IP mới**
 > để nó **đi qua một mạng không hiểu nó** (thường là Internet).
@@ -407,7 +571,7 @@ DNS server / Internet gateway), có 3 cách:
 > ⭐ **IPsec mã hóa nhưng KHÔNG chở được multicast.**
 > ⭐⭐ **→ Ghép cả hai: GRE over IPsec.** ⭐ **Đây là ý chính của cả mục 2.2.b.**
 
-### 4.2 ⭐⭐ Cấu hình GRE
+### 5.2 ⭐⭐ Cấu hình GRE
 
 ```
 ! ═══════════ TRÊN R1 (site A) ═══════════
@@ -436,7 +600,7 @@ interface Tunnel0
 | 3 | ⭐ ⭐ **Hai đầu phải ping được nhau bằng IP WAN THẬT** trước khi tunnel lên |
 | 4 | ⭐ Cùng `tunnel mode` |
 
-### 4.3 🔴 ⭐⭐ BẪY LỚN NHẤT CỦA GRE — Recursive Routing
+### 5.3 🔴 ⭐⭐ BẪY LỚN NHẤT CỦA GRE — Recursive Routing
 
 ```
    KỊCH BẢN GÂY LỖI:
@@ -463,7 +627,7 @@ interface Tunnel0
 > 🔴 ⭐ ***"Đường tới tunnel destination TUYỆT ĐỐI không được đi qua tunnel."***
 > ⭐ Nói cách khác: ⭐ **underlay và overlay phải là hai miền định tuyến TÁCH BIỆT.**
 
-### 4.4 ⭐⭐ Vấn đề MTU & MSS — bẫy lớn thứ hai
+### 5.4 ⭐⭐ Vấn đề MTU & MSS — bẫy lớn thứ hai
 
 ```
    MTU vật lý 1500
@@ -494,7 +658,7 @@ interface Tunnel0
 >
 > 🔴 ⭐ **`adjust-mss` chỉ tác dụng với TCP.** UDP lớn (VD một số VPN, video) vẫn cần `ip mtu`.
 
-### 4.5 ⭐ Verify GRE
+### 5.5 ⭐ Verify GRE
 
 ```
 show interface tunnel0                     ! up/up? MTU bao nhiêu? có drop không?
@@ -523,9 +687,9 @@ Tunnel0 is up, line protocol is up          "up/up" = OK (nhưng chưa chắc th
 
 ---
 
-## 📘 5. ⭐⭐ IPsec (blueprint 2.2.b — CONFIGURE AND VERIFY)
+## 📘 6. ⭐⭐ IPsec (blueprint 2.2.b — CONFIGURE AND VERIFY)
 
-### 5.1 ⭐ Ba việc IPsec làm
+### 6.1 ⭐ Ba việc IPsec làm
 
 | Việc | Nghĩa | Thuật toán |
 |---|---|---|
@@ -534,7 +698,7 @@ Tunnel0 is up, line protocol is up          "up/up" = OK (nhưng chưa chắc th
 | ⭐ **Authentication** (xác thực) | Đúng là đối tác chứ không phải kẻ giả mạo | ⭐ **Pre-shared key** hoặc **chứng thư RSA** |
 | *(kèm theo)* **Anti-replay** | Chống phát lại gói cũ | Số thứ tự |
 
-### 5.2 ⭐⭐ ESP vs AH · Tunnel mode vs Transport mode
+### 6.2 ⭐⭐ ESP vs AH · Tunnel mode vs Transport mode
 
 | | ⭐⭐ **ESP** (Encapsulating Security Payload) | **AH** (Authentication Header) |
 |---|---|---|
@@ -553,7 +717,7 @@ Tunnel0 is up, line protocol is up          "up/up" = OK (nhưng chưa chắc th
 > ⭐⭐ **Nhớ cặp này:** ⭐ **IPsec thuần → tunnel mode.** ⭐ **GRE over IPsec → transport mode.**
 > *(Tunnel mode vẫn chạy được với GRE, chỉ là tốn thêm 20 byte vô ích.)*
 
-### 5.3 ⭐⭐ Hai phase của IKE
+### 6.3 ⭐⭐ Hai phase của IKE
 
 ```
    PHASE 1 (IKE SA / ISAKMP SA)  ── UDP 500 ──  "Xây một đường hầm AN TOÀN để ĐÀM PHÁN"
@@ -591,7 +755,7 @@ Tunnel0 is up, line protocol is up          "up/up" = OK (nhưng chưa chắc th
 ⭐ **NAT-T (NAT Traversal):** khi có NAT giữa hai đầu, IPsec **tự bọc ESP vào UDP 4500** để đi qua NAT.
 ⭐ **Nhớ 2 port: UDP 500 (IKE) và UDP 4500 (NAT-T).**
 
-### 5.4 ⭐ Cấu hình IPsec — CÁCH CŨ (crypto map, IPsec thuần)
+### 6.4 ⭐ Cấu hình IPsec — CÁCH CŨ (crypto map, IPsec thuần)
 
 ```
 ! ═══ ① PHASE 1 — ISAKMP policy ═══
@@ -631,7 +795,7 @@ interface GigabitEthernet0/0
 🔴 ⭐ **Nhược điểm lớn của crypto map:** ⭐ **không chở được multicast → không chạy được OSPF/EIGRP qua nó.**
 ⭐ **Đó chính là lý do có §6.**
 
-### 5.5 ⭐ Vài lệnh cấu hình phụ hay gặp
+### 6.5 ⭐ Vài lệnh cấu hình phụ hay gặp
 
 ```
 ! Loại trừ traffic VPN khỏi NAT (CỰC KỲ hay quên — Module-06B!)
@@ -656,9 +820,9 @@ crypto isakmp keepalive 10 3 periodic
 
 ---
 
-## 📘 6. ⭐⭐ GRE OVER IPsec — trọng tâm thực chiến của mục 2.2.b
+## 📘 7. ⭐⭐ GRE OVER IPsec — trọng tâm thực chiến của mục 2.2.b
 
-### 6.1 Vì sao phải ghép
+### 7.1 Vì sao phải ghép
 
 | | GRE thuần | IPsec thuần (crypto map) | ⭐⭐ **GRE over IPsec** |
 |---|:---:|:---:|:---:|
@@ -671,7 +835,7 @@ crypto isakmp keepalive 10 3 periodic
 > ⭐⭐ **Một câu tóm tắt cả mục 2.2.b:**
 > ⭐ **"GRE cho routing đi qua, IPsec cho nó đi qua an toàn."**
 
-### 6.2 ⭐⭐ Cấu hình GRE over IPsec — CÁCH HIỆN ĐẠI (IPsec profile)
+### 7.2 ⭐⭐ Cấu hình GRE over IPsec — CÁCH HIỆN ĐẠI (IPsec profile)
 
 > ⭐ **Đây là cách nên học và nên dùng.** Gọn hơn crypto map rất nhiều, và ⭐ **không cần ACL interesting traffic**
 > (vì "traffic đáng quan tâm" chính là **toàn bộ những gì đi qua tunnel").
@@ -725,7 +889,7 @@ ip route 0.0.0.0 0.0.0.0 203.0.113.254
 > 2. ⭐ **Không cần gắn gì lên interface vật lý**
 > 3. ⭐ **Định tuyến động chạy tự nhiên** — chỉ cần thêm mạng vào OSPF
 
-### 6.3 ⭐⭐ Verify GRE over IPsec — theo đúng thứ tự này
+### 7.3 ⭐⭐ Verify GRE over IPsec — theo đúng thứ tự này
 
 ```
 ! ─── BƯỚC 1: Underlay có thông không? ───
@@ -773,7 +937,7 @@ ping 10.2.1.1 source 10.1.1.1           ! ping từ LAN sang LAN — bài test c
 > | 🔴 ⭐ **`decaps` tăng nhưng `encaps` = 0** | ⭐ Ngược lại — mình nhận được mà không gửi → ⭐ **traffic của mình không khớp ACL / không vào tunnel** |
 > | ⭐ Cả hai đều tăng nhưng ping vẫn fail | ⭐ **Không còn là vấn đề VPN** → routing, ACL sau tunnel, hoặc firewall của host đích |
 
-### 6.4 ⭐ Biết tên: DMVPN & các anh em
+### 7.4 ⭐ Biết tên: DMVPN & các anh em
 
 | Công nghệ | Ý tưởng | ENCOR hỏi? |
 |---|---|---|
@@ -787,9 +951,9 @@ ping 10.2.1.1 source 10.1.1.1           ! ping từ LAN sang LAN — bài test c
 
 ---
 
-## 📘 7. 🟡 LISP (blueprint 2.3.a — DESCRIBE)
+## 📘 8. 🟡 LISP (blueprint 2.3.a — DESCRIBE)
 
-### 7.1 ⭐ Vấn đề LISP giải quyết
+### 8.1 ⭐ Vấn đề LISP giải quyết
 
 > 🔴 ⭐⭐ **Ý tưởng cốt lõi — nếu chỉ nhớ một câu về LISP thì nhớ câu này:**
 > ⭐⭐ **Địa chỉ IP hiện nay đang gánh HAI vai cùng lúc: "ANH LÀ AI" và "ANH Ở ĐÂU".**
@@ -803,7 +967,7 @@ ping 10.2.1.1 source 10.1.1.1           ! ping từ LAN sang LAN — bài test c
 ⭐ **Vì sao cần tách:** khi một máy chuyển chỗ (VM migration, người dùng đi lại), ⭐ **IP phải đổi**
 → đứt session. ⭐ **Hoặc** phải nhồi thêm route /32 vào bảng định tuyến toàn cầu → ⭐ **bảng route phình vô hạn**.
 
-### 7.2 ⭐⭐ Các thành phần LISP — bảng phải học thuộc
+### 8.2 ⭐⭐ Các thành phần LISP — bảng phải học thuộc
 
 | Thành phần | Tên đầy đủ | ⭐ Làm gì |
 |---|---|---|
@@ -820,7 +984,7 @@ ping 10.2.1.1 source 10.1.1.1           ! ping từ LAN sang LAN — bài test c
 ⭐ **Mẹo nhớ:** ⭐ **I**ngress = **I**n (vào, bọc lại) · ⭐ **E**gress = **E**xit (ra, mở ra).
 ⭐ **Map SERVER = nơi ĐĂNG KÝ** (register) · ⭐ **Map RESOLVER = nơi HỎI** (resolve).
 
-### 7.3 ⭐⭐ Luồng hoạt động
+### 8.3 ⭐⭐ Luồng hoạt động
 
 ```
    Host A (EID 10.1.1.10)                          Host B (EID 10.2.2.20)
@@ -857,7 +1021,7 @@ ping 10.2.1.1 source 10.1.1.1           ! ping từ LAN sang LAN — bài test c
 >
 > ⭐ **"LISP là DNS cho vị trí mạng"** — đây là câu tóm tắt tốt nhất.
 
-### 7.4 ⭐ LISP dùng ở đâu
+### 8.4 ⭐ LISP dùng ở đâu
 
 | Use case | Chi tiết |
 |---|---|
@@ -872,9 +1036,9 @@ ping 10.2.1.1 source 10.1.1.1           ! ping từ LAN sang LAN — bài test c
 
 ---
 
-## 📘 8. 🟡 VXLAN (blueprint 2.3.b — DESCRIBE)
+## 📘 9. 🟡 VXLAN (blueprint 2.3.b — DESCRIBE)
 
-### 8.1 ⭐ Vấn đề VXLAN giải quyết
+### 9.1 ⭐ Vấn đề VXLAN giải quyết
 
 | 🔴 Vấn đề của VLAN truyền thống | ⭐ VXLAN giải quyết thế nào |
 |---|---|
@@ -883,7 +1047,7 @@ ping 10.2.1.1 source 10.1.1.1           ! ping từ LAN sang LAN — bài test c
 | 🔴 ⭐ **VM live-migration** đòi hỏi cùng VLAN/subnet ở cả nguồn và đích | ⭐ **VXLAN kéo L2 đi bất cứ đâu trong fabric** → VM di chuyển thoải mái |
 | ⭐ STP chặn link → **lãng phí đường** | ⭐ Underlay định tuyến → ⭐ **dùng được TẤT CẢ đường (ECMP)** |
 
-### 8.2 ⭐⭐ VXLAN hoạt động thế nào
+### 9.2 ⭐⭐ VXLAN hoạt động thế nào
 
 ```
    VXLAN = "MAC-in-UDP" — bọc frame Ethernet vào một gói UDP
@@ -907,7 +1071,7 @@ ping 10.2.1.1 source 10.1.1.1           ! ping từ LAN sang LAN — bài test c
 > 🔴 ⭐⭐ **Nhớ 3 con số của VXLAN:** ⭐ **VNI = 24 bit (16 triệu)** · ⭐ **UDP 4789** · ⭐ **overhead 50 byte**.
 > ⭐ Và ⭐ **so sánh với GRE: 24 byte** — VXLAN nặng gấp đôi vì nó bọc **cả frame Ethernet**, không chỉ gói IP.
 
-### 8.3 ⭐ Control plane của VXLAN — hai thế hệ
+### 9.3 ⭐ Control plane của VXLAN — hai thế hệ
 
 | | ⭐ **Flood-and-Learn** (đời đầu) | ⭐⭐ **EVPN** (MP-BGP EVPN — hiện đại) |
 |---|---|---|
@@ -919,7 +1083,7 @@ ping 10.2.1.1 source 10.1.1.1           ! ping từ LAN sang LAN — bài test c
 ⭐ **Cho ENCOR:** biết ⭐ **"VXLAN cần một control plane, và cái hiện đại là MP-BGP EVPN"** là đủ.
 ⭐ **Không cần cấu hình EVPN** — đó là địa hạt của CCNP Data Center.
 
-### 8.4 ⭐⭐ VXLAN vs GRE vs VLAN — bảng so sánh phải nhớ
+### 9.4 ⭐⭐ VXLAN vs GRE vs VLAN — bảng so sánh phải nhớ
 
 | | ⭐ **VLAN** | ⭐ **GRE** | ⭐⭐ **VXLAN** |
 |---|---|---|---|
@@ -934,7 +1098,7 @@ ping 10.2.1.1 source 10.1.1.1           ! ping từ LAN sang LAN — bài test c
 > ⭐ **GRE bọc gói IP (L3), overhead 24 byte, dùng cho WAN.**
 > ⭐⭐ **VXLAN bọc frame Ethernet (L2), overhead 50 byte, VNI 24-bit, dùng cho DC/fabric.**
 
-### 8.5 ⭐⭐ Bộ ba của SD-Access — nối sang Module-09
+### 9.5 ⭐⭐ Bộ ba của SD-Access — nối sang Module-09
 
 > ⭐⭐ **Đây là câu quan trọng nhất kết nối Module-08 với Module-09. Học thuộc:**
 
@@ -949,601 +1113,130 @@ ping 10.2.1.1 source 10.1.1.1           ! ping từ LAN sang LAN — bài test c
 > ⭐ **Câu thần chú:** ⭐⭐ ***"SD-Access = LISP (điều khiển) + VXLAN (dữ liệu) + TrustSec (chính sách),
 > chạy trên nền VRF."*** ⭐ Nhớ câu này là bạn đã cầm sẵn nửa số điểm phần SD-Access ở Module-09.
 
----
-
-## 📖 9. HIỂU RÕ HƠN
-
-### 9.1 VRF là "nhiều công ty thuê chung một tòa nhà"
-
-⭐ Một tòa nhà (**router vật lý**), nhiều công ty thuê (**VRF**):
-- ⭐ Mỗi công ty có **danh bạ nội bộ riêng** (bảng route riêng)
-- ⭐ Công ty A có **"phòng 101"**, công ty B **cũng có "phòng 101"** — ⭐ **không xung đột** vì hai danh bạ tách biệt
-- ⭐ Nhân viên A **không thể** gọi sang phòng của B (mặc định cách ly)
-- ⭐ Muốn hai bên nói chuyện → phải ⭐ **cố ý bắc một đường dây** (route leaking)
-- ⭐ Và bạn phải **nói rõ mình đang tra danh bạ của công ty nào** → ⭐ **đó chính là `ping vrf KHACH-A`**
-
-🔴 ⭐ **Quên nói tên công ty (quên `vrf`) → bạn đang tra nhầm danh bạ tòa nhà (global table) → không thấy ai cả.**
-
-### 9.2 GRE là "phong bì", IPsec là "hộp niêm phong"
-
-- ⭐ **GRE = cho lá thư vào PHONG BÌ** và ghi địa chỉ mới bên ngoài.
-  ⭐ Bưu điện (Internet) chỉ nhìn phong bì, không cần hiểu bên trong viết gì.
-  🔴 ⭐ **Nhưng phong bì TRONG SUỐT** — ai cầm cũng đọc được.
-- ⭐ **IPsec = HỘP KIM LOẠI NIÊM PHONG.** An toàn tuyệt đối,
-  🔴 ⭐ **nhưng hộp này chỉ nhận bưu phẩm gửi cho MỘT người cụ thể** — không gửi được **thư báo chung cho cả khu phố** (multicast).
-- ⭐⭐ **GRE over IPsec = cho phong bì vào hộp niêm phong.**
-  ⭐ Vừa gửi được thư báo chung (routing protocol), vừa không ai đọc trộm được.
-
-⭐ **Và "transport mode" nghĩa là:** ⭐ **phong bì đã có địa chỉ rồi, hộp không cần ghi địa chỉ lần nữa** —
-⭐ đỡ tốn 20 byte.
-
-### 9.3 Recursive routing là "muốn tới nhà phải đi qua chính nhà đó"
-
-⭐ Bạn hỏi đường tới nhà bạn X. Người ta chỉ: ⭐ *"đi theo con đường tắt qua nhà X"*.
-⭐ Nhưng muốn dùng con đường tắt đó, bạn **phải tới được nhà X trước**. ⭐ **Vòng luẩn quẩn.**
-
-⭐ Router thông minh hơn bạn — nó phát hiện vòng lặp và ⭐ **tự đóng con đường tắt lại**:
-`%TUN-5-RECURDOWN`.
-
-⭐ **Cách tránh duy nhất:** ⭐ **đường tới nhà X phải học từ NGUỒN KHÁC** (đường lớn = underlay),
-⭐ **không được học từ chính con đường tắt** (overlay).
-
-### 9.4 LISP là DNS, BGP là danh bạ giấy
-
-- ⭐ **BGP/IGP = phát cho mọi người một cuốn danh bạ dày cộp**, ai cũng phải giữ **toàn bộ** thông tin,
-  ⭐ và mỗi khi có một số điện thoại đổi thì **in lại cho tất cả** (**PUSH**).
-- ⭐⭐ **LISP = DNS.** ⭐ Bạn **không giữ** danh bạ nào cả. Cần gọi ai thì ⭐ **hỏi tổng đài** (Map Resolver),
-  ⭐ được trả lời thì **ghi nhớ tạm** (map-cache), lần sau khỏi hỏi (**PULL**).
-- ⭐ **Lợi ích:** người ta chuyển nhà (VM migration) thì ⭐ **chỉ cần báo tổng đài** — không cần in lại danh bạ toàn cầu.
-
-### 9.5 VXLAN là "gửi cả cái phòng qua đường bưu điện"
-
-- ⭐ **GRE** gửi **một lá thư** (gói IP) qua bưu điện.
-- ⭐⭐ **VXLAN** gửi **cả một căn phòng có địa chỉ nội bộ riêng** (nguyên frame Ethernet + VNI).
-  ⭐ Bên nhận mở ra và ⭐ **đặt căn phòng đó vào đúng tầng của mình** — hai máy ở hai data center
-  ⭐ **cảm giác như đang cắm chung một switch**, dù thực tế cách nhau hàng nghìn km và ở giữa toàn router.
-
-⭐ **Vì gửi cả căn phòng nên hộp phải to hơn** → ⭐ **50 byte overhead, và underlay phải bật jumbo frame.**
-
----
-
-## 🧪 10. LAB 08 — VRF + GRE + IPsec
-
-### 10.1 Topology
-
-```
-        ┌─ SITE A ─────────────┐                    ┌─ SITE B ─────────────┐
-        │                      │                    │                      │
-   Lo10 │ 10.1.1.1/24 ┌──────┐ │ Gi0/0              │ Gi0/0 ┌──────┐       │ Lo10
-   Lo20 │ 10.10.10.1  │  R1  │─┼─203.0.113.1        203.0.113.2─│  R2  │───┼─10.2.2.1/24
-   Lo30 │ 10.10.10.1  │      │ │       ╲              ╱         └──────┘   │
-        │ (TRÙNG!) └──────┘ │        ╲            ╱                     │
-        └──────────────────────┘         ╲          ╱                      └──────────────┘
-                                      ┌───────────────┐
-                                      │    R-ISP      │  đóng vai "Internet"
-                                      │ 203.0.113.254 │  KHÔNG biết gì về 10.x
-                                      └───────────────┘
-```
-
-| Node | Image | RAM | Vai trò |
-|---|---|:---:|---|
-| **R1** | vIOS *(hoặc CSR1000v nếu cần crypto)* | 512 MB / 3 GB | Site A — VRF + đầu tunnel |
-| **R2** | vIOS *(hoặc CSR1000v)* | 512 MB / 3 GB | Site B — đầu tunnel kia |
-| **R-ISP** | vIOS | 512 MB | ⭐ "Internet" — **cố ý không biết mạng 10.x** |
-
-⭐ **Tổng RAM: ~1.5 GB (vIOS) hoặc ~6.5 GB (2× CSR1000v)** ✅
-
-### 10.2 Bảng nối dây
-
-| Từ | Interface | Tới | Interface | Mạng |
-|---|---|---|---|---|
-| R1 | Gi0/0 | R-ISP | Gi0/0 | 203.0.113.0/30 *(R1=.1, ISP=.254 dùng /24 cho tiện)* |
-| R2 | Gi0/0 | R-ISP | Gi0/1 | 203.0.113.0/24 |
-
-⭐ **Đơn giản hóa:** dùng chung subnet `203.0.113.0/24` cho cả hai link, R-ISP có 2 interface trong đó.
-*(Không "đúng chuẩn" nhưng ⭐ **giữ lab gọn và không ảnh hưởng bài học**.)*
-
----
-
-### Bước 0 — ⭐ Cấu hình nền (underlay)
-
-```
-!═══════ R-ISP ═══════ (đóng vai Internet: CHỈ biết mạng public)
-hostname R-ISP
-interface GigabitEthernet0/0
- ip address 203.0.113.254 255.255.255.0
- no shutdown
-interface GigabitEthernet0/1
- ip address 203.0.113.253 255.255.255.0
- no shutdown
-! CỐ Ý KHÔNG cấu hình route nào tới 10.0.0.0/8
-!    → Chứng minh traffic 10.x chỉ đi được nhờ TUNNEL
-
-!═══════ R1 ═══════
-hostname R1
-interface GigabitEthernet0/0
- ip address 203.0.113.1 255.255.255.0
- no shutdown
-interface Loopback10
- ip address 10.1.1.1 255.255.255.0        ! LAN site A
-!
-ip route 0.0.0.0 0.0.0.0 203.0.113.254    ! default ra "Internet"
-
-!═══════ R2 ═══════
-hostname R2
-interface GigabitEthernet0/0
- ip address 203.0.113.2 255.255.255.0
- no shutdown
-interface Loopback10
- ip address 10.2.2.1 255.255.255.0        ! LAN site B
-!
-ip route 0.0.0.0 0.0.0.0 203.0.113.253
-```
-
-✅ **Checkpoint 0:**
-```
-R1# ping 203.0.113.2
-!!!!!                                      ! ✅ underlay thông
-
-R1# ping 10.2.2.1 source 10.1.1.1
-.....                                      ! ✅ ĐÚNG như mong đợi — PHẢI THẤT BẠI
-                                           ! vì ISP không biết mạng 10.x
-```
-> 💡 ⭐ **Vì sao bước này quan trọng:** bạn vừa **chứng minh xuất phát điểm**.
-> ⭐ Mọi thứ hoạt động sau đây **chỉ có thể là nhờ tunnel**, không phải nhờ may mắn.
-
----
-
-### Bước 1 — ⭐⭐ VRF-lite và sức mạnh "IP trùng nhau"
-
-```
-!═══════ TRÊN R1 ═══════
-vrf definition KHACH-A
- rd 65001:1
- address-family ipv4
- exit-address-family
-!
-vrf definition KHACH-B
- rd 65001:2
- address-family ipv4
- exit-address-family
-!
-! HAI interface, CÙNG một dải IP, khác VRF
-interface Loopback20
- vrf forwarding KHACH-A                   ! GÁN VRF TRƯỚC
- ip address 10.10.10.1 255.255.255.0      ! ĐẶT IP SAU
- description LAN cua KHACH-A
-!
-interface Loopback30
- vrf forwarding KHACH-B                   ! VRF khác
- ip address 10.10.10.1 255.255.255.0      ! IP GIỐNG HỆT — VÀ NÓ CHẠY!
- description LAN cua KHACH-B
-```
-
-✅ **Checkpoint 1.1 — ⭐ chứng kiến điều "không thể":**
-```
-R1# show ip interface brief | include Loopback
-Loopback10   10.1.1.1     YES manual up  up
-Loopback20   10.10.10.1   YES manual up  up      
-Loopback30   10.10.10.1   YES manual up  up      CÙNG IP, KHÔNG BÁO LỖI!
-```
-
-> 💡 ⭐⭐ **Dừng lại và ngẫm 30 giây.** Trên một router bình thường, đặt cùng IP lên 2 interface sẽ báo:
-> `% 10.10.10.1 overlaps with Loopback20`.
-> ⭐ **Ở đây không báo gì cả** — vì hai interface **sống trong hai vũ trụ khác nhau**.
-> ⭐ **Đây chính là toàn bộ ý nghĩa của VRF.**
-
-✅ **Checkpoint 1.2 — ba bảng route độc lập:**
-```
-R1# show vrf
-  Name        Default RD    Protocols   Interfaces
-  KHACH-A     65001:1       ipv4        Lo20
-  KHACH-B     65001:2       ipv4        Lo30
-
-R1# show ip route | include 10.10.10
-                                          KHÔNG CÓ GÌ — global table không thấy
-
-R1# show ip route vrf KHACH-A | include 10.10.10
-C     10.10.10.0/24 is directly connected, Loopback20      chỉ thấy của mình
-
-R1# show ip route vrf KHACH-B | include 10.10.10
-C     10.10.10.0/24 is directly connected, Loopback30      cũng chỉ thấy của mình
-```
-
-✅ **Checkpoint 1.3 — ⭐⭐ tái hiện BẪY SỐ 2 (bẫy quan trọng nhất của VRF):**
-```
-R1# ping 10.10.10.1
-!!!!!            ! ⚠️ Thành công NHƯNG... nó ping vào đâu?
-
-! Thử ping một địa chỉ KHÁC trong VRF, từ global:
-R1# ping 10.10.10.99
-.....            ! THẤT BẠI
-
-R1# ping vrf KHACH-A 10.10.10.99
-.....            ! (vẫn fail vì không có host thật, nhưng hãy so sánh cách nó gửi gói)
-```
-> 💡 🔴 ⭐⭐ **Bài học:** ⭐ **quên `vrf` = đang dùng bảng global = KHÔNG BAO GIỜ tới được VRF.**
-> ⭐ Đây là nguyên nhân của 90% ca *"tôi cấu hình VRF rồi mà không ping được"*.
-
-✅ **Checkpoint 1.4 — ⭐ tái hiện BẪY SỐ 1 (mất IP khi gán VRF):**
-```
-R1(config)# interface Loopback40
-R1(config-if)# ip address 192.168.99.1 255.255.255.0    ! đặt IP TRƯỚC (cố ý làm sai)
-R1(config-if)# vrf forwarding KHACH-A                   ! rồi mới gán VRF
-
-% Interface Loopback40 IPv4 disabled and address(es) removed due to enabling VRF KHACH-A
-
-R1(config-if)# do show ip interface brief | include Loopback40
-Loopback40    unassigned    YES unset  up  up         IP ĐÃ BAY MẤT
-```
-> 💡 🔴 ⭐⭐ **Ghi ngay vào `SO-TAY-LOI.md`.** ⭐ Trên production, nếu bạn đang SSH qua interface đó
-> thì bạn **vừa tự cắt kết nối tới thiết bị**. ⭐ **Luôn: VRF trước, IP sau.**
-
----
-
-### Bước 2 — ⭐⭐ GRE tunnel giữa hai site
-
-```
-!═══════ R1 ═══════
-interface Tunnel0
- description GRE toi Site-B
- ip address 172.16.0.1 255.255.255.252
- tunnel source GigabitEthernet0/0
- tunnel destination 203.0.113.2
- keepalive 10 3
-
-!═══════ R2 ═══════
-interface Tunnel0
- description GRE toi Site-A
- ip address 172.16.0.2 255.255.255.252
- tunnel source GigabitEthernet0/0
- tunnel destination 203.0.113.1
- keepalive 10 3
-```
-
-✅ **Checkpoint 2.1:**
-```
-R1# show ip interface brief | include Tunnel
-Tunnel0   172.16.0.1   YES manual up  up      up/up
-
-R1# ping 172.16.0.2
-!!!!!                                          tunnel thông
-```
-
-✅ **Checkpoint 2.2 — ⭐ đọc thông số tunnel:**
-```
-R1# show interface tunnel0 | include MTU|Tunnel source|transport
-  MTU 17916 bytes, BW 100 Kbit/sec
-  Tunnel source 203.0.113.1 (GigabitEthernet0/0), destination 203.0.113.2
-  Tunnel transport MTU 1476 bytes         ← 1500 − 24 = GRE overhead
-```
-> 💡 ⭐ **Con số 1476 là bằng chứng vật lý cho lý thuyết §4.1.** ⭐ Nhìn thấy nó một lần là nhớ mãi.
-
-Giờ chạy **OSPF qua tunnel** để hai LAN thấy nhau:
-```
-!═══════ R1 ═══════
-router ospf 1
- network 172.16.0.0 0.0.0.3 area 0        ! mạng tunnel
- network 10.1.1.0 0.0.0.255 area 0        ! LAN site A
- ! CHÚ Ý: KHÔNG có 203.0.113.0 ở đây!
-
-!═══════ R2 ═══════
-router ospf 1
- network 172.16.0.0 0.0.0.3 area 0
- network 10.2.2.0 0.0.0.255 area 0
-```
-
-✅ **Checkpoint 2.3 — ⭐⭐ bài test quyết định:**
-```
-R1# show ip ospf neighbor
-Neighbor ID   Pri  State     Dead Time  Address      Interface
-2.2.2.2         0  FULL/  -  00:00:35   172.16.0.2   Tunnel0
-
-R1# show ip route ospf
-O   10.2.2.0/24 [110/1001] via 172.16.0.2, 00:01:12, Tunnel0
-
-R1# ping 10.2.2.1 source 10.1.1.1
-!!!!!                                    THÀNH CÔNG!
-```
-> 💡 ⭐⭐ **So sánh với Checkpoint 0** — cùng lệnh ping đó, lúc nãy **thất bại hoàn toàn**.
-> ⭐ **R-ISP vẫn KHÔNG hề biết gì về mạng 10.x** — nó chỉ thấy các gói IP giữa 203.0.113.1 và 203.0.113.2.
-> ⭐ **Đó chính là ý nghĩa của overlay.**
-
-⭐ **Kiểm chứng thêm (rất đáng làm):**
-```
-R-ISP# show ip route | include 10\.
-                                         TRỐNG. ISP hoàn toàn không biết mạng 10.x
-```
-
----
-
-### Bước 3 — 🔴 ⭐⭐ CỐ Ý TÁI HIỆN RECURSIVE ROUTING
-
-> ⭐ **Đây là bước giá trị nhất của cả LAB.** ⭐ **Đừng bỏ qua.** Lab hỏng dạy nhiều hơn lab chạy.
-
-```
-! Trên CẢ R1 VÀ R2 — cố ý advertise mạng WAN vào OSPF-qua-tunnel:
-router ospf 1
- network 203.0.113.0 0.0.0.255 area 0     ! DÒNG GÂY THẢM HỌA
-```
-
-✅ **Checkpoint 3.1 — quan sát vụ nổ (chờ ~30–60 giây):**
-```
-%TUN-5-RECURDOWN: Tunnel0 temporarily disabled due to recursive routing
-%LINEPROTO-5-UPDOWN: Line protocol on Interface Tunnel0, changed state to down
-%OSPF-5-ADJCHG: Process 1, Nbr 2.2.2.2 on Tunnel0 from FULL to DOWN
-%LINEPROTO-5-UPDOWN: Line protocol on Interface Tunnel0, changed state to up
-%TUN-5-RECURDOWN: Tunnel0 temporarily disabled due to recursive routing
-   ...LẶP MÃI. Đây là "tunnel flapping".
-```
-
-✅ **Checkpoint 3.2 — nhìn vào NGUYÊN NHÂN (bắt lúc tunnel đang up):**
-```
-R1# show ip route 203.0.113.2
-Routing entry for 203.0.113.0/24
-  Known via "ospf 1", distance 110, metric 1001
-   * 172.16.0.2, from 2.2.2.2, via Tunnel0      ← NHÌN DÒNG NÀY!
-
-"Muốn tới 203.0.113.2 → đi qua Tunnel0"
-Nhưng Tunnel0 cần biết đường tới 203.0.113.2 để hoạt động
-→ VÒNG LẶP. Router phát hiện và tự tắt tunnel.
-```
-
-✅ **Checkpoint 3.3 — sửa bằng CẢ HAI cách, hiểu vì sao mỗi cách có tác dụng:**
-
-```
-! CÁCH 1 (đúng nhất) — gỡ mạng WAN khỏi OSPF-qua-tunnel:
-router ospf 1
- no network 203.0.113.0 0.0.0.255 area 0
-```
-```
-! CÁCH 2 — static route AD thấp hơn "đè" lên OSPF:
-ip route 203.0.113.2 255.255.255.255 203.0.113.254
-!    AD 1  <  AD 110 của OSPF → static LUÔN THẮNG
-!    Và /32 dài hơn /24 → longest-prefix cũng thắng (Module-03!)
-```
-
-✅ **Xác nhận đã ổn:**
-```
-R1# show ip route 203.0.113.2
-   phải trỏ ra GigabitEthernet0/0, KHÔNG được trỏ ra Tunnel0
-
-R1# show interface tunnel0 | include line protocol
-Tunnel0 is up, line protocol is up        ổn định, không flap nữa
-```
-
-> 💡 🔴 ⭐⭐ **Bài học một câu — ghi vào `SO-TAY-LOI.md`:**
-> ⭐ ***"Đường tới tunnel destination KHÔNG BAO GIỜ được đi qua chính tunnel đó."***
-
----
-
-### Bước 4 — ⭐⭐ MTU & MSS
-
-✅ **Checkpoint 4.1 — tìm ra ngưỡng MTU thật của tunnel:**
-```
-R1# ping 172.16.0.2 df-bit size 1400
-!!!!!                                    ✅ qua được
-
-R1# ping 172.16.0.2 df-bit size 1476
-!!!!!                                    ✅ vẫn qua — đây là ĐÚNG giới hạn
-
-R1# ping 172.16.0.2 df-bit size 1477
-Packet sent with the DF bit set
-.....                                    THẤT BẠI
-   Bạn vừa TỰ TAY tìm ra con số 1476 = 1500 − 24 (GRE overhead)
-```
-
-✅ **Checkpoint 4.2 — áp cấu hình chuẩn (⭐ trên CẢ HAI đầu):**
-```
-interface Tunnel0
- ip mtu 1400
- ip tcp adjust-mss 1360
-```
-```
-R1# show interface tunnel0 | include MTU
-  MTU 17916 bytes ...
-  IP MTU 1400 bytes
-  Tunnel transport MTU 1476 bytes
-```
-
-> 💡 ⭐ **Vì sao vẫn nên đặt 1400 dù tunnel chịu được 1476?**
-> ⭐ Vì lát nữa thêm **IPsec** sẽ ăn thêm ~50–60 byte. ⭐ **Đặt 1400 ngay từ đầu là an toàn cho cả hai trường hợp** —
-> đây cũng là con số các nhà mạng và nhà tích hợp dùng mặc định ngoài đời.
-
----
-
-### Bước 5 — ⭐⭐ Thêm IPsec: biến GRE thành GRE over IPsec
-
-> 🔴 ⚠️ **Nếu vIOS báo `% Invalid input` ở lệnh `crypto isakmp policy` → xem §1.1**,
-> đổi R1/R2 sang **CSR1000v**, hoặc **bỏ qua bước này và đọc kỹ cấu hình** (vẫn nắm được để thi).
-
-```
-!═══════ TRÊN R1 ═══════
-crypto isakmp policy 10
- encryption aes 256
- hash sha256
- authentication pre-share
- group 14
-!
-crypto isakmp key CCNP-ENCOR-2026 address 203.0.113.2
-!
-crypto ipsec transform-set TSET esp-aes 256 esp-sha256-hmac
- mode transport                                ! TRANSPORT cho GRE over IPsec
-!
-crypto ipsec profile IPSEC-PROF
- set transform-set TSET
-!
-interface Tunnel0
- tunnel protection ipsec profile IPSEC-PROF    ! dòng duy nhất cần thêm vào tunnel
-
-!═══════ TRÊN R2 ═══════ (giống hệt, chỉ đổi địa chỉ peer)
-crypto isakmp key CCNP-ENCOR-2026 address 203.0.113.1
-   ! phần còn lại y hệt R1
-```
-
-✅ **Checkpoint 5.1 — Phase 1:**
-```
-R1# ping 172.16.0.2                       ! tạo traffic để kích hoạt VPN
-!!!!!
-
-R1# show crypto isakmp sa
-dst           src           state     conn-id status
-203.0.113.2   203.0.113.1   QM_IDLE   1001  ACTIVE
-                            "QM_IDLE" = Phase 1 XONG. ĐÂY LÀ TRẠNG THÁI TỐT.
-```
-
-✅ **Checkpoint 5.2 — ⭐⭐ Phase 2 và bằng chứng dữ liệu đang được mã hóa:**
-```
-R1# show crypto ipsec sa | include ident|encaps|decaps|encrypt|decrypt
-   local  ident (addr/mask/prot/port): (203.0.113.1/255.255.255.255/47/0)
-   remote ident (addr/mask/prot/port): (203.0.113.2/255.255.255.255/47/0)
-                                                                    47 = GRE!
-    #pkts encaps: 58, #pkts encrypt: 58
-    #pkts decaps: 56, #pkts decrypt: 56
-
-! BÀI TEST QUYẾT ĐỊNH — ping rồi xem số có TĂNG không:
-R1# ping 10.2.2.1 source 10.1.1.1 repeat 20
-!!!!!!!!!!!!!!!!!!!!
-
-R1# show crypto ipsec sa | include encaps|decaps
-    #pkts encaps: 78    (58 + 20)
-    #pkts decaps: 76    (56 + 20)
-```
-
-> 💡 ⭐⭐ **`encaps` và `decaps` CÙNG TĂNG = VPN thật sự đang chở dữ liệu.**
-> ⭐ Đây là bằng chứng mạnh hơn nhiều so với việc chỉ nhìn `QM_IDLE`.
-> ⭐ **`prot 47` (GRE) trong ident** chính là bằng chứng bạn đang chạy ⭐ **GRE over IPsec**,
-> chứ không phải IPsec thuần.
-
-```
-R1# show crypto session
-Interface: Tunnel0
-Session status: UP-ACTIVE
-Peer: 203.0.113.2 port 500
-  IKEv1 SA: local 203.0.113.1/500 remote 203.0.113.2/500 Active
-  IPSEC FLOW: permit 47 host 203.0.113.1 host 203.0.113.2
-        Active SAs: 2, origin: crypto map
-```
-
-✅ **Checkpoint 5.3 — ⭐ OSPF vẫn chạy (đây là điều IPsec thuần không làm được):**
-```
-R1# show ip ospf neighbor
-2.2.2.2   0  FULL/  -  00:00:33  172.16.0.2  Tunnel0
-```
-> 💡 ⭐⭐ **Đây là câu trả lời sống động cho câu hỏi "vì sao phải GRE over IPsec".**
-> ⭐ Nếu dùng **IPsec thuần (crypto map)**, ⭐ **OSPF sẽ KHÔNG chạy được** vì multicast `224.0.0.5`
-> không đi qua được. ⭐ **Bạn vừa nhìn thấy tận mắt lý do tồn tại của cả mục 2.2.b.**
-
----
-
-### Bước 6 — 🔴 ⭐⭐ CỐ Ý PHÁ IPsec (bắt buộc làm)
-
-**Phá 1 — sai pre-shared key:**
-```
-R1(config)# no crypto isakmp key CCNP-ENCOR-2026 address 203.0.113.2
-R1(config)# crypto isakmp key SAI-MAT-KHAU address 203.0.113.2
-R1# clear crypto isakmp
-R1# clear crypto sa
-R1# ping 172.16.0.2
-```
-✅ **Quan sát:**
-```
-R1# show crypto isakmp sa
-dst           src           state           conn-id status
-203.0.113.2   203.0.113.1   MM_NO_STATE   1002  ACTIVE (deleted)
-                            "MM_NO_STATE" = PHASE 1 THẤT BẠI
-```
-> 💡 ⭐⭐ **Ghi nhớ cặp đối lập này — đề hỏi rất nhiều:**
-> ⭐ **`QM_IDLE` = Phase 1 THÀNH CÔNG** · 🔴 ⭐ **`MM_NO_STATE` / `MM_KEY_EXCH` = Phase 1 ĐANG HỎNG**
-
-⭐ **Sửa lại key rồi `clear crypto isakmp` — xác nhận quay về `QM_IDLE`.**
-
-**Phá 2 — lệch transform-set:**
-```
-R2(config)# crypto ipsec transform-set TSET esp-aes 128 esp-sha256-hmac
-!                                             128 thay vì 256
-R1# clear crypto sa
-```
-✅ **Quan sát:** ⭐ **Phase 1 vẫn `QM_IDLE` ✅ nhưng `show crypto ipsec sa` KHÔNG có SA nào active**,
-⭐ `encaps`/`decaps` **đứng yên**.
-> 💡 ⭐⭐ **Bài học:** ⭐ **Phase 1 OK mà không có dữ liệu chảy → lỗi ở PHASE 2** (transform-set / ACL).
-> ⭐ Đây là cách khoanh vùng nhanh nhất khi troubleshoot IPsec.
-
-**Phá 3 — tắt tunnel protection ở một đầu:**
-```
-R2(config-if)# no tunnel protection ipsec profile IPSEC-PROF
-```
-✅ **Quan sát:** ⭐ tunnel vẫn có thể hiện up (GRE stateless) nhưng ⭐ **traffic không qua được** —
-một đầu mã hóa, đầu kia không hiểu.
-> 💡 ⭐ **Bài học:** ⭐ **`tunnel protection` phải có ở CẢ HAI đầu.**
-
----
-
-## 🚀 11. LAB NÂNG CAO
-
-### 11.1 🚀 ⭐ Tunnel nằm TRONG VRF (rất hay gặp ngoài đời)
-
-⭐ **Tình huống:** interface WAN nằm trong VRF `INTERNET`, nhưng traffic của tunnel là mạng nội bộ.
-
-```
-interface Tunnel0
- ip address 172.16.0.1 255.255.255.252
- tunnel source GigabitEthernet0/0
- tunnel destination 203.0.113.2
- tunnel vrf INTERNET              ! "hãy TÌM ĐƯỜNG tới destination trong VRF INTERNET"
-```
-> ⭐⭐ **Phân biệt hai lệnh dễ lẫn — đề có thể hỏi:**
-> · ⭐ **`vrf forwarding X`** trên Tunnel0 = ⭐ **traffic BÊN TRONG tunnel thuộc VRF X** (overlay)
-> · ⭐ **`tunnel vrf X`** = ⭐ **đường đi TỚI tunnel destination nằm trong VRF X** (underlay)
+## 🧪 PHẦN 3 — NHÌN THẤY NÓ
+
+> ### 👉 **[LAB 08 — Tuần 14: VRF · GRE · IPsec](Module-08-LAB.md)**
+
+| Bước | Nội dung | Ví von ở Phần 1 | Cơ chế ở Phần 2 |
+|:---:|---|---|---|
+| 1 | ⭐⭐ **VRF + hai interface trùng IP** | §2.1 nhiều công ty thuê chung tòa nhà | §4 |
+| 2 | ⭐ GRE tunnel + OSPF qua tunnel | §2.2 phong bì trong suốt | §5 |
+| 3 | 🔴 ⭐⭐ **Tái hiện recursive routing** | §2.3 muốn tới nhà phải đi qua chính nhà đó | §5.3 |
+| 4 | ⭐⭐ Tìm MTU thật bằng `ping df-bit` | — | §5.4 |
+| 5 | ⭐⭐ **GRE over IPsec** — `QM_IDLE`, encaps/decaps | §2.2 hộp niêm phong | §6–7 |
+| 6 | 🔴 ⭐ Cố ý phá IPsec (sai PSK, lệch transform-set) | — | §7.3 |
+
+> ⚠️ **Hai bước quan trọng nhất:**
 >
-> ⭐ **Mẹo nhớ:** ⭐ *"`tunnel vrf` nói về VỎ, `vrf forwarding` nói về RUỘT."*
-
-### 11.2 🚀 ⭐ Route leaking giữa VRF và global
-
-```
-! Cho VRF KHACH-A đi ra Internet (bảng global)
-ip route vrf KHACH-A 0.0.0.0 0.0.0.0 203.0.113.254 global
-!                                                   từ khóa quan trọng
-! Chiều về: từ global trỏ ngược vào VRF
-ip route 10.10.10.0 255.255.255.0 Loopback20
-```
-✅ **Test:** `ping vrf KHACH-A 203.0.113.254` → phải thành công.
-⭐ **Nhớ:** ⭐ **route leaking phải làm CẢ HAI CHIỀU** mới thông.
-
-### 11.3 🚀 ⭐ OSPF chạy trong VRF
-
-```
-router ospf 100 vrf KHACH-A
- router-id 1.1.1.100
- network 10.10.10.0 0.0.0.255 area 0
-!
-show ip ospf 100                          ! process riêng
-show ip route vrf KHACH-A ospf
-show ip ospf neighbor vrf KHACH-A
-```
-
-### 11.4 🚀 So sánh: IPsec thuần (crypto map) — để thấy nó KHÔNG chạy được OSPF
-
-⭐ **Bài tập:** tháo GRE, dựng IPsec thuần bằng crypto map giữa R1–R2 (§5.4), rồi thử bật OSPF.
-✅ **Bạn sẽ thấy:** ⭐ **OSPF neighbor KHÔNG BAO GIỜ lên** (multicast `224.0.0.5` không qua được crypto map).
-⭐ **Đây là cách chứng minh mạnh nhất vì sao GRE over IPsec tồn tại.**
-
-### 11.5 🚀 Bắt gói bằng Wireshark
-
-⭐ Bắt gói trên link R1↔R-ISP trong EVE-NG *(chuột phải link → Capture)*:
-
-| Giai đoạn | ⭐ Bạn sẽ thấy |
-|---|---|
-| ⭐ **Trước khi bật IPsec** | ⭐ **Gói GRE — và Wireshark GIẢI MÃ ĐƯỢC toàn bộ**: thấy rõ IP nội bộ 10.1.1.1, thấy cả gói OSPF bên trong. 🔴 ⭐ **Bằng chứng GRE không mã hóa gì cả** |
-| ⭐ **Sau khi bật IPsec** | ⭐ **Chỉ thấy `ESP`** — nội dung là **một khối byte vô nghĩa**. ⭐ Không đọc được IP nội bộ, không thấy OSPF |
-| ⭐ **Lúc mới bật** | ⭐ Thấy **ISAKMP trên UDP 500** — chính là Phase 1 đang bắt tay |
-
-> 💡 ⭐⭐ **Đây là bài lab thuyết phục nhất cả module.** ⭐ Chụp lại hai ảnh Wireshark (trước/sau)
-> và dán vào `SO-TAY-LOI.md`. ⭐ **Nhìn một lần là nhớ cả đời sự khác nhau giữa GRE và GRE over IPsec.**
+> ⭐ **Bước 1** — bạn sẽ đặt **cùng một IP `10.10.10.1` lên hai interface** và router
+> **không báo lỗi**. Đó là lúc VRF thôi là khái niệm và trở thành thứ nhìn thấy được.
+>
+> ⭐ **Bước 3** — tái hiện `%TUN-5-RECURDOWN` và thấy tunnel flapping thật.
+> **Lab hỏng dạy nhiều hơn lab chạy.**
 
 ---
 
-## 💡 12. THỰC CHIẾN ĐI LÀM
+## 🏗️ PHẦN 4 — TOPO & KIẾN TRÚC
+
+> Năm công nghệ này không rời rạc — chúng xếp thành **hai tầng của cùng một ý tưởng: OVERLAY**.
+
+### 4.1 Bản đồ: overlay ở WAN và overlay ở Data Center
+
+```
+   ══════ OVERLAY Ở WAN (bạn cấu hình được) ══════
+
+     Chi nhánh A                                   Chi nhánh B
+   ┌────────────┐                                ┌────────────┐
+   │  ① VRF     │      ② GRE over IPsec          │  ① VRF     │
+   │  tách khách│═══════════════════════════════►│  tách khách│
+   └─────┬──────┘   qua INTERNET (không tin ai)   └─────┬──────┘
+         │                                              │
+         └──────── ISP KHÔNG BIẾT mạng 10.x ────────────┘
+
+
+   ══════ OVERLAY Ở DATA CENTER (chỉ cần hiểu) ══════
+
+   ┌──────────────────────────────────────────────────────┐
+   │  OVERLAY:  ③ LISP (điều khiển) + ④ VXLAN (dữ liệu)   │
+   │            "host X đang ở đâu"   "chở frame đi"       │
+   ├──────────────────────────────────────────────────────┤
+   │  UNDERLAY: mạng IP đã định tuyến (OSPF/IS-IS + ECMP) │
+   └──────────────────────────────────────────────────────┘
+
+   ⭐ Cùng một ý tưởng: BỌC gói của mình vào gói của mạng bên dưới.
+      Khác nhau ở chỗ bọc cái gì, và ai điều khiển.
+```
+
+### 4.2 So sánh ba kiểu bọc — bảng gỡ rối
+
+| | **GRE** | **IPsec** | **VXLAN** |
+|---|---|---|---|
+| Bọc cái gì | Gói **IP** (L3) | Gói IP | ⭐ **Cả frame Ethernet** (L2) |
+| Overhead | ⭐ **24 byte** | ~50–60 byte | ⭐ **50 byte** |
+| Vận chuyển | IP protocol **47** | ESP protocol **50** | ⭐ **UDP 4789** |
+| Mã hóa | 🔴 **KHÔNG** | ⭐ **CÓ** | Không |
+| Chở multicast | ⭐ **CÓ** | 🔴 **KHÔNG** | Có |
+| Dùng ở | WAN site-to-site | WAN qua Internet | ⭐ **DC fabric, SD-Access** |
+
+> ⭐⭐ **Đây là lý do GRE over IPsec tồn tại:**
+> **GRE chở được routing protocol nhưng không mã hóa** · **IPsec mã hóa nhưng không chở được multicast**
+> → ghép cả hai.
+
+### 4.3 Năm quyết định — và sai thì hỏng thế nào
+
+| # | Quyết định | 🔴 Sai thì hỏng thế nào |
+|:---:|---|---|
+| ① | **Gán VRF TRƯỚC, đặt IP SAU** | Làm ngược thì **IP bị xóa**. Trên production, nếu đang SSH qua chính interface đó thì **mất kết nối tới thiết bị** |
+| ② | ⭐⭐ **Đường tới tunnel destination KHÔNG được đi qua tunnel** | Recursive routing → `%TUN-5-RECURDOWN` → **tunnel flapping vô tận** |
+| ③ | ⭐⭐ **Luôn đặt `ip mtu 1400` + `ip tcp adjust-mss 1360`** | Thiếu → **ping OK nhưng web load nửa chừng rồi treo** — lỗi khó tìm nhất |
+| ④ | **GRE over IPsec dùng `transport mode`** | Dùng tunnel mode thì thừa 20 byte vô ích (GRE đã có IP header rồi) |
+| ⑤ | **`deny` traffic VPN trong NAT ACL** | Quên → traffic VPN **bị NAT trước** → không khớp ACL interesting traffic → **VPN lên mà không ping được** |
+
+### 4.4 Ba sự thật mà chỉ người đi làm mới biết
+
+| Sự thật | Giải thích |
+|---|---|
+| ⭐⭐ **`up/up` của tunnel là "up giả"** | GRE **stateless** — nếu không bật `keepalive`, tunnel vẫn hiện `up/up` **kể cả khi đầu kia đã tắt máy** |
+| ⭐⭐ **`QM_IDLE` là trạng thái TỐT** | Nghe như "nhàn rỗi" nhưng nghĩa là **Phase 1 đã xong**. 🔴 `MM_NO_STATE` mới là đang hỏng |
+| ⭐⭐ **`encaps` tăng mà `decaps` = 0** | Mình gửi được, **không nhận được gì về** → firewall chặn chiều về, hoặc đầu kia thiếu route ngược |
+
+### 4.5 Những thứ này sẽ lớn lên thành gì
+
+| Bạn vừa học | Sẽ thành | Ở module |
+|---|---|---|
+| ⭐ **VRF** | **VN (Virtual Network)** của SD-Access — macro-segmentation | **Module-09 §7.6** |
+| ⭐ **LISP** | **Control plane** của SD-Access | **Module-09 §7.3** |
+| ⭐ **VXLAN** | **Data plane** của SD-Access (mang cả VNI lẫn SGT) | **Module-09 §7** |
+| IPsec | SD-WAN data plane · kết nối cloud | **Module-09 §5–6** |
+| MTU/GRE | **ERSPAN** cũng dùng GRE — cùng vấn đề MTU | **Module-11 §6.4** |
+
+### 4.6 Vẽ lại để nhớ
+
+> **Bài tập 15 phút, trên giấy.**
+>
+> 1. Vẽ lại **cả hai** sơ đồ ở §4.1
+> 2. Với mỗi kiểu bọc (GRE/IPsec/VXLAN), ghi: **bọc cái gì · overhead · có mã hóa không · chở multicast không**
+> 3. Trả lời: *Vì sao IPsec thuần không chạy được OSPF, còn GRE over IPsec thì được?*
+
+<details>
+<summary>Đáp án câu 3</summary>
+
+OSPF dùng **multicast** (`224.0.0.5` / `224.0.0.6`).
+
+🔴 **IPsec thuần (crypto map) không chở được multicast** → OSPF hello không qua được →
+neighbor không bao giờ lên.
+
+⭐ **GRE CHỞ ĐƯỢC multicast** — nó bọc mọi thứ vào một gói **unicast IP**.
+Khi bọc GRE vào IPsec, IPsec chỉ thấy **một luồng unicast GRE (protocol 47)** giữa hai IP public,
+nên mã hóa bình thường.
+
+⭐ **Một câu để nhớ:** *GRE cho routing đi qua, IPsec cho nó đi qua an toàn.*
+
+</details>
+
+---
+
+## 💡 4.7 Thực chiến đi làm
 
 | # | Tình huống thật | ⭐ Điều người mới làm sai | ⭐ Cách làm đúng |
 |:---:|---|---|---|
@@ -1564,6 +1257,20 @@ show ip ospf neighbor vrf KHACH-A
 > 1. ⭐ **"VRF trước, IP sau. Ping thì nhớ gõ `vrf`."**
 > 2. ⭐ **"Tunnel destination không được đi qua tunnel."**
 > 3. ⭐ **"GRE cho routing, IPsec cho bảo mật — và luôn nhớ MSS."**
+
+---
+
+# 📎 PHỤ LỤC — TRA CỨU
+
+> 🔴 **KHÔNG đọc phần này ở lần học đầu tiên.**
+>
+> | Khi nào | Mở mục nào |
+> |---|---|
+> | Đang lab mà lỗi | **Gỡ lỗi nhanh** (§14) — ⭐ quy trình 6 bước cho GRE over IPsec |
+> | Quên lệnh | **Hộp lệnh** (§14.1) |
+> | Tuần 20, ôn thi | **Bẫy đề** (§13) + **Quiz** (§15) |
+> | Gặp từ lạ | **Thuật ngữ** (§16) |
+> | Tự chấm | **Đúc kết** (§17) |
 
 ---
 
