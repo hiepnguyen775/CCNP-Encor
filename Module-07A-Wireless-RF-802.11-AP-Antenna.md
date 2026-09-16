@@ -12,6 +12,90 @@
 
 ---
 
+# 📌 TÓM TẮT — đọc 10 phút là nắm khung
+
+## Module này trả lời một câu hỏi duy nhất
+
+> **"Sóng Wi-Fi là thứ vô hình — làm sao biết nó MẠNH hay YẾU, SẠCH hay NHIỄU,
+> và vì sao vạch đầy mà mạng vẫn chậm?"**
+
+## Sự thật nền tảng — hiểu cái này là hiểu 70% wireless
+
+```
+   ⭐⭐ Wi-Fi là HALF-DUPLEX và là môi trường CHIA SẺ
+
+   Trên MỘT channel, trong MỘT vùng nghe được nhau
+   → chỉ MỘT thiết bị được phát tại một thời điểm.
+
+   AP và TẤT CẢ client CHIA NHAU thời gian phát.
+
+   ┌───────────────────────────────────────────────┐
+   │  Ethernet switch  = mỗi người một đường dây   │
+   │  Wi-Fi            = một phòng họp không chủ tọa│
+   │                     càng đông càng ít lượt nói│
+   └───────────────────────────────────────────────┘
+
+   ⭐ Mọi giới hạn của Wi-Fi đều bắt nguồn từ đây.
+```
+
+## Ba công thức phải tính được bằng đầu
+
+```
+   ①  QUY TẮC 3 & 10          0 dBm = 1 mW
+                              +3 dB = ×2      −3 dB = ÷2
+                              +10 dB = ×10    −10 dB = ÷10
+       → 20 dBm = 100 mW · 30 dBm = 1 W
+
+   ②  EIRP = Tx power − cable loss + antenna gain
+                          ^^^ TRỪ        ^^^ CỘNG
+
+   ③  SNR = RSSI − Noise floor        (ra dB, không phải dBm)
+```
+
+## 7 ý phải nhớ
+
+| # | Ý | Một câu |
+|:---:|---|---|
+| 1 | ⭐⭐ **RSSI mạnh ≠ kết nối tốt** | Phải nhìn **SNR**. RSSI −55 mà noise −65 → SNR chỉ 10 dB = **tệ** |
+| 2 | **Ba ngưỡng thiết kế** | RSSI ≥ **−67 dBm** · SNR ≥ **25 dB** · cell overlap **15–20%** |
+| 3 | ⭐⭐ **2.4 GHz chỉ có 3 channel** | **1, 6, 11**. Vì channel cách nhau 5 MHz nhưng rộng 20–22 MHz |
+| 4 | ⭐⭐ **CCI làm CHẬM, ACI làm HỎNG** | Cùng channel → nhường nhau (chậm) · chồng lấn một phần → **gói vỡ** |
+| 5 | **Channel rộng gấp đôi** | **SNR −3 dB** và **mất một nửa số channel**. Doanh nghiệp dùng **20/40 MHz** |
+| 6 | ⭐ **802.11: a là 5 GHz · ac CHỈ 5 GHz · ax có cả 2.4** | Ba bẫy đề hay gài nhất |
+| 7 | ⭐⭐ **MU-MIMO vs OFDMA** | MU-MIMO chia **không gian** · OFDMA chia **tần số** *(chỉ 802.11ax)* |
+
+## Bảng lệnh cốt lõi
+
+| Lệnh | Cho biết gì |
+|---|---|
+| `netsh wlan show interfaces` | SSID/BSSID/channel/chuẩn/signal **hiện tại** |
+| ⭐ `netsh wlan show networks mode=bssid` | **Mọi AP xung quanh** + channel + band |
+| `netsh wlan show drivers` | Card của bạn hỗ trợ chuẩn gì, có PMF không |
+| `netsh wlan show wlanreport` | Báo cáo HTML — **lịch sử roam & rớt** |
+| *(trên WLC)* `show ap summary` | AP nào up, mode gì, channel nào |
+| *(trên WLC)* `show ap auto-rf dot11 5ghz` | Noise, interference, load — dữ liệu RRM |
+
+> ⭐ **Đổi `Signal %` của Windows sang dBm:** `dBm ≈ (% ÷ 2) − 100`
+> → 80% ≈ −60 dBm · 34% ≈ −83 dBm (đã rất yếu)
+
+## 🗺️ Bố cục module
+
+| Phần | Tên | Thời gian |
+|:---:|---|:---:|
+| **1** | 🧠 **CÁI ĐÓ LÀ GÌ** — 5 ví von cho thứ vô hình | 45 phút |
+| **2** | ⚙️ **NÓ CHẠY THẾ NÀO** — RF, 802.11, AP mode, antenna | 5 giờ |
+| **3** | 🧪 **NHÌN THẤY NÓ** — [LAB 07A](Module-07A-LAB.md), ⭐ **RAM 0 GB** | 3 giờ |
+| **4** | 🏗️ **TOPO & KIẾN TRÚC** — coverage vs capacity | 45 phút |
+| **📎** | **PHỤ LỤC** — 🔴 không đọc lần đầu | — |
+
+> ⭐ **Toàn bộ Domain 3.3 dùng từ "Describe"** (trừ mục troubleshoot ở Module-07B).
+> Nghĩa là ⭐ **đề KHÔNG bắt bạn cấu hình WLC**. Học **bảng**, đừng sa đà cấu hình.
+>
+> 🎉 **Và đây là module duy nhất lab được mà không cần EVE-NG** — bạn dùng chính
+> laptop và Wi-Fi quanh mình.
+
+---
+
 ## ⭐ 0. Phạm vi — đọc trước, tiết kiệm cho bạn cả tuần
 
 ### 0.1 Điều quan trọng nhất về khối Wireless
@@ -66,9 +150,89 @@
 
 ---
 
-## 📘 2. LAYER 1 — RF (RADIO FREQUENCY)
+## 🧠 PHẦN 1 — CÁI ĐÓ LÀ GÌ
 
-### 2.1 Sóng RF — bốn thuộc tính, chỉ cần nhớ đúng chừng này
+> **Đọc phần này TRƯỚC, đọc một mạch.** Không lệnh, không bảng tra.
+>
+> RF là thứ **vô hình** — bạn không thấy sóng, không thấy nhiễu, không thấy vì sao mạng chậm.
+> Năm ví von dưới đây là cách duy nhất để "nhìn" được nó trước khi vào công thức.
+>
+> **Tự kiểm tra:** đọc xong mỗi mục, gấp tài liệu lại, nói lại trong 3 câu.
+
+### 2.1 Wi-Fi là cuộc họp trong một phòng, không phải điện thoại
+
+Ethernet switch full-duplex = mỗi người có **một đường dây riêng**, nói bao nhiêu tùy thích.
+
+⭐ **Wi-Fi = một phòng họp không có chủ tọa.** Mọi người nghe chung một không khí:
+- Muốn nói → **phải nghe xem có ai đang nói không** (CCA)
+- Hai người cùng mở miệng → **cả hai đều bị lấp** (collision) → phải nói lại
+- Nói xong → **phải chờ người kia gật đầu** (ACK) mới coi là đã truyền đạt
+- ⭐ **Càng đông người trong phòng, mỗi người càng ít lượt nói** — dù mỗi người nói rất nhanh
+
+⭐ **Từ đó suy ra mọi thứ:**
+- **Thêm AP cùng channel** = kê thêm bàn trong **cùng một phòng** → vẫn phải nhường nhau (**CCI**)
+- **Thêm AP khác channel** = ⭐ **mở thêm phòng họp** → đây mới là cách tăng dung lượng thật
+- **Client cũ chậm** = một người nói **rất chậm và dài dòng** → cả phòng phải ngồi chờ (⭐ lý do tắt low data rate)
+- ⭐ **OFDMA** = cho phép **nhiều người nói cùng lúc mỗi người một chủ đề nhỏ**, thay vì lần lượt
+
+### 2.2 dB là "gấp mấy lần", dBm là "bao nhiêu"
+
+Nhầm dB/dBm là nhầm kiểu **"tăng 50%"** với **"bằng 50"**.
+- ⭐ **dBm** trả lời *"to bằng nào?"* → **20 dBm = 100 mW**. Đây là một **con số**.
+- ⭐ **dB** trả lời *"gấp/kém mấy lần?"* → **+3 dB = gấp đôi**. Đây là một **tỉ lệ**.
+- ⭐ Nên: "antenna 6 **dBi**" = *gom sóng lại gấp 4 lần theo hướng chính* — nó là **tỉ lệ**, không phải công suất.
+- ⭐ Và: cộng/trừ trong công thức EIRP hoạt động được **vì thang log biến phép nhân thành phép cộng.**
+
+### 2.3 Antenna không tạo năng lượng — nó nắn hình
+
+Tưởng tượng một quả bóng bay chứa lượng khí cố định:
+- ⭐ **Omni** = bóng tròn → tỏa đều mọi hướng, không đi xa
+- ⭐ **Gain cao** = ⭐ **bóp dẹt quả bóng** → nó **dài ra theo một hướng**, nhưng **mỏng đi ở hướng khác**
+- ⭐ **Lượng khí (năng lượng) không đổi.** Chỉ có hình dạng đổi.
+
+🔴 ⭐ Vì thế: đổi sang antenna gain cao mà **không tính lại hướng lắp** → có chỗ xa hơn nhưng
+⭐ **xuất hiện vùng chết ngay dưới AP**.
+
+### 2.4 RSSI là "nghe to cỡ nào", SNR là "nghe rõ cỡ nào"
+
+- ⭐ **RSSI** = người ta nói **to** cỡ nào.
+- ⭐ **Noise floor** = trong phòng **ồn** cỡ nào.
+- ⭐ **SNR** = ⭐ **bạn có nghe RÕ không** = to hơn tiếng ồn bao nhiêu.
+
+⭐ Ai đó hét rất to (RSSI −50) trong quán bar cực ồn (noise −60) → **bạn vẫn không nghe rõ** (SNR 10 dB).
+Người nói vừa phải (RSSI −65) trong thư viện im lặng (noise −95) → ⭐ **nghe rất rõ** (SNR 30 dB).
+🔴 ⭐ **Đây là lý do "đầy vạch sóng mà mạng vẫn chậm".**
+
+### 2.5 CCI là chờ, ACI là vỡ
+
+- ⭐ **CCI (cùng channel)**: hai người nói **cùng ngôn ngữ** → nghe được nhau → **lịch sự nhường nhau**.
+  Chậm, nhưng **mọi câu đều tới nơi nguyên vẹn**.
+- 🔴 ⭐ **ACI (channel chồng lấn)**: hai người nói **hai ngôn ngữ khác nhau, cùng lúc** →
+  không ai nhường ai, và **cả hai câu đều bị nhiễu thành vô nghĩa** → phải nói lại từ đầu.
+
+⭐ **Vì thế 1-6-11 luôn thắng "channel 3 cho lạ".**
+
+
+---
+
+## ⚙️ PHẦN 2 — NÓ CHẠY THẾ NÀO
+
+> | Phần 1 (ví von) | → | Phần 2 (cơ chế) |
+> |---|:---:|---|
+> | §2.1 cuộc họp trong một phòng | → | **§3.8 CSMA/CA** · **§3.6 band & channel** |
+> | §2.2 dB là "gấp mấy lần" | → | **§3.2 Đơn vị công suất** ⭐⭐ |
+> | §2.3 antenna nắn hình | → | **§3.3 EIRP** · **§7 Antenna** |
+> | §2.4 nghe to vs nghe rõ | → | **§3.4 RSSI · Noise · SNR** ⭐⭐ |
+> | §2.5 CCI là chờ, ACI là vỡ | → | **§3.7 Interference vs Noise** |
+>
+> ⚠️ **Toàn bộ Domain 3.3 dùng từ "Describe"** — trừ mục troubleshoot ở Module-07B.
+> ⭐ **Học BẢNG, đừng sa đà cấu hình WLC.** Đây là khối có tỉ lệ điểm/công sức tốt.
+
+---
+
+## 📘 3. LAYER 1 — RF (RADIO FREQUENCY)
+
+### 3.1 Sóng RF — bốn thuộc tính, chỉ cần nhớ đúng chừng này
 
 | Thuộc tính | Là gì | Đơn vị | Ảnh hưởng gì trong Wi-Fi |
 |---|---|---|---|
@@ -85,7 +249,7 @@
 
 ---
 
-### 2.2 ⭐⭐ Đơn vị công suất — phần PHẢI tính được bằng đầu
+### 3.2 ⭐⭐ Đơn vị công suất — phần PHẢI tính được bằng đầu
 
 Đây là mục bị hỏi nhiều nhất của 3.3.a. Đừng học thuộc bảng số — **học 2 quy tắc**.
 
@@ -163,7 +327,7 @@
 
 ---
 
-### 2.3 ⭐⭐ EIRP — công thức phải thuộc
+### 3.3 ⭐⭐ EIRP — công thức phải thuộc
 
 > ⭐⭐ **EIRP (Effective Isotropic Radiated Power)** = công suất **thực sự phát ra không trung**,
 > tính ở điểm ra khỏi antenna. Đây là con số mà **cơ quan quản lý tần số giới hạn**, không phải công suất máy.
@@ -226,7 +390,7 @@ EIRP tăng 6 dB  →  công suất phát ra tăng ×4  (+3 = ×2, +3 nữa = ×4
 
 ---
 
-### 2.4 ⭐⭐ RSSI, Noise floor, SNR — ba số bạn sẽ nhìn mỗi ngày
+### 3.4 ⭐⭐ RSSI, Noise floor, SNR — ba số bạn sẽ nhìn mỗi ngày
 
 | Chỉ số | Là gì | Đơn vị | Ai đo |
 |---|---|---|---|
@@ -270,7 +434,7 @@ EIRP tăng 6 dB  →  công suất phát ra tăng ×4  (+3 = ×2, +3 nữa = ×4
 
 ---
 
-### 2.5 Điều gì xảy ra với sóng trên đường đi
+### 3.5 Điều gì xảy ra với sóng trên đường đi
 
 | Hiện tượng | Nghĩa | Ví dụ đời thật |
 |---|---|---|
@@ -304,7 +468,7 @@ EIRP tăng 6 dB  →  công suất phát ra tăng ×4  (+3 = ×2, +3 nữa = ×4
 
 ---
 
-### 2.6 ⭐⭐ Band & Channel
+### 3.6 ⭐⭐ Band & Channel
 
 #### Bức tranh tổng — ba band Wi-Fi
 
@@ -383,7 +547,7 @@ Kết quả **tệ hơn** — xem §2.7 (ACI tệ hơn CCI).
 
 ---
 
-### 2.7 ⭐⭐ Interference vs Noise · CCI vs ACI — 4 khái niệm hay bị lẫn
+### 3.7 ⭐⭐ Interference vs Noise · CCI vs ACI — 4 khái niệm hay bị lẫn
 
 | Khái niệm | Nguồn | Wi-Fi có "hiểu" nó không? | Hậu quả |
 |---|---|---|---|
@@ -409,7 +573,7 @@ Kết quả **tệ hơn** — xem §2.7 (ACI tệ hơn CCI).
 
 ---
 
-### 2.8 ⭐ CSMA/CA — vì sao Wi-Fi không bao giờ nhanh như con số quảng cáo
+### 3.8 ⭐ CSMA/CA — vì sao Wi-Fi không bao giờ nhanh như con số quảng cáo
 
 > 🔴 ⭐⭐ **Sự thật nền tảng nhất về Wi-Fi:** ⭐ **Wi-Fi là HALF-DUPLEX và là môi trường CHIA SẺ.**
 > Tại một thời điểm, **trên một channel, trong một vùng nghe được nhau — chỉ MỘT thiết bị được phát.**
@@ -464,9 +628,9 @@ chỉ frame lớn hơn ngưỡng mới dùng RTS/CTS).
 
 ---
 
-## 📘 3. CHUẨN 802.11
+## 📘 4. CHUẨN 802.11
 
-### 3.1 ⭐⭐ Bảng chuẩn — học thuộc bảng này
+### 4.1 ⭐⭐ Bảng chuẩn — học thuộc bảng này
 
 | Chuẩn | Tên Wi-Fi | Năm | ⭐ Band | Điều chế | Max data rate (lý thuyết) | ⭐ Điểm nhận dạng |
 |---|:---:|:---:|:---:|---|---|---|
@@ -503,7 +667,7 @@ chỉ frame lớn hơn ngưỡng mới dùng RTS/CTS).
 
 ---
 
-### 3.2 ⭐⭐ MIMO, Spatial Stream, MU-MIMO, Beamforming — phân biệt cho đúng
+### 4.2 ⭐⭐ MIMO, Spatial Stream, MU-MIMO, Beamforming — phân biệt cho đúng
 
 | Kỹ thuật | Là gì | Có từ chuẩn |
 |---|---|---|
@@ -542,7 +706,7 @@ chỉ frame lớn hơn ngưỡng mới dùng RTS/CTS).
 
 ---
 
-### 3.3 ⭐ Tính năng riêng của 802.11ax (Wi-Fi 6)
+### 4.3 ⭐ Tính năng riêng của 802.11ax (Wi-Fi 6)
 
 | Tính năng | Giải quyết vấn đề gì |
 |---|---|
@@ -559,7 +723,7 @@ chỉ frame lớn hơn ngưỡng mới dùng RTS/CTS).
 
 ---
 
-### 3.4 ⭐ Data rate, MCS, và cái bẫy "mandatory rate"
+### 4.4 ⭐ Data rate, MCS, và cái bẫy "mandatory rate"
 
 | Khái niệm | Nghĩa |
 |---|---|
@@ -582,7 +746,7 @@ chỉ frame lớn hơn ngưỡng mới dùng RTS/CTS).
 
 ---
 
-### 3.5 ⭐ Frame 802.11 — ba loại và quá trình client kết nối
+### 4.5 ⭐ Frame 802.11 — ba loại và quá trình client kết nối
 
 | Loại frame | Ví dụ | Dùng để |
 |---|---|---|
@@ -635,11 +799,11 @@ Beacon interval (mặc định ~102.4 ms) · TIM · Capability info · RSN IE (t
 
 ---
 
-## 📘 4. ⭐ CLIENT CAPABILITIES & THIẾT KẾ THEO MẬT ĐỘ
+## 📘 5. ⭐ CLIENT CAPABILITIES & THIẾT KẾ THEO MẬT ĐỘ
 
 *(blueprint 3.3.a "wireless client devices capabilities" + 1.2.c "client density")*
 
-### 4.1 Vì sao phải quan tâm năng lực client
+### 5.1 Vì sao phải quan tâm năng lực client
 
 > 🔴 ⭐⭐ **Nguyên tắc số 1 của thiết kế WLAN:** ⭐ **Client là bên yếu, và client quyết định.**
 > · ⭐ **Client quyết định khi nào roam** — không phải AP, không phải WLC (WLC chỉ *gợi ý* qua 802.11v)
@@ -661,7 +825,7 @@ Beacon interval (mặc định ~102.4 ms) · TIM · Capability info · RSN IE (t
 > ⭐ **Cách sửa: HẠ công suất AP xuống gần mức client (thường 11–14 dBm indoor).**
 > 🔴 ⭐ **Tăng công suất AP là phản xạ sai lầm phổ biến nhất khi "sóng yếu".**
 
-### 4.2 ⭐ Coverage design vs Capacity design
+### 5.2 ⭐ Coverage design vs Capacity design
 
 | | **Thiết kế theo COVERAGE** | ⭐ **Thiết kế theo CAPACITY** |
 |---|---|---|
@@ -684,7 +848,7 @@ Beacon interval (mặc định ~102.4 ms) · TIM · Capability info · RSN IE (t
 
 ---
 
-## 📘 5. ⭐⭐ AP MODES — bảng phải học thuộc (blueprint 3.3.b)
+## 📘 6. ⭐⭐ AP MODES — bảng phải học thuộc (blueprint 3.3.b)
 
 > ⭐ Đây là mục **đề hỏi trực tiếp nhất** trong cả module. Học kỹ bảng này.
 
@@ -721,9 +885,9 @@ Beacon interval (mặc định ~102.4 ms) · TIM · Capability info · RSN IE (t
 
 ---
 
-## 📘 6. ⭐⭐ ANTENNA (blueprint 3.3.b)
+## 📘 7. ⭐⭐ ANTENNA (blueprint 3.3.b)
 
-### 6.1 Hai họ antenna
+### 7.1 Hai họ antenna
 
 ```
    ═══ OMNIDIRECTIONAL ═══              ═══ DIRECTIONAL ═══
@@ -746,7 +910,7 @@ Beacon interval (mặc định ~102.4 ms) · TIM · Capability info · RSN IE (t
 | Beamwidth | 360° ngang | Hẹp — càng gain cao càng hẹp |
 | ⭐ Dùng khi | ⭐ **Phủ trong nhà**, AP gắn **trần**, phủ đều quanh mình | ⭐ **Bắn xa theo một hướng**: hành lang, kho hàng dài, nối 2 tòa nhà |
 
-### 6.2 ⭐ Bảng các loại antenna — học thuộc
+### 7.2 ⭐ Bảng các loại antenna — học thuộc
 
 | Loại | Họ | Gain điển hình | Beamwidth | ⭐ Dùng cho |
 |---|---|:---:|:---:|---|
@@ -766,7 +930,7 @@ Beacon interval (mặc định ~102.4 ms) · TIM · Capability info · RSN IE (t
 > · *"Cần bắn dọc một hành lang / dãy kệ kho dài"* → ⭐ **patch hoặc yagi**
 > · *"Cần nối 2 tòa nhà cách 3 km"* → ⭐ **parabolic dish hai đầu, cùng polarization, có tầm nhìn thẳng**
 
-### 6.3 ⭐ Ba khái niệm phụ nhưng hay ra đề
+### 7.3 ⭐ Ba khái niệm phụ nhưng hay ra đề
 
 | Khái niệm | Nghĩa | Vì sao quan trọng |
 |---|---|---|
@@ -778,303 +942,109 @@ Beacon interval (mặc định ~102.4 ms) · TIM · Capability info · RSN IE (t
 > cắm thiếu antenna trên AP MIMO → **mất spatial stream** → tốc độ tụt, và AP có thể báo lỗi.
 > ⭐ Với AP dual-band có antenna riêng cho từng band: **cắm nhầm band = phủ sai hoàn toàn**.
 
----
+## 🧪 PHẦN 3 — NHÌN THẤY NÓ
 
-## 📖 7. HIỂU RÕ HƠN — các mô hình tư duy
+> ### 👉 **[LAB 07A — Tuần 12: RF thật, bằng thiết bị bạn đang có](Module-07A-LAB.md)**
 
-### 7.1 Wi-Fi là cuộc họp trong một phòng, không phải điện thoại
+> ⭐ **Module duy nhất không cần EVE-NG.** Bạn lab bằng chính laptop và Wi-Fi quanh mình.
 
-Ethernet switch full-duplex = mỗi người có **một đường dây riêng**, nói bao nhiêu tùy thích.
+| LAB | Nội dung | Cần gì | Bắt buộc? |
+|---|---|---|:---:|
+| **A** | Tính RF trên giấy (8 bài) | Bút + giấy | ⭐⭐ **Có** |
+| **B** | Soi Wi-Fi thật bằng `netsh wlan` | Laptop Windows | ⭐⭐ **Có** |
+| **C** | Bản đồ channel quanh nhà | Điện thoại Android | ⭐ Nên |
+| **D** | Lịch sử roam (`wlanreport`) | Laptop Windows | Nên |
+| **E** | 🚀 Nhìn WLC thật | DevNet Sandbox | Tùy chọn |
 
-⭐ **Wi-Fi = một phòng họp không có chủ tọa.** Mọi người nghe chung một không khí:
-- Muốn nói → **phải nghe xem có ai đang nói không** (CCA)
-- Hai người cùng mở miệng → **cả hai đều bị lấp** (collision) → phải nói lại
-- Nói xong → **phải chờ người kia gật đầu** (ACK) mới coi là đã truyền đạt
-- ⭐ **Càng đông người trong phòng, mỗi người càng ít lượt nói** — dù mỗi người nói rất nhanh
-
-⭐ **Từ đó suy ra mọi thứ:**
-- **Thêm AP cùng channel** = kê thêm bàn trong **cùng một phòng** → vẫn phải nhường nhau (**CCI**)
-- **Thêm AP khác channel** = ⭐ **mở thêm phòng họp** → đây mới là cách tăng dung lượng thật
-- **Client cũ chậm** = một người nói **rất chậm và dài dòng** → cả phòng phải ngồi chờ (⭐ lý do tắt low data rate)
-- ⭐ **OFDMA** = cho phép **nhiều người nói cùng lúc mỗi người một chủ đề nhỏ**, thay vì lần lượt
-
-### 7.2 dB là "gấp mấy lần", dBm là "bao nhiêu"
-
-Nhầm dB/dBm là nhầm kiểu **"tăng 50%"** với **"bằng 50"**.
-- ⭐ **dBm** trả lời *"to bằng nào?"* → **20 dBm = 100 mW**. Đây là một **con số**.
-- ⭐ **dB** trả lời *"gấp/kém mấy lần?"* → **+3 dB = gấp đôi**. Đây là một **tỉ lệ**.
-- ⭐ Nên: "antenna 6 **dBi**" = *gom sóng lại gấp 4 lần theo hướng chính* — nó là **tỉ lệ**, không phải công suất.
-- ⭐ Và: cộng/trừ trong công thức EIRP hoạt động được **vì thang log biến phép nhân thành phép cộng.**
-
-### 7.3 Antenna không tạo năng lượng — nó nắn hình
-
-Tưởng tượng một quả bóng bay chứa lượng khí cố định:
-- ⭐ **Omni** = bóng tròn → tỏa đều mọi hướng, không đi xa
-- ⭐ **Gain cao** = ⭐ **bóp dẹt quả bóng** → nó **dài ra theo một hướng**, nhưng **mỏng đi ở hướng khác**
-- ⭐ **Lượng khí (năng lượng) không đổi.** Chỉ có hình dạng đổi.
-
-🔴 ⭐ Vì thế: đổi sang antenna gain cao mà **không tính lại hướng lắp** → có chỗ xa hơn nhưng
-⭐ **xuất hiện vùng chết ngay dưới AP**.
-
-### 7.4 RSSI là "nghe to cỡ nào", SNR là "nghe rõ cỡ nào"
-
-- ⭐ **RSSI** = người ta nói **to** cỡ nào.
-- ⭐ **Noise floor** = trong phòng **ồn** cỡ nào.
-- ⭐ **SNR** = ⭐ **bạn có nghe RÕ không** = to hơn tiếng ồn bao nhiêu.
-
-⭐ Ai đó hét rất to (RSSI −50) trong quán bar cực ồn (noise −60) → **bạn vẫn không nghe rõ** (SNR 10 dB).
-Người nói vừa phải (RSSI −65) trong thư viện im lặng (noise −95) → ⭐ **nghe rất rõ** (SNR 30 dB).
-🔴 ⭐ **Đây là lý do "đầy vạch sóng mà mạng vẫn chậm".**
-
-### 7.5 CCI là chờ, ACI là vỡ
-
-- ⭐ **CCI (cùng channel)**: hai người nói **cùng ngôn ngữ** → nghe được nhau → **lịch sự nhường nhau**.
-  Chậm, nhưng **mọi câu đều tới nơi nguyên vẹn**.
-- 🔴 ⭐ **ACI (channel chồng lấn)**: hai người nói **hai ngôn ngữ khác nhau, cùng lúc** →
-  không ai nhường ai, và **cả hai câu đều bị nhiễu thành vô nghĩa** → phải nói lại từ đầu.
-
-⭐ **Vì thế 1-6-11 luôn thắng "channel 3 cho lạ".**
+> ⚠️ **Wireless là khối bạn KHÔNG thể lab bằng EVE-NG** (PC 16 GB không dựng nổi WLC + AP).
+> Nhưng bạn **có sẵn một mạng Wi-Fi thật** ngay quanh mình — và nó đủ để chứng minh
+> mọi khái niệm RF của Phần 2.
+>
+> Ở **LAB B bước 4**, bạn sẽ tự tay chứng minh ba thứ mà đề chỉ hỏi bằng chữ:
+> **rate shifting** (tín hiệu yếu → tốc độ tự giảm) · **suy hao qua tường** ·
+> và ⭐ **cơ thể người hút sóng** — lý do phòng họp đông người phải thiết kế theo *capacity*.
 
 ---
 
-## 🧪 8. LAB 07A — RF thật, bằng đúng thiết bị bạn đang có
+## 🏗️ PHẦN 4 — TOPO & KIẾN TRÚC
 
-> ⭐ **Module này không cần EVE-NG.** Nhưng ⭐ **bắt buộc phải làm LAB A và LAB B** —
-> chúng biến lý thuyết RF thành thứ **nhìn thấy được**, mất tổng cộng ~45 phút.
+> Bạn vừa học vật lý sóng. Phần này trả lời: **đặt AP thế nào cho một tòa nhà thật?**
 
-### 8.1 Bảng tổng LAB
+### 4.1 Bản đồ: hai cách thiết kế, hai kết quả khác hẳn
 
-| LAB | Cần gì | Thời gian | Bắt buộc? |
-|---|---|:---:|:---:|
-| **A** — Tính RF trên giấy | Bút + giấy | 20 phút | ⭐ **Bắt buộc** |
-| **B** — Soi Wi-Fi bằng Windows CLI | Laptop Windows có Wi-Fi | 30 phút | ⭐ **Bắt buộc** |
-| **C** — Bản đồ channel quanh nhà | Điện thoại Android + app | 20 phút | ⭐ Rất nên |
-| **D** — Wi-Fi report & lịch sử roam | Laptop Windows | 15 phút | Nên |
-| **E** — Nhìn WLC thật trên DevNet Sandbox | Trình duyệt + tài khoản DevNet | 30 phút | Tùy chọn (làm ở 07B cũng được) |
+```
+   ❌ THIẾT KẾ THEO "COVERAGE"  (sai cho văn phòng)
 
----
+   ┌────────────────────────────────────────────┐
+   │                                            │
+   │                  ((( AP )))                │   1 AP công suất MAX
+   │              cell rất to                   │   → "có sóng khắp nơi"
+   │                                            │   → nhưng 80 người CHIA NHAU
+   │   [PC][PC][PC][PC][PC][PC][PC][PC][PC]     │     một kênh duy nhất
+   └────────────────────────────────────────────┘   🔴 Vạch đầy, mạng chậm
 
-### LAB A — ⭐ Tính RF trên giấy (20 phút)
 
-> ⭐ **Làm hết 8 câu, KHÔNG dùng máy tính.** Chỉ dùng quy tắc 3 & 10.
-> Đây chính là dạng câu tính toán duy nhất mà ENCOR hỏi ở khối wireless.
+   ✅ THIẾT KẾ THEO "CAPACITY"  (đúng cho văn phòng)
 
-| # | Đề |
-|:---:|---|
-| 1 | 40 mW = ? dBm |
-| 2 | 23 dBm = ? mW |
-| 3 | AP: Tx 20 dBm, cáp mất 4 dB, antenna 8 dBi → EIRP = ? dBm = ? mW |
-| 4 | Quy định EIRP tối đa 36 dBm. Antenna 21 dBi, cáp 3 dB → Tx tối đa = ? |
-| 5 | RSSI −72 dBm, noise floor −94 dBm → SNR = ? Có đủ cho Voice không? |
-| 6 | RSSI −52 dBm, noise floor −68 dBm → SNR = ? Nhận xét? |
-| 7 | Đổi channel 20 MHz → 80 MHz, mọi thứ khác giữ nguyên. SNR thay đổi ra sao? |
-| 8 | Antenna đổi từ 4 dBi → 13 dBi. EIRP tăng bao nhiêu dB? Công suất phát ra gấp mấy lần? |
+   ┌────────────────────────────────────────────┐
+   │   ((AP))        ((AP))        ((AP))       │   Nhiều AP, công suất THẤP
+   │    ch 1          ch 6          ch 11       │   → cell NHỎ
+   │  [PC][PC]      [PC][PC]      [PC][PC]      │   → mỗi nhóm một kênh riêng
+   └────────────────────────────────────────────┘   ⭐ Mỗi người nhiều airtime hơn
+```
+
+### 4.2 Sáu quyết định thiết kế — và sai thì hỏng thế nào
+
+| # | Quyết định | 🔴 Sai thì hỏng thế nào |
+|:---:|---|---|
+| ① | ⭐⭐ **Sóng yếu thì THÊM AP, đừng tăng công suất** | Tăng Tx → **mất cân bằng với client** (client chỉ phát ~12 dBm) → **upload hỏng, hay rớt** · cell to ra → CCI nặng hơn |
+| ② | **2.4 GHz chỉ dùng channel 1, 6, 11** | Dùng channel 3 hay 9 → **ACI** (gói bị **hỏng**), tệ hơn CCI (chỉ **chờ**) |
+| ③ | **Dùng 20 hoặc 40 MHz, không dùng 80/160** | 160 MHz → chỉ còn **2 channel** ở 5 GHz, và **SNR giảm 9 dB** |
+| ④ | **Tắt data rate thấp (1/2/5.5/11 Mbps)** | Để bật → client chậm **chiếm airtime rất lâu** → làm chậm **cả cell** |
+| ⑤ | **Tối đa 3–4 SSID** | Mỗi SSID × mỗi band = một BSSID phát beacon riêng → 8 SSID = **80 beacon/giây** ăn airtime |
+| ⑥ | **Thiết kế RSSI ≥ −67 dBm ở MỌI điểm** | Dưới ngưỡng này → roaming không mượt, voice rớt |
+
+### 4.3 Ba sự thật mà chỉ người đi làm mới biết
+
+| Sự thật | Giải thích |
+|---|---|
+| ⭐⭐ **RSSI mạnh KHÔNG đảm bảo kết nối tốt** | RSSI `−55` (rất mạnh) + noise floor `−65` (rất ồn) = **SNR chỉ 10 dB** = tệ. ⭐ **Luôn nhìn SNR, đừng nhìn vạch sóng** |
+| ⭐⭐ **Mất cân bằng công suất AP–client** | AP phát 20 dBm, điện thoại phát 12 dBm → client **nghe AP rõ** nhưng **AP không nghe rõ client** → upload hỏng. ⭐ **Cách sửa là HẠ công suất AP**, không phải tăng |
+| ⭐ **Antenna gain cao ⟺ beamwidth HẸP** | Antenna **không tạo thêm năng lượng** — nó **nắn hình**. Đổi sang antenna gain cao trên trần thấp → **xuất hiện vùng chết ngay dưới AP** |
+
+### 4.4 Những thứ này sẽ lớn lên thành gì
+
+| Bạn vừa học | Sẽ thành | Ở module |
+|---|---|---|
+| RSSI, SNR, cell overlap | Điều kiện để **roaming** mượt (≥ −67 dBm, overlap 15–20%) | **Module-07B §6** |
+| AP mode (9 loại) | FlexConnect · Fabric AP của SD-Access | **Module-07B · Module-09** |
+| Client density, capacity | Thiết kế WLAN (1.2.a/b/c) · location services | **Module-09 §4** |
+| CSMA/CA, airtime | **WMM / QoS không dây** — 4 access category | **Module-09 §8.7** |
+
+### 4.5 Vẽ lại để nhớ
+
+> **Bài tập 15 phút, trên giấy.**
+>
+> 1. Vẽ một tầng văn phòng 40m × 20m, đặt AP theo kiểu **capacity**
+> 2. Gán channel 2.4 GHz cho từng AP (chỉ dùng 1, 6, 11) sao cho **không AP kề nhau nào trùng**
+> 3. Trả lời: *"Người dùng kêu sóng yếu ở góc phòng. Sếp bảo tăng công suất AP lên max. Giải thích trong 3 câu vì sao đó là ý tồi."*
 
 <details>
-<summary>⭐ Đáp án LAB A</summary>
+<summary>Đáp án câu 3</summary>
 
-| # | Lời giải | Đáp án |
-|:---:|---|---|
-| 1 | 100 mW=20 dBm → ÷2 = 50 mW=17 dBm → ÷2 = 25 mW=14. 40 không tròn theo 3/10 — ⭐ ước lượng: 40 mW nằm giữa 25 (14 dBm) và 50 (17 dBm), gần 50 hơn → **≈16 dBm** | **≈16 dBm** *(chính xác 16.02)* |
-| 2 | 0→10 dBm=10 mW→20 dBm=100 mW→+3=23 dBm=200 mW | **200 mW** |
-| 3 | 20 − 4 + 8 = 24 dBm. 24 = 20(100mW) +3(200) +1… ⭐ dễ hơn: 21 dBm=125 mW, 24=21+3 → **250 mW** | **24 dBm ≈ 250 mW** |
-| 4 | 36 = Tx − 3 + 21 → Tx = 36 + 3 − 21 = **18 dBm** | **18 dBm (≈63 mW)** |
-| 5 | −72 − (−94) = **22 dB** → ⭐ đạt tối thiểu cho Voice (≥20) nhưng **RSSI −72 đã dưới ngưỡng −67** → 🔴 **chưa đạt chuẩn Voice** | **22 dB — không đạt vì RSSI yếu** |
-| 6 | −52 − (−68) = **16 dB**. ⭐ RSSI rất mạnh nhưng **noise floor cao bất thường (−68)** → SNR chỉ 16 → 🔴 **có nguồn nhiễu mạnh, phải đi tìm** | **16 dB — vạch đầy nhưng mạng tệ** |
-| 7 | 20→40 = −3 dB, 40→80 = −3 dB nữa → ⭐ **SNR giảm 6 dB** | **−6 dB** |
-| 8 | +9 dB. +3=×2, +3=×4, +3=×8 → ⭐ **gấp 8 lần** | **+9 dB, ×8** |
+1. ⭐ **Mất cân bằng công suất:** client chỉ phát ~12 dBm. AP hét 23 dBm thì client
+   **nghe rõ AP nhưng AP không nghe rõ client** → upload hỏng, hay rớt kết nối.
+2. ⭐ **Cell to ra → CCI nặng hơn:** nhiều client hơn phải chia nhau cùng airtime,
+   và cell chồng lấn AP hàng xóm.
+3. ⭐ **Client bám dai (sticky):** giữ AP cũ lâu hơn thay vì roam sang AP gần → tốc độ tệ khi di chuyển.
 
-⭐ **Câu 5 và 6 là hai câu quan trọng nhất** — chúng dạy bạn rằng phải nhìn **cả RSSI lẫn SNR**.
+⭐ **Giải pháp đúng: thêm AP, giảm công suất, cell nhỏ lại.**
+
 </details>
 
 ---
 
-### LAB B — ⭐⭐ Soi Wi-Fi thật bằng Windows CLI (30 phút)
-
-> ⭐ Không cần cài gì. Mở **PowerShell** hoặc **CMD** trên laptop đang bật Wi-Fi.
-
-#### Bước 1 — Xem kết nối hiện tại
-
-```
-netsh wlan show interfaces
-```
-
-**Output mẫu (rút gọn):**
-```
-    Name                   : Wi-Fi
-    SSID                   : CTY-CORP
-    BSSID                  : a4:53:0e:11:22:30      <-- MAC radio của AP
-    Network type           : Infrastructure
-    Radio type             : 802.11ax               <-- chuẩn đang dùng
-    Authentication         : WPA2-Enterprise        <-- 802.1X (Module-10)
-    Cipher                 : CCMP
-    Channel                : 44                     <-- 5 GHz, UNII-1, không DFS
-    Receive rate (Mbps)    : 573
-    Transmit rate (Mbps)   : 573
-    Signal                 : 82%                    <-- Windows cho %, không cho dBm
-```
-
-✅ **Checkpoint 1 — trả lời được 5 câu này về chính mạng của bạn:**
-
-| # | Câu hỏi | Cách tra |
-|:---:|---|---|
-| 1 | Bạn đang ở band nào? | ⭐ Channel ≤ 14 → 2.4 GHz · 36–165 → 5 GHz |
-| 2 | Channel của bạn có phải DFS không? | ⭐ 52–64 và 100–144 → **có DFS** |
-| 3 | Chuẩn 802.11 nào? | dòng `Radio type` |
-| 4 | ⭐ **Signal % ≈ bao nhiêu dBm?** | ⭐ **dBm ≈ (% ÷ 2) − 100** → 82% ≈ **−59 dBm** |
-| 5 | Data rate hiện tại có gần tốc độ tối đa của chuẩn đó không? | So với bảng §3.1 |
-
-> ⭐ **Công thức đổi % → dBm của Windows:** `dBm ≈ (quality/2) − 100`
-> → 100% = −50 dBm · 80% = −60 dBm · ⭐ **34% ≈ −83 dBm (đã rất yếu)** · 0% = −100 dBm
-
-#### Bước 2 — ⭐ Quét toàn bộ AP xung quanh (đây là phần hay nhất)
-
-```
-netsh wlan show networks mode=bssid
-```
-
-**Output mẫu (một mục):**
-```
-SSID 3 : NHA-HANG-XOM
-    Network type            : Infrastructure
-    Authentication          : WPA2-Personal
-    BSSID 1                 : 3c:84:6a:aa:bb:c0
-         Signal             : 45%
-         Radio type         : 802.11n
-         Band               : 2.4 GHz
-         Channel            : 3            <-- KHÔNG PHẢI 1/6/11 → gây ACI!
-    BSSID 2                 : 3c:84:6a:aa:bb:c1
-         Signal             : 38%
-         Radio type         : 802.11ac
-         Band               : 5 GHz
-         Channel            : 149
-```
-
-✅ **Checkpoint 2 — làm bảng thống kê này bằng tay** (đây là bài tập chính của LAB B):
-
-| Việc cần làm | Ghi kết quả |
-|---|---|
-| ⭐ Đếm tổng số **BSSID** thấy được | ____ |
-| ⭐ Đếm số BSSID ở **2.4 GHz** vs **5 GHz** | 2.4: ____ / 5: ____ |
-| 🔴 ⭐ Liệt kê các AP 2.4 GHz **KHÔNG ở channel 1/6/11** | ____ |
-| ⭐ Channel 2.4 GHz nào **đông nhất**? | ____ |
-| ⭐ Có AP nào ở channel **DFS (52–64, 100–144)** không? | ____ |
-| ⭐ Có SSID nào xuất hiện với **nhiều BSSID** không? (→ đó là **ESS**, nhiều AP hoặc nhiều band) | ____ |
-| ⭐ Chuẩn cũ nhất bạn thấy (`802.11g`? `802.11n`?) | ____ |
-
-> ⭐ **Kết luận bạn PHẢI tự rút ra:** đếm xem có bao nhiêu AP 2.4 GHz quanh bạn.
-> ⭐ **Chỉ có 3 channel để chia.** Nếu bạn thấy 15 BSSID ở 2.4 GHz → trung bình **5 AP/channel** →
-> ⭐ **đây chính là lý do 2.4 GHz luôn chậm**, và vì sao doanh nghiệp ưu tiên 5 GHz.
-
-#### Bước 3 — Xem card Wi-Fi của bạn hỗ trợ gì (client capabilities)
-
-```
-netsh wlan show drivers
-```
-**Tìm 3 dòng:**
-```
-    Radio types supported     : 802.11a 802.11b 802.11g 802.11n 802.11ac 802.11ax
-    802.11w Management Frame Protection supported : Yes    <-- PMF → WPA3 được
-    Number of supported ... (tùy driver)
-```
-
-✅ **Checkpoint 3:** máy bạn có hỗ trợ `802.11ax` không? Có `802.11w` (PMF) không?
-⭐ **Nếu không có 802.11w → máy bạn không dùng được WPA3.** Đây chính là "client capabilities" mà blueprint nói.
-
-#### Bước 4 — ⭐ Chứng minh RSSI thay đổi theo khoảng cách và vật cản
-
-| Bước | Làm | Ghi lại `Signal %` + `Receive rate` |
-|:---:|---|---|
-| 1 | Đứng **cạnh AP/router** | ____% · ____ Mbps |
-| 2 | Sang **phòng bên cạnh** (qua 1 tường) | ____% · ____ Mbps |
-| 3 | Ra **xa nhất còn kết nối** | ____% · ____ Mbps |
-| 4 | ⭐ Đứng nguyên chỗ (3), **lấy thân người che laptop khỏi hướng AP** | ____% · ____ Mbps |
-
-Lệnh dùng ở mỗi bước:
-```
-netsh wlan show interfaces | findstr /C:"Signal" /C:"Receive rate" /C:"Channel"
-```
-
-✅ **Checkpoint 4 — ⭐ Ba điều phải quan sát được:**
-1. ⭐ **RSSI giảm → data rate TỰ ĐỘNG giảm theo** → đó chính là **Dynamic Rate Shifting** (§3.4)
-2. ⭐ **Chỉ một bức tường** đã làm tụt vài chục % — đúng bảng suy hao §2.5
-3. 🔴 ⭐ **Bước 4: cơ thể người (túi nước) làm tín hiệu tụt rõ rệt** → đây là **absorption**,
-   và là lý do phòng họp đông người phải thiết kế theo **capacity** (§4.2)
-
-💡 **Vì sao quan trọng:** bạn vừa **tự tay chứng minh** 3 khái niệm mà đề sẽ hỏi bằng chữ.
-
----
-
-### LAB C — ⭐ Bản đồ channel quanh nhà (20 phút, điện thoại Android)
-
-> ⚠️ **iPhone không làm được** (iOS chặn API quét Wi-Fi). Dùng Android, hoặc bỏ qua LAB này và dùng LAB B thay thế.
-
-| Bước | Làm |
-|:---:|---|
-| 1 | Cài app **WiFiAnalyzer** (open source, của VREM) trên Google Play |
-| 2 | Mở tab **Channel graph** cho band **2.4 GHz** |
-| 3 | ⭐ Chụp màn hình. Đếm xem có bao nhiêu "quả đồi" chồng lên nhau |
-| 4 | Chuyển sang band **5 GHz**, chụp lại |
-| 5 | Mở tab **Channel rating** → app gợi ý channel tốt nhất |
-
-✅ **Checkpoint — nhìn hai ảnh và trả lời:**
-
-| # | Câu | Điều bạn phải thấy |
-|:---:|---|---|
-| 1 | Band nào **chật hơn** rõ rệt? | ⭐ Chắc chắn là 2.4 GHz |
-| 2 | Có AP nào nằm **giữa** 1-6-11 không? | ⭐ Nếu có → nó đang gây **ACI** cho cả hai bên |
-| 3 | Ở 5 GHz, có AP nào chiếm **80 MHz** (quả đồi rất rộng) không? | ⭐ Một AP 80 MHz "ăn" 4 channel |
-| 4 | ⭐ Nếu bạn là admin ở đây, bạn chọn channel nào cho AP của mình? Vì sao? | ⭐ Câu trả lời phải là **1, 6, hoặc 11** — chọn cái ít chồng lấn nhất, **KHÔNG chọn channel lẻ** |
-
----
-
-### LAB D — Wi-Fi report của Windows: xem lịch sử roam (15 phút)
-
-```
-netsh wlan show wlanreport
-```
-→ File HTML sinh ra tại:
-`C:\ProgramData\Microsoft\Windows\WlanReport\wlan-report-latest.html`
-
-Mở bằng trình duyệt. ⭐ **Ba thứ đáng xem:**
-
-| Mục trong report | Ý nghĩa |
-|---|---|
-| ⭐ **Biểu đồ session** (đường thời gian trên cùng) | Mỗi lần kết nối/rớt. ⭐ **Đường đứt nhiều = mạng không ổn định** |
-| ⭐ **Bảng "Wireless Sessions"** → cột **BSSID** | ⭐ **BSSID đổi = bạn đã ROAM sang AP khác.** Đây là roaming thật, nhìn thấy được |
-| **Disconnect Reason** | Lý do rớt: do người dùng, do AP deauth, do mất tín hiệu |
-
-✅ **Checkpoint:** tìm được ít nhất **một lần BSSID thay đổi trong khi SSID giữ nguyên** →
-⭐ **đó chính là roaming trong một ESS** (§3.5). Nếu chưa có, cầm laptop đi vòng quanh nhà/công ty rồi chạy lại lệnh.
-
----
-
-### LAB E — 🚀 Nhìn WLC thật trên DevNet Sandbox (tùy chọn, 30 phút)
-
-> ⭐ **Đây là Plan B thay cho việc mua WLC.** Cisco cho dùng **miễn phí**.
-
-| Bước | Làm |
-|:---:|---|
-| 1 | Vào `developer.cisco.com/site/sandbox/` → đăng nhập bằng tài khoản Cisco (miễn phí) |
-| 2 | Tìm sandbox có tên chứa **"Catalyst 9800"** hoặc **"Wireless"** |
-| 3 | ⭐ Ưu tiên loại **Always-On** (không cần đặt lịch, không cần VPN) |
-| 4 | Đọc trang sandbox để lấy **URL + tài khoản hiện hành** — ⚠️ ⭐ **Cisco đổi thông tin này định kỳ, luôn lấy từ trang sandbox, đừng chép ở đâu khác** |
-| 5 | Đăng nhập GUI → xem **Monitoring → Wireless → Clients** và **Configuration → Radio Configurations** |
-
-⭐ **Ba màn hình đáng xem nhất ở LAB E (để chuẩn bị cho 07B):**
-
-| Màn hình | Bạn sẽ thấy |
-|---|---|
-| **Monitoring → AP Statistics** | ⭐ Channel, Tx power, **AP mode** (§5) của từng AP |
-| **Monitoring → Clients** | ⭐ **RSSI, SNR** thật của từng client (§2.4) |
-| **Configuration → Radio Configurations → RRM** | ⭐ DCA, TPC, coverage hole (§2.7) |
-
-> ⭐ **Chưa cần cấu hình gì ở LAB này.** Mục tiêu chỉ là **nhìn thấy các con số bạn vừa học**
-> nằm ở đâu trên một WLC thật. Cấu hình sẽ làm ở **Module-07B**.
-
----
-
-## 💡 9. THỰC CHIẾN ĐI LÀM
+## 💡 4.6 Thực chiến đi làm
 
 > ⭐ Phần này **không có trong đề** nhưng là lý do bạn học wireless. Đọc 15 phút.
 
@@ -1095,6 +1065,20 @@ Mở bằng trình duyệt. ⭐ **Ba thứ đáng xem:**
 > 1. ⭐ **"Sóng yếu thì thêm AP, đừng tăng công suất."**
 > 2. ⭐ **"Nhìn SNR, đừng nhìn vạch."**
 > 3. ⭐ **"Ít SSID, nhiều channel, cell nhỏ."**
+
+---
+
+# 📎 PHỤ LỤC — TRA CỨU
+
+> 🔴 **KHÔNG đọc phần này ở lần học đầu tiên.**
+>
+> | Khi nào | Mở mục nào |
+> |---|---|
+> | Đang lab mà lỗi | **Gỡ lỗi nhanh** (§11) — ⭐ quy trình chẩn đoán RF 5 bước |
+> | Quên lệnh | **Hộp lệnh** (§11.1) |
+> | Tuần 20, ôn thi | **Bẫy đề** (§10) + **Quiz** (§12) |
+> | Gặp từ lạ | **Thuật ngữ** (§13) |
+> | Tự chấm | **Đúc kết** (§14) |
 
 ---
 

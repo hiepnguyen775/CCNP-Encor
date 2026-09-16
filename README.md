@@ -68,7 +68,7 @@ Tôi sẽ không nói với bạn "3 tháng có CCNP". Đây là những gì th�
 
 | File | Nội dung | Tuần |
 |---|---|---|
-| [Module-07A-Wireless-RF-802.11-AP-Antenna.md](Module-07A-Wireless-RF-802.11-AP-Antenna.md) | dBm/EIRP/RSSI/SNR, band & channel & DFS, CCI vs ACI, CSMA/CA, 802.11 a→ax, MIMO/OFDMA, ⭐ **9 AP mode**, ⭐ **antenna** | Tuần 12 |
+| [Module-07A-Wireless-RF-802.11-AP-Antenna.md](Module-07A-Wireless-RF-802.11-AP-Antenna.md)<br>+ 🧪 [**Module-07A-LAB.md**](Module-07A-LAB.md) | dBm/EIRP/RSSI/SNR, band & channel & DFS, CCI vs ACI, CSMA/CA, 802.11 a→ax, MIMO/OFDMA, ⭐ **9 AP mode**, ⭐ **antenna**<br>⭐ **TÓM TẮT 10 phút + 4 phần + LAB riêng (RAM 0 GB)** | Tuần 12 |
 | [Module-07B-CAPWAP-WLC-FlexConnect-Roaming.md](Module-07B-CAPWAP-WLC-FlexConnect-Roaming.md) | Split-MAC, CAPWAP 5246/5247, ⭐ **AP join & discovery & WLC selection**, FlexConnect, ⭐ **roaming L2/L3 anchor-foreign**, ⭐ **troubleshoot 6 tầng** | Tuần 13 |
 | [Module-08-Virtualization-va-Overlay.md](Module-08-Virtualization-va-Overlay.md) | Hypervisor/vSwitch (EST/VST/VGT), ⭐ **VRF-lite**, ⭐ **GRE**, ⭐ **IPsec & GRE over IPsec**, LISP, VXLAN | Tuần 14 |
 | [Module-09-Architecture-va-QoS.md](Module-09-Architecture-va-QoS.md) | 2-tier/3-tier, Spine-Leaf, HA (SSO/NSF/GR), WLAN design, cloud, ⭐ **SD-WAN**, ⭐ **SD-Access**, ⭐ **QoS** | Tuần 15 |
@@ -120,7 +120,7 @@ thay đổi nguy hiểm (tắt CEF, shutdown link…).
 | 2 | **Thước đo của Phần 1:** gấp tài liệu lại, giải thích cho đồng nghiệp trong **3 câu**. Không nói được = chưa hiểu |
 | 3 | **LAB của module nào chỉ được hỏng vì lý do của module đó** — không kéo theo phụ thuộc thừa |
 
-> ⚙️ **Tình trạng chuyển đổi:** các module **P0, 01, 02, 03, 04A, 04B, 05A, 05B, 06A, 06B** đã theo khuôn này.
+> ⚙️ **Tình trạng chuyển đổi:** các module **P0, 01, 02, 03, 04A, 04B, 05A, 05B, 06A, 06B, 07A** đã theo khuôn này.
 > Những module còn lại đang dùng bố cục cũ (12 khối) và sẽ được chuyển dần theo đúng
 > thứ tự bạn học tới — xem [mục 7](#7-trạng-thái-biên-soạn).
 
