@@ -9,6 +9,95 @@
 
 ---
 
+# 📌 TÓM TẮT — đọc 10 phút là nắm khung
+
+## Module này trả lời một câu hỏi duy nhất
+
+> **"Hai công ty KHÁC NHAU, không tin nhau, muốn trao đổi thông tin định tuyến —
+> làm sao làm được mà không ai phá được ai?"**
+
+Đó là lý do BGP tồn tại và vì sao nó **khác hẳn OSPF**.
+
+## BGP khác IGP ở đâu — hình này giải thích tất cả
+
+```
+   OSPF/EIGRP (IGP)                    BGP
+   ─────────────────                   ───
+   "Đường nào NGẮN NHẤT?"              "Đi qua NHỮNG AI?"
+
+   Đo bằng: cost, bandwidth            Đo bằng: AS-PATH
+                                       (danh sách AS đã đi qua)
+
+   Trong MỘT tổ chức                   Giữa CÁC tổ chức khác nhau
+   → tin nhau hoàn toàn                → KHÔNG tin nhau
+
+   Hội tụ: vài GIÂY                    Hội tụ: vài PHÚT
+   → ưu tiên NHANH                     → ưu tiên ỔN ĐỊNH và KIỂM SOÁT ĐƯỢC
+```
+
+⭐ **Chống loop cũng khác:** IGP dùng thuật toán (SPF/DUAL).
+BGP dùng **AS-path**: *"thấy số AS của mình trong danh sách → route này đã đi qua đây rồi → BỎ."*
+
+## Ba bảng của BGP — chỗ người mới hay vấp nhất
+
+```
+   ① NEIGHBOR TABLE      "Tôi peering được với ai?"
+      show ip bgp summary          ← phải thấy số prefix, KHÔNG phải Active/Idle
+              │
+              ▼
+   ② BGP TABLE           "Tôi biết những ĐƯỜNG NÀO tới mỗi đích?"
+      show ip bgp                  ← giữ MỌI path, kể cả path không dùng
+              │  chọn best path (13 bước — Module-05B)
+              ▼
+   ③ ROUTING TABLE       "Đường nào THỰC SỰ được dùng?"
+      show ip route bgp            ← chỉ path best (>) VÀ next-hop phải tới được
+
+   🔴 Bẫy lớn nhất: route NẰM TRONG BGP table nhưng KHÔNG vào routing table.
+      Thường vì next-hop không reachable.
+```
+
+## 7 ý phải nhớ
+
+| # | Ý | Một câu |
+|:---:|---|---|
+| 1 | **BGP là path-vector** | Không đo khoảng cách — đếm **đã đi qua những AS nào** |
+| 2 | ⭐ **eBGP vs iBGP** | eBGP = **giữa các AS**, AD **20**, TTL 1 · iBGP = **trong cùng AS**, AD **200** |
+| 3 | 🔴 ⭐⭐ **"Active" là trạng thái XẤU** | Nó nghĩa là *đang thử kết nối mà chưa được*. Tốt là **`Established`** |
+| 4 | **Sáu trạng thái** | Idle → Connect → Active → OpenSent → OpenConfirm → **Established** |
+| 5 | ⭐ **Ba bảng** | Neighbor → **BGP table** (giữ mọi path) → Routing table (chỉ path best) |
+| 6 | ⭐ **`network` phải khớp CHÍNH XÁC** | Prefix và mask phải **có sẵn trong routing table**, sai một bit là không quảng bá |
+| 7 | 🔴 **iBGP không quảng bá lại route học từ iBGP** | Nên ≥ 3 router iBGP phải **full-mesh** với nhau |
+
+## Bảng lệnh cốt lõi
+
+| Lệnh | Cho biết gì |
+|---|---|
+| `show ip bgp summary` | Peering lên chưa — nhìn cột **State/PfxRcd** |
+| `show ip bgp` | **BGP table** — mọi path, dấu `*` (hợp lệ) và `>` (best) |
+| `show ip bgp <prefix>` | Chi tiết một prefix: mọi path, vì sao chọn path đó |
+| `show ip bgp neighbors <ip>` | Chi tiết peering: timer, capability, số message |
+| `show ip route bgp` | Kết quả cuối — path best đã vào routing table |
+| `clear ip bgp * soft in` | ⭐ **Xin gửi lại route mà KHÔNG ngắt phiên** |
+| `debug ip bgp updates` | Theo dõi update *(chỉ lab)* |
+
+## 🗺️ Bố cục module — đọc theo đúng thứ tự này
+
+| Phần | Tên | Đọc thế nào | Thời gian |
+|:---:|---|---|:---:|
+| **1** | 🧠 **CÁI ĐÓ LÀ GÌ** | 5 ví von, đọc **một mạch** | 45 phút |
+| **2** | ⚙️ **NÓ CHẠY THẾ NÀO** | 9 mục. ⭐ **Then chốt: §3.3, §3.4, §3.5** | 4 giờ |
+| **3** | 🧪 **NHÌN THẤY NÓ** | [LAB 05A](Module-05A-LAB.md) — 6 bước, có 8 lỗi kinh điển | 7 giờ |
+| **4** | 🏗️ **TOPO & KIẾN TRÚC** | Khi nào cần BGP, đấu nối ra sao. **Vẽ lại trên giấy** | 45 phút |
+| **📎** | **PHỤ LỤC** | 🔴 **KHÔNG đọc lần đầu** — chỉ tra | — |
+
+> ⭐ **Điều quan trọng nhất cần đổi trong đầu khi học BGP:**
+> bạn đã quen IGP suốt 3 module (03, 04A, 04B) với tư duy *"tìm đường ngắn nhất"*.
+> **BGP không quan tâm đường ngắn.** Nó quan tâm **chính sách** — *"tôi MUỐN traffic đi đường nào"*.
+>
+> Nếu thấy BGP "vô lý", thường là vì bạn đang áp tư duy IGP vào nó.
+
+---
+
 ## ⭐ 0. ĐỌC TRƯỚC — phạm vi BGP trong ENCOR
 
 Giống như EIGRP ở Module-03, BGP cũng có một giới hạn phạm vi quan trọng:
@@ -62,9 +151,110 @@ Giống như EIGRP ở Module-03, BGP cũng có một giới hạn phạm vi qua
 
 ---
 
-## 📘 2. LÝ THUYẾT
+## 🧠 PHẦN 1 — CÁI ĐÓ LÀ GÌ
 
-### 2.1 BGP trong 1 bảng
+> **Đọc phần này TRƯỚC, đọc một mạch.** Không lệnh, không bảng tra.
+>
+> BGP khác hẳn OSPF: nó **không quan tâm đường nào ngắn**, mà quan tâm **đi qua những ai**.
+> Năm ví von dưới đây là cách đổi tư duy từ IGP sang BGP.
+>
+> **Tự kiểm tra:** đọc xong mỗi mục, gấp tài liệu lại, nói lại trong 3 câu.
+
+### 2.1 Path Vector — không phải distance, mà là "đã đi qua đâu"
+
+| Loại | Câu nó trả lời |
+|---|---|
+| **Distance Vector** (RIP) | *"Đến X **xa 3 hop**"* — quan tâm **khoảng cách** |
+| **Link-State** (OSPF) | *"Đây là **bản đồ** toàn area"* — quan tâm **topology** |
+| ⭐ **Path Vector** (BGP) | *"Đến X thì **đi qua các AS: 65002, 65003, 65010**"* — quan tâm ⭐ **đã đi qua đâu** |
+
+**Vì sao BGP không quan tâm "xa bao nhiêu":**
+BGP là protocol **giữa các tổ chức**. Bạn **không biết** và **không cần biết** bên trong AS
+của ISP có bao nhiêu hop. Bạn chỉ cần biết: *"đi qua AS nào"* — vì đó là thứ liên quan tới
+**hợp đồng, chi phí, chính sách**.
+
+🧠 **Một câu để nhớ:** *OSPF chọn đường **ngắn nhất về mặt kỹ thuật**.
+BGP chọn đường **hợp chính sách nhất về mặt kinh doanh**.
+Đó là lý do BGP có 13 bước attribute chứ không có một cái metric duy nhất.*
+
+### 2.2 AS-path = chống loop bằng "danh sách nơi đã đến"
+
+Route đi từ AS 65001 → 65002 → 65003, AS-path thành `65002 65001`
+(⭐ mỗi eBGP hop **thêm ASN vào ĐẦU**).
+
+Khi route quay lại AS 65001, router AS 65001 nhìn AS-path thấy **có ASN của chính mình**
+→ ⭐ **từ chối ngay** → không loop.
+
+🧠 **Một câu để nhớ:** *AS-path như **danh sách con dấu hộ chiếu** (giống route tag ở Module-03 §3.6,
+nhưng tự động và bắt buộc). Thấy dấu của chính mình = đã từng đi qua = quay lại = từ chối.*
+
+⭐ **Và đó là lý do iBGP cần split-horizon rule:** iBGP **không thêm dấu** (cùng AS)
+→ không có cơ chế phát hiện → phải chặn bằng quy tắc "không quảng bá lại cho iBGP peer khác".
+
+### 2.3 "Active" là trạng thái xấu — bẫy ngôn ngữ
+
+| Từ | Nghĩa thông thường | ⭐ Nghĩa trong BGP |
+|---|---|---|
+| **Active** | Đang hoạt động tốt ✅ | 🔴 **TCP THẤT BẠI, đang chủ động thử lại** |
+| **Established** | Đã thành lập | ✅ **Trạng thái TỐT** |
+| **Idle** | Rảnh rỗi | ⚠️ Chưa/không kết nối được |
+
+🧠 **Một câu để nhớ:** *Trong BGP, **`Established` là tốt, `Active` là xấu**.
+"Active" = "tôi đang **tích cực gõ cửa** mà không ai mở" — nghĩa là TCP không lên được.*
+
+⭐ **Ba thứ kiểm tra khi thấy Active:** (1) có route tới neighbor? (2) TCP 179 bị chặn?
+(3) sai IP / thiếu `update-source`?
+
+### 2.4 BGP table giữ nhiều path — như nhiều báo giá
+
+**OSPF:** chạy Dijkstra → ra **một** kết quả → vào RIB. Bạn **không thấy** các phương án bị loại.
+
+**BGP:** như bạn đi hỏi giá 3 nhà cung cấp. Bạn ⭐ **giữ cả 3 báo giá** trong file
+(BGP table), rồi chọn 1 để ký hợp đồng (RIB).
+
+⭐ **Lợi ích:** khi cần troubleshoot *"vì sao chọn đường này"*, bạn **mở lại cả 3 báo giá** và
+so từng tiêu chí:
+```
+show ip bgp 10.20.20.0
+! → hiện MỌI path, và ghi rõ path nào "best" cùng LÝ DO
+```
+
+🧠 **Một câu để nhớ:** *`show ip bgp` là **hồ sơ đầy đủ**, `show ip route bgp` là **quyết định cuối**.
+Troubleshoot BGP luôn bắt đầu từ `show ip bgp`, không phải `show ip route`.*
+
+### 2.5 `network` statement của BGP như "đăng ký hàng có sẵn"
+
+BGP `network 10.1.1.0 mask 255.255.255.0` không phải *"bật BGP trên interface"* —
+nó là ⭐ ***"tôi muốn bán mặt hàng `10.1.1.0/24`, nếu tôi CÓ nó trong kho (RIB)"***.
+
+- Kho có đúng `10.1.1.0/24` → ✅ bán được
+- Kho có `10.1.1.0/25` và `10.1.1.128/25` (2 nửa) → ❌ **không bán được `/24`** — không khớp chính xác
+- Kho không có gì → ❌ không bán được
+
+⭐ **Cách "tạo hàng giả để bán":** `ip route 10.1.0.0 255.255.0.0 Null0` →
+kho có `/16` → bán được `/16`. Traffic tới subnet không tồn tại thì drop tại Null0
+(giống discard route ở Module-04B §2.3).
+
+🧠 **Một câu để nhớ:** *BGP không tạo route, nó chỉ **quảng bá route đã có**.
+Không có trong RIB đúng mask = không quảng bá được, và **không có thông báo lỗi nào**.*
+
+---
+
+## ⚙️ PHẦN 2 — NÓ CHẠY THẾ NÀO
+
+> Giờ lắp **cơ chế thật, con số và câu lệnh** vào hình dung bạn vừa có.
+>
+> | Phần 1 (ví von) | → | Phần 2 (cơ chế) |
+> |---|:---:|---|
+> | §2.1 path vector · §2.2 danh sách nơi đã đến | → | **§3.1 BGP trong 1 bảng · §3.3 eBGP vs iBGP** |
+> | §2.3 "Active" là bẫy ngôn ngữ | → | **§3.5 Sáu trạng thái neighbor** |
+> | §2.4 nhiều báo giá | → | **§3.4 Ba bảng của BGP** ⭐ |
+> | §2.5 đăng ký hàng có sẵn | → | **§3.8 Cấu hình eBGP · `network` statement** |
+>
+> ⚠️ **Ba mục then chốt: §3.3** (eBGP vs iBGP), **§3.4** (ba bảng), **§3.5** (sáu trạng thái).
+> Ba mục đó chiếm phần lớn câu hỏi BGP cơ bản của đề.
+
+### 3.1 BGP trong 1 bảng
 
 | Thuộc tính | Giá trị |
 |---|---|
@@ -96,7 +286,7 @@ Giống như EIGRP ở Module-03, BGP cũng có một giới hạn phạm vi qua
 > bạn **phải khai báo tay** bằng `neighbor <ip> remote-as <asn>`.
 > Không có multicast discovery như OSPF/EIGRP.
 
-### 2.2 AS & ASN
+### 3.2 AS & ASN
 
 | Khái niệm | Nội dung |
 |---|---|
@@ -113,7 +303,7 @@ router bgp 1.100                  ! asdot (1×65536 + 100 = 65636)
 bgp asnotation dot                ! đổi cách hiển thị sang asdot
 ```
 
-### 2.3 ⭐ eBGP vs iBGP — bảng phải thuộc
+### 3.3 ⭐ eBGP vs iBGP — bảng phải thuộc
 
 | | ⭐ **eBGP** (External BGP) | 🟡 **iBGP** (Internal BGP) |
 |---|---|---|
@@ -192,7 +382,7 @@ show ip bgp 10.20.20.0
 ! ... (inaccessible) ...
 ```
 
-### 2.4 ⭐ Ba bảng của BGP
+### 3.4 ⭐ Ba bảng của BGP
 
 ```
 ┌────────────────────────────────────────────────────────────────────┐
@@ -236,7 +426,7 @@ show ip bgp neighbors 10.0.12.2 routes              ! route đã qua policy
 show ip bgp neighbors 10.0.12.2 advertised-routes   ! Adj-RIB-Out
 ```
 
-### 2.5 ⭐ Sáu trạng thái neighbor
+### 3.5 ⭐ Sáu trạng thái neighbor
 
 ```
 IDLE ──▶ CONNECT ──▶ OPENSENT ──▶ OPENCONFIRM ──▶ ESTABLISHED
@@ -282,7 +472,7 @@ Trying 10.0.12.2, 179 ...
 % Connection refused by remote host      ← ⚠️ TCP bị chặn / BGP không listen
 ```
 
-### 2.6 Năm loại BGP message
+### 3.6 Năm loại BGP message
 
 | # | Message | Nhiệm vụ | Khi nào gửi |
 |:---:|---|---|---|
@@ -326,7 +516,7 @@ clear ip bgp 10.0.12.2 soft in         ! dùng route-refresh, KHÔNG reset phiê
 clear ip bgp 10.0.12.2                 ! HARD RESET — đóng phiên TCP, gây downtime
 ```
 
-### 2.7 Timer
+### 3.7 Timer
 
 | Timer | Mặc định | Ý nghĩa |
 |---|:---:|---|
@@ -355,7 +545,7 @@ router bgp 65001
 > ```
 > → phát hiện lỗi trong **~900 ms** thay vì 180 s.
 
-### 2.8 Cấu hình eBGP cơ bản
+### 3.8 Cấu hình eBGP cơ bản
 
 ```
 router bgp 65001                                  ! ASN CỦA MÌNH
@@ -469,7 +659,7 @@ router bgp 65001
 > ⭐ `maximum-prefix` là **bắt buộc** ở mọi phiên eBGP với ISP thật.
 > Nhiều sự cố Internet toàn cầu bắt nguồn từ route leak — thiếu lệnh này thì router bạn chết theo.
 
-### 2.9 ⭐ Phân loại BGP Attribute — 4 nhóm
+### 3.9 ⭐ Phân loại BGP Attribute — 4 nhóm
 
 Đây là nền để hiểu 13 bước path selection (Module-05B).
 
@@ -520,1095 +710,112 @@ router bgp 65001
 
 ---
 
-## 📖 3. HIỂU RÕ HƠN
+## 🧪 PHẦN 3 — NHÌN THẤY NÓ
 
-### 3.1 Path Vector — không phải distance, mà là "đã đi qua đâu"
+> LAB đã tách ra file riêng để bạn **mở song song** với lý thuyết.
 
-| Loại | Câu nó trả lời |
+> ### 👉 **[LAB 05A — Tuần 9: eBGP 3 AS](Module-05A-LAB.md)**
+
+| Bước | Nội dung | Ví von ở Phần 1 | Cơ chế ở Phần 2 |
+|:---:|---|---|---|
+| 1 | Verify neighbor | §2.3 "Active" là bẫy ngôn ngữ | §3.5 · §3.6 |
+| 2 | ⭐⭐ **Đọc BGP table** | §2.4 nhiều báo giá | §3.4 |
+| 3 | Verify routing table | §2.4 | §3.4 |
+| 4 | ⭐ Chứng minh AS-path chống loop | §2.1 path vector · §2.2 danh sách nơi đã đến | §3.3 |
+| 5 | ⭐⭐ Tái hiện 8 lỗi kinh điển | §2.5 đăng ký hàng có sẵn | §3.8 |
+| 6 | 🚀 Soft reset & bảo mật | — | §3.7 |
+
+> ⚠️ **Bước 2 là phần quan trọng nhất của Module-05A.**
+> BGP có **BA bảng**, không phải một — và bảng ở giữa (BGP table) là thứ phân biệt
+> người hiểu BGP với người chỉ biết gõ lệnh.
+>
+> Ở bước 3 bạn sẽ thấy tình huống gây bối rối nhất của BGP: ⭐ **route nằm trong BGP table
+> nhưng KHÔNG vào được routing table**. Hiểu được vì sao là qua được nửa chặng đường.
+
+---
+
+## 🏗️ PHẦN 4 — TOPO & KIẾN TRÚC
+
+> Bạn vừa học cơ chế BGP. Phần này trả lời: **doanh nghiệp dùng BGP khi nào, và đấu nối ra sao?**
+
+### 4.1 Bản đồ: BGP trong doanh nghiệp thật
+
+```
+        AS 64500 (ISP-A)              AS 64600 (ISP-B)
+             │                              │
+             │  eBGP                        │  eBGP
+             │  (AD 20)                     │  (AD 20)
+        ┌────┴──────────┐          ┌────────┴────┐
+        │  Edge-1       │          │   Edge-2    │   ① Router BIÊN
+        │  AS 65000     │◄──iBGP──►│  AS 65000   │      nói eBGP ra ngoài
+        └────┬──────────┘  (AD 200)└────────┬────┘
+             │                              │
+             │      ② iBGP giữa 2 edge      │
+             │         — BẮT BUỘC            │
+             │                              │
+        ┌────┴──────────────────────────────┴────┐
+        │            MẠNG NỘI BỘ                  │   ③ Bên trong dùng
+        │         OSPF / EIGRP                    │      IGP, KHÔNG dùng BGP
+        │      (AD 110 / 90)                      │
+        └─────────────────────────────────────────┘
+
+   ④ Redistribute IGP → BGP? ⚠️ CẨN THẬN. Thường dùng `network` statement thay thế
+```
+
+### 4.2 Năm quyết định — và sai thì hỏng thế nào
+
+| # | Quyết định | Vì sao | 🔴 Sai thì hỏng thế nào |
+|:---:|---|---|---|
+| ① | **Khi nào cần BGP?** | Chỉ khi có **≥ 2 ISP** và cần chủ động chọn đường vào/ra | Một ISP duy nhất → ⭐ **default route là đủ.** Dùng BGP là tự làm khổ mình |
+| ② | **Hai edge phải có iBGP giữa chúng** | Route học từ ISP-A phải tới được Edge-2 | Thiếu iBGP → Edge-2 không biết route của ISP-A → **traffic ra sai hướng** |
+| ③ | **Nội bộ dùng IGP, không dùng BGP** | BGP hội tụ **chậm** (tính bằng phút), IGP tính bằng giây | Chạy BGP nội bộ → đứt link là **chờ rất lâu mới hội tụ** |
+| ④ | **Dùng `network` thay redistribute IGP→BGP** | Redistribute cả bảng IGP vào BGP = **bơm rác ra Internet** | Redistribute bừa → quảng bá cả mạng riêng ra ngoài, ISP có thể **cắt peering** |
+| ⑤ | **Lọc cả chiều VÀO và chiều RA** | Mặc định BGP **nhận và quảng bá mọi thứ** | Không lọc chiều ra → ⭐ **bạn thành ISP trung chuyển bất đắc dĩ** cho traffic của người khác |
+
+### 4.3 Ba sự thật mà chỉ người đi làm mới biết
+
+| Sự thật | Giải thích |
 |---|---|
-| **Distance Vector** (RIP) | *"Đến X **xa 3 hop**"* — quan tâm **khoảng cách** |
-| **Link-State** (OSPF) | *"Đây là **bản đồ** toàn area"* — quan tâm **topology** |
-| ⭐ **Path Vector** (BGP) | *"Đến X thì **đi qua các AS: 65002, 65003, 65010**"* — quan tâm ⭐ **đã đi qua đâu** |
+| ⭐⭐ **"Active" là trạng thái XẤU** | Nghe như "đang hoạt động" nhưng thực ra là ⭐ **đang thử mở TCP mà chưa được**. Thấy `Active` = **đang hỏng**. Trạng thái tốt là `Established` |
+| ⭐⭐ **Route trong BGP table ≠ route trong routing table** | BGP table giữ **mọi path học được**, nhưng chỉ path **best** (`>`) mới được đưa vào routing table. Và nó còn phải **qua được kiểm tra next-hop reachable** |
+| ⭐ **Luôn dùng `soft reset`, đừng `clear ip bgp *`** | ⭐ `clear ip bgp *` **đánh sập toàn bộ peering** → mạng mất kết nối vài phút.<br>⭐ `clear ip bgp * soft in` chỉ **xin gửi lại route**, không ngắt phiên |
 
-**Vì sao BGP không quan tâm "xa bao nhiêu":**
-BGP là protocol **giữa các tổ chức**. Bạn **không biết** và **không cần biết** bên trong AS
-của ISP có bao nhiêu hop. Bạn chỉ cần biết: *"đi qua AS nào"* — vì đó là thứ liên quan tới
-**hợp đồng, chi phí, chính sách**.
+### 4.4 Những thứ này sẽ lớn lên thành gì
 
-🧠 **Một câu để nhớ:** *OSPF chọn đường **ngắn nhất về mặt kỹ thuật**.
-BGP chọn đường **hợp chính sách nhất về mặt kinh doanh**.
-Đó là lý do BGP có 13 bước attribute chứ không có một cái metric duy nhất.*
-
-### 3.2 AS-path = chống loop bằng "danh sách nơi đã đến"
-
-Route đi từ AS 65001 → 65002 → 65003, AS-path thành `65002 65001`
-(⭐ mỗi eBGP hop **thêm ASN vào ĐẦU**).
-
-Khi route quay lại AS 65001, router AS 65001 nhìn AS-path thấy **có ASN của chính mình**
-→ ⭐ **từ chối ngay** → không loop.
-
-🧠 **Một câu để nhớ:** *AS-path như **danh sách con dấu hộ chiếu** (giống route tag ở Module-03 §3.6,
-nhưng tự động và bắt buộc). Thấy dấu của chính mình = đã từng đi qua = quay lại = từ chối.*
-
-⭐ **Và đó là lý do iBGP cần split-horizon rule:** iBGP **không thêm dấu** (cùng AS)
-→ không có cơ chế phát hiện → phải chặn bằng quy tắc "không quảng bá lại cho iBGP peer khác".
-
-### 3.3 "Active" là trạng thái xấu — bẫy ngôn ngữ
-
-| Từ | Nghĩa thông thường | ⭐ Nghĩa trong BGP |
+| Bạn vừa học | Sẽ thành | Ở module |
 |---|---|---|
-| **Active** | Đang hoạt động tốt ✅ | 🔴 **TCP THẤT BẠI, đang chủ động thử lại** |
-| **Established** | Đã thành lập | ✅ **Trạng thái TỐT** |
-| **Idle** | Rảnh rỗi | ⚠️ Chưa/không kết nối được |
+| BGP attribute (4 nhóm) | **13 bước path selection** · Weight/LocPref/MED/prepend | **Module-05B** |
+| `network` statement | `aggregate-address` · community · filtering | **Module-05B** |
+| eBGP đa ISP | NAT dual-ISP · IP SLA failover | **Module-06B** |
+| AS-path chống loop | Kiểm soát traffic vào/ra bằng prepend | **Module-05B** |
+| Peering ra ngoài | SD-WAN chọn đường theo ứng dụng | **Module-09 §6** |
 
-🧠 **Một câu để nhớ:** *Trong BGP, **`Established` là tốt, `Active` là xấu**.
-"Active" = "tôi đang **tích cực gõ cửa** mà không ai mở" — nghĩa là TCP không lên được.*
+### 4.5 Vẽ lại để nhớ
 
-⭐ **Ba thứ kiểm tra khi thấy Active:** (1) có route tới neighbor? (2) TCP 179 bị chặn?
-(3) sai IP / thiếu `update-source`?
+> **Bài tập 15 phút, trên giấy.**
+>
+> 1. Vẽ lại sơ đồ §4.1 **không nhìn tài liệu**
+> 2. Ghi rõ chỗ nào là **eBGP**, chỗ nào là **iBGP**, chỗ nào là **IGP**, kèm **AD** của mỗi loại
+> 3. Trả lời: *"Vì sao hai router Edge bắt buộc phải có iBGP giữa chúng?"*
 
-### 3.4 BGP table giữ nhiều path — như nhiều báo giá
+<details>
+<summary>Đáp án câu 3</summary>
 
-**OSPF:** chạy Dijkstra → ra **một** kết quả → vào RIB. Bạn **không thấy** các phương án bị loại.
+Vì ⭐ **route học từ eBGP KHÔNG tự động lan sang router khác trong cùng AS**.
 
-**BGP:** như bạn đi hỏi giá 3 nhà cung cấp. Bạn ⭐ **giữ cả 3 báo giá** trong file
-(BGP table), rồi chọn 1 để ký hợp đồng (RIB).
+Edge-1 học route của ISP-A qua eBGP. Nếu không có iBGP giữa Edge-1 và Edge-2 thì
+Edge-2 **hoàn toàn không biết** route đó tồn tại → traffic nào đi qua Edge-2 sẽ bị
+đẩy sai hướng hoặc bị bỏ.
 
-⭐ **Lợi ích:** khi cần troubleshoot *"vì sao chọn đường này"*, bạn **mở lại cả 3 báo giá** và
-so từng tiêu chí:
-```
-show ip bgp 10.20.20.0
-! → hiện MỌI path, và ghi rõ path nào "best" cùng LÝ DO
-```
+⭐ **Và đây cũng là gốc của quy tắc quan trọng:** *"iBGP không quảng bá lại route
+học từ iBGP"* — nên nếu có **3 router iBGP trở lên**, chúng phải **full-mesh** với nhau
+*(hoặc dùng route reflector — ngoài phạm vi ENCOR)*.
 
-🧠 **Một câu để nhớ:** *`show ip bgp` là **hồ sơ đầy đủ**, `show ip route bgp` là **quyết định cuối**.
-Troubleshoot BGP luôn bắt đầu từ `show ip bgp`, không phải `show ip route`.*
-
-### 3.5 `network` statement của BGP như "đăng ký hàng có sẵn"
-
-BGP `network 10.1.1.0 mask 255.255.255.0` không phải *"bật BGP trên interface"* —
-nó là ⭐ ***"tôi muốn bán mặt hàng `10.1.1.0/24`, nếu tôi CÓ nó trong kho (RIB)"***.
-
-- Kho có đúng `10.1.1.0/24` → ✅ bán được
-- Kho có `10.1.1.0/25` và `10.1.1.128/25` (2 nửa) → ❌ **không bán được `/24`** — không khớp chính xác
-- Kho không có gì → ❌ không bán được
-
-⭐ **Cách "tạo hàng giả để bán":** `ip route 10.1.0.0 255.255.0.0 Null0` →
-kho có `/16` → bán được `/16`. Traffic tới subnet không tồn tại thì drop tại Null0
-(giống discard route ở Module-04B §2.3).
-
-🧠 **Một câu để nhớ:** *BGP không tạo route, nó chỉ **quảng bá route đã có**.
-Không có trong RIB đúng mask = không quảng bá được, và **không có thông báo lỗi nào**.*
-
----
-
-## 🧪 4. LAB 05A — eBGP 3 AS
-
-### 4.1 Topology
-
-```
-        AS 65001                AS 65002                AS 65003
-                                                                  
-      ┌────────┐  10.0.12.0/30  ┌────────┐  10.0.23.0/30  ┌────────┐
-      │   R1   │════════════════│   R2   │════════════════│   R3   │
-      └────────┘  Gi0/0   Gi0/0 └────────┘  Gi0/1   Gi0/0 └────────┘
-       Lo0 1.1.1.1                Lo0 2.2.2.2               Lo0 3.3.3.3
-       Lo1 10.1.1.0/24            Lo1 10.2.2.0/24           Lo1 10.3.3.0/24
-       Lo2 10.1.2.0/24                                      Lo2 10.3.4.0/24
-           │
-           │ 10.0.14.0/30 (Gi0/1)
-           │
-      ┌────────┐
-      │   R4   │  AS 65004
-      └────────┘
-       Lo0 4.4.4.4
-       Lo1 10.4.4.0/24
-```
-
-| Node | AS | Interface | IP |
-|---|:---:|---|---|
-| **R1** | **65001** | Lo0 | 1.1.1.1/32 |
-| | | Lo1 | 10.1.1.1/24 |
-| | | Lo2 | 10.1.2.1/24 |
-| | | Gi0/0 | 10.0.12.1/30 → R2 |
-| | | Gi0/1 | 10.0.14.1/30 → R4 |
-| **R2** | **65002** | Lo0 | 2.2.2.2/32 |
-| | | Lo1 | 10.2.2.1/24 |
-| | | Gi0/0 | 10.0.12.2/30 → R1 |
-| | | Gi0/1 | 10.0.23.1/30 → R3 |
-| **R3** | **65003** | Lo0 | 3.3.3.3/32 |
-| | | Lo1 | 10.3.3.1/24 |
-| | | Lo2 | 10.3.4.1/24 |
-| | | Gi0/0 | 10.0.23.2/30 → R2 |
-| **R4** | **65004** | Lo0 | 4.4.4.4/32 |
-| | | Lo1 | 10.4.4.1/24 |
-| | | Gi0/1 | 10.0.14.2/30 → R1 |
-
-**RAM: 4× 512 MB = 2 GB** ✅
-
-> 💡 Topology này cho phép: eBGP peering 3 chiều · AS-path dài dần · và
-> **Module-05B** sẽ dùng đường dự phòng R1→R4 để thao tác path selection.
-
-### 4.2 Config đầy đủ
-
-**R1 (AS 65001):**
-```
-enable
-configure terminal
-hostname R1
-no ip domain lookup
-!
-interface Loopback0
- ip address 1.1.1.1 255.255.255.255
-interface Loopback1
- ip address 10.1.1.1 255.255.255.0
-interface Loopback2
- ip address 10.1.2.1 255.255.255.0
-!
-interface GigabitEthernet0/0
- description ---> eBGP to AS65002 (R2)
- ip address 10.0.12.1 255.255.255.252
- no shutdown
-!
-interface GigabitEthernet0/1
- description ---> eBGP to AS65004 (R4)
- ip address 10.0.14.1 255.255.255.252
- no shutdown
-!
-router bgp 65001
- bgp router-id 1.1.1.1
- bgp log-neighbor-changes
- !
- neighbor 10.0.12.2 remote-as 65002
- neighbor 10.0.12.2 description ---> AS65002 R2
- neighbor 10.0.14.2 remote-as 65004
- neighbor 10.0.14.2 description ---> AS65004 R4
- !
- network 10.1.1.0 mask 255.255.255.0
- network 10.1.2.0 mask 255.255.255.0
- network 1.1.1.1 mask 255.255.255.255
-!
-line con 0
- exec-timeout 0 0
- logging synchronous
-end
-write memory
-```
-
-**R2 (AS 65002):**
-```
-enable
-configure terminal
-hostname R2
-no ip domain lookup
-!
-interface Loopback0
- ip address 2.2.2.2 255.255.255.255
-interface Loopback1
- ip address 10.2.2.1 255.255.255.0
-!
-interface GigabitEthernet0/0
- description ---> eBGP to AS65001 (R1)
- ip address 10.0.12.2 255.255.255.252
- no shutdown
-!
-interface GigabitEthernet0/1
- description ---> eBGP to AS65003 (R3)
- ip address 10.0.23.1 255.255.255.252
- no shutdown
-!
-router bgp 65002
- bgp router-id 2.2.2.2
- bgp log-neighbor-changes
- !
- neighbor 10.0.12.1 remote-as 65001
- neighbor 10.0.12.1 description ---> AS65001 R1
- neighbor 10.0.23.2 remote-as 65003
- neighbor 10.0.23.2 description ---> AS65003 R3
- !
- network 10.2.2.0 mask 255.255.255.0
- network 2.2.2.2 mask 255.255.255.255
-!
-line con 0
- exec-timeout 0 0
- logging synchronous
-end
-write memory
-```
-
-**R3 (AS 65003):**
-```
-enable
-configure terminal
-hostname R3
-no ip domain lookup
-!
-interface Loopback0
- ip address 3.3.3.3 255.255.255.255
-interface Loopback1
- ip address 10.3.3.1 255.255.255.0
-interface Loopback2
- ip address 10.3.4.1 255.255.255.0
-!
-interface GigabitEthernet0/0
- description ---> eBGP to AS65002 (R2)
- ip address 10.0.23.2 255.255.255.252
- no shutdown
-!
-router bgp 65003
- bgp router-id 3.3.3.3
- bgp log-neighbor-changes
- !
- neighbor 10.0.23.1 remote-as 65002
- neighbor 10.0.23.1 description ---> AS65002 R2
- !
- network 10.3.3.0 mask 255.255.255.0
- network 10.3.4.0 mask 255.255.255.0
- network 3.3.3.3 mask 255.255.255.255
-!
-line con 0
- exec-timeout 0 0
- logging synchronous
-end
-write memory
-```
-
-**R4 (AS 65004):**
-```
-enable
-configure terminal
-hostname R4
-no ip domain lookup
-!
-interface Loopback0
- ip address 4.4.4.4 255.255.255.255
-interface Loopback1
- ip address 10.4.4.1 255.255.255.0
-!
-interface GigabitEthernet0/1
- description ---> eBGP to AS65001 (R1)
- ip address 10.0.14.2 255.255.255.252
- no shutdown
-!
-router bgp 65004
- bgp router-id 4.4.4.4
- bgp log-neighbor-changes
- !
- neighbor 10.0.14.1 remote-as 65001
- neighbor 10.0.14.1 description ---> AS65001 R1
- !
- network 10.4.4.0 mask 255.255.255.0
- network 4.4.4.4 mask 255.255.255.255
-!
-line con 0
- exec-timeout 0 0
- logging synchronous
-end
-write memory
-```
-
----
-
-### Bước 1 — ⭐ Verify neighbor (Bảng 1)
-
-```
-R1# show ip bgp summary
-```
-**Output mẫu:**
-```
-BGP router identifier 1.1.1.1, local AS number 65001
-BGP table version is 9, main routing table version 9
-8 network entries using 1152 bytes of memory
-9 path entries using 720 bytes of memory
-5/4 BGP path/bestpath attribute entries using 800 bytes of memory
-3 BGP AS-PATH entries using 72 bytes of memory
-0 BGP route-map cache entries using 0 bytes of memory
-0 BGP filter-list cache entries using 0 bytes of memory
-BGP using 2744 total bytes of memory
-BGP activity 8/0 prefixes, 9/0 paths, scan interval 60 secs
-
-Neighbor        V           AS MsgRcvd MsgSent   TblVer  InQ OutQ Up/Down  State/PfxRcd
-10.0.12.2       4        65002      12      13        9    0    0 00:07:12        5
-10.0.14.2       4        65004      10      11        9    0    0 00:06:45        2
-```
-
-⭐ **Bảng đọc output — lệnh quan trọng nhất của BGP:**
-
-| Cột | Nghĩa | Cần chú ý gì |
-|---|---|---|
-| `Neighbor` | IP của peer | |
-| `V` | BGP version | Luôn là **4** |
-| `AS` | ⭐ ASN của peer | Đúng chưa? |
-| `MsgRcvd` / `MsgSent` | Số message nhận/gửi | ⭐ **Cả hai đều tăng** = phiên khỏe |
-| `TblVer` | Version bảng BGP đã gửi cho peer | |
-| `InQ` / `OutQ` | Queue chờ xử lý | ⭐ **Nên là 0**. Khác 0 lâu = CPU cao / phiên nghẽn |
-| `Up/Down` | ⭐ Phiên đã lên bao lâu | ⭐ **Reset liên tục** = có vấn đề |
-| ⭐ `State/PfxRcd` | ⭐ **CỘT QUAN TRỌNG NHẤT** | Xem bảng dưới |
-
-⭐ **Đọc cột `State/PfxRcd`:**
-
-| Giá trị | Nghĩa |
-|---|---|
-| **Số** (VD `5`) | ⭐ ✅ **Established**, và đã nhận **5 prefix** |
-| **`0`** | ⚠️ Established nhưng **nhận 0 prefix** → peer chưa quảng bá gì, hoặc thiếu `activate`, hoặc filter chặn hết |
-| **`Idle`** | ⚠️ Chưa kết nối · không có route tới neighbor |
-| ⚠️ **`Active`** | 🔴 **TCP thất bại**, đang thử lại |
-| `OpenSent` / `OpenConfirm` | Đang đàm phán |
-| **`Idle (Admin)`** | Neighbor bị `neighbor x shutdown` |
-
-✅ **Checkpoint bước 1 — điền bảng (chạy trên cả 4 router):**
-
-| Router | Neighbor | Peer AS | State/PfxRcd | Up/Down |
-|---|---|:---:|:---:|---|
-| R1 | 10.0.12.2 | | | |
-| R1 | 10.0.14.2 | | | |
-| R2 | 10.0.12.1 | | | |
-| R2 | 10.0.23.2 | | | |
-| R3 | 10.0.23.1 | | | |
-| R4 | 10.0.14.1 | | | |
-
-**Xem chi tiết 1 neighbor:**
-```
-R1# show ip bgp neighbors 10.0.12.2
-```
-**Output mẫu (các dòng quan trọng):**
-```
-BGP neighbor is 10.0.12.2,  remote AS 65002, external link
-  Description: ---> AS65002 R2
-  BGP version 4, remote router ID 2.2.2.2
-  BGP state = Established, up for 00:08:33
-  Last read 00:00:22, last write 00:00:19, hold time is 180, keepalive interval is 60 seconds
-  Neighbor sessions:
-    1 active, is not multisession capable (disabled)
-  Neighbor capabilities:
-    Route refresh: advertised and received(new)
-    Four-octets ASN Capability: advertised and received
-    Address family IPv4 Unicast: advertised and received
-  ...
-  For address family: IPv4 Unicast
-  Session: 10.0.12.2
-  BGP table version 9, neighbor version 9/0
-  Output queue size : 0
-  Index 1, Advertise bit 0
-   Prefix activity:               ----               ----
-    Prefixes Current:                3                  5 (Consumes 400 bytes)
-    Prefixes Total:                  3                  5
-  ...
-  Connections established 1; dropped 0
-  Last reset never
-  Transport(tcp) path-mtu-discovery is enabled
-  ...
-  Local host: 10.0.12.1, Local port: 179
-  Foreign host: 10.0.12.2, Foreign port: 51234
-```
-
-⭐ **Bảng đọc — các dòng dùng để troubleshoot:**
-
-| Dòng | Dùng để kiểm tra |
-|---|---|
-| `remote AS 65002, external link` | ⭐ **`external link` = eBGP** · `internal link` = iBGP |
-| `remote router ID 2.2.2.2` | Router ID của peer — kiểm tra trùng |
-| ⭐ `BGP state = Established, up for ...` | ⭐ Trạng thái + thời gian |
-| `hold time is 180, keepalive interval is 60` | ⭐ Timer **đã đàm phán** (giá trị nhỏ hơn của 2 bên) |
-| ⭐ `Route refresh: advertised and received` | ⭐ Có dùng được `soft in` không |
-| `Four-octets ASN Capability` | Hỗ trợ ASN 32-bit |
-| `Address family IPv4 Unicast: advertised and received` | ⭐ Đã **activate** cho IPv4 |
-| `Prefixes Current: 3 / 5` | ⭐ **Gửi 3 / Nhận 5** prefix |
-| ⭐ `Connections established 1; dropped 0` | ⭐ **`dropped` cao = phiên bất ổn** |
-| ⭐ `Last reset never` | ⭐ Nếu có reset → **nói rõ nguyên nhân** |
-| ⭐ `Local host: 10.0.12.1, Local port: 179` | ⭐ **Source IP thật** — kiểm tra `update-source` |
-
----
-
-### Bước 2 — ⭐⭐ Đọc BGP table (Bảng 2) — phần quan trọng nhất
-
-```
-R1# show ip bgp
-```
-**Output mẫu:**
-```
-BGP table version is 9, local router ID is 1.1.1.1
-Status codes: s suppressed, d damped, h history, * valid, > best, i - internal,
-              r RIB-failure, S Stale, m multipath, b backup-path, f RT-Filter,
-              x best-external, a additional-path, c RIB-compressed,
-              t secondary path, L long-lived-stale,
-Origin codes: i - IGP, e - EGP, ? - incomplete
-RPKI validation codes: V valid, I invalid, N Not found
-
-     Network          Next Hop            Metric LocPrf Weight Path
- *>  1.1.1.1/32       0.0.0.0                  0         32768 i
- *>  2.2.2.2/32       10.0.12.2                0             0 65002 i
- *>  3.3.3.3/32       10.0.12.2                              0 65002 65003 i
- *>  4.4.4.4/32       10.0.14.2                0             0 65004 i
- *>  10.1.1.0/24      0.0.0.0                  0         32768 i
- *>  10.1.2.0/24      0.0.0.0                  0         32768 i
- *>  10.2.2.0/24      10.0.12.2                0             0 65002 i
- *>  10.3.3.0/24      10.0.12.2                              0 65002 65003 i
- *>  10.3.4.0/24      10.0.12.2                              0 65002 65003 i
- *>  10.4.4.0/24      10.0.14.2                0             0 65004 i
-```
-
-⭐ **BẢNG GIẢI MÃ — học bảng này là đọc được BGP:**
-
-| Thành phần | Nghĩa |
-|---|---|
-| ⭐ **`*`** | ⭐ **valid** — path hợp lệ (next-hop **reachable**) |
-| ⭐ **`>`** | ⭐ **best** — path được chọn, ⭐ **đưa xuống RIB** |
-| ⭐ **`*>`** | ⭐ **valid + best** — trạng thái mong muốn |
-| **`*`** (không có `>`) | ⚠️ Valid nhưng **KHÔNG best** — có path khác tốt hơn |
-| ⚠️ Không có `*` | 🔴 **Không valid** — thường là **next-hop unreachable** |
-| **`i`** (đầu dòng) | Path học từ **iBGP** |
-| **`r`** | ⚠️ **RIB-failure** — BGP chọn best nhưng RIB từ chối (có route AD tốt hơn) |
-| **`s`** | Suppressed (bị `aggregate-address` gộp — Module-05B) |
-| **`m`** | Multipath |
-| `Network` | Prefix |
-| ⭐ `Next Hop` | ⭐ **`0.0.0.0` = route do CHÍNH router này sinh** (từ `network` statement) |
-| `Metric` | ⭐ = **MED** |
-| `LocPrf` | ⭐ **Local Preference** (trống = 100 mặc định cho route local) |
-| ⭐ `Weight` | ⭐ **`32768`** = route do chính mình sinh · **`0`** = học từ peer |
-| ⭐ `Path` | ⭐ **AS-path** — danh sách AS đã đi qua, **đọc từ PHẢI sang TRÁI** |
-| ⭐ Ký tự cuối `Path` | ⭐ **Origin code**: `i` = IGP (`network`) · `e` = EGP · `?` = incomplete (`redistribute`) |
-
-⭐ **Đọc AS-path `65002 65003 i`:**
-- Đọc **từ phải sang trái**: route xuất phát từ **AS 65003** (origin `i` = dùng `network`),
-  rồi đi qua **AS 65002**, rồi tới tôi (AS 65001)
-- **Độ dài AS-path = 2** → dùng cho bước 4 của path selection (Module-05B)
-
-⭐ **Ba con số Weight phải nhớ:**
-
-| Weight | Nghĩa |
-|:---:|---|
-| **32768** | ⭐ Route do **chính router này** sinh ra (`network` / `redistribute`) |
-| **0** | ⭐ Route **học từ peer** |
-| Khác | Đã được đặt tay bằng `neighbor x weight` hoặc route-map |
-
-#### Xem chi tiết 1 prefix — lệnh quan trọng nhất khi troubleshoot
-
-```
-R1# show ip bgp 10.3.3.0
-```
-**Output mẫu:**
-```
-BGP routing table entry for 10.3.3.0/24, version 6
-Paths: (1 available, best #1, table default)
-  Advertised to update-groups:
-     1          2
-  Refresh Epoch 1
-  65002 65003
-    10.0.12.2 from 10.0.12.2 (2.2.2.2)
-      Origin IGP, localpref 100, valid, external, best
-      rx pathid: 0, tx pathid: 0x0
-```
-
-⭐ **Đọc — đây là output bạn sẽ dùng ở Module-05B để giải thích "vì sao chọn path này":**
-
-| Dòng | Nghĩa |
-|---|---|
-| `Paths: (1 available, best #1, ...)` | ⭐ Có **1 path**, path số **1** là best |
-| `Advertised to update-groups: 1 2` | Đã quảng bá cho 2 nhóm peer |
-| `65002 65003` | ⭐ **AS-path** |
-| `10.0.12.2 from 10.0.12.2 (2.2.2.2)` | Next-hop / học từ peer nào / (Router ID của peer) |
-| ⭐ `Origin IGP, localpref 100, valid, external, best` | ⭐ **Origin · LocPref · valid · eBGP · BEST** |
-
-**Xem trên R3 — nơi có nhiều path hơn:**
-```
-R3# show ip bgp
-```
-**Output mẫu:**
-```
-     Network          Next Hop            Metric LocPrf Weight Path
- *>  1.1.1.1/32       10.0.23.1                              0 65002 65001 i
- *>  2.2.2.2/32       10.0.23.1                0             0 65002 i
- *>  3.3.3.3/32       0.0.0.0                  0         32768 i
- *>  4.4.4.4/32       10.0.23.1                              0 65002 65001 65004 i
- *>  10.1.1.0/24      10.0.23.1                              0 65002 65001 i
- *>  10.1.2.0/24      10.0.23.1                              0 65002 65001 i
- *>  10.2.2.0/24      10.0.23.1                0             0 65002 i
- *>  10.3.3.0/24      0.0.0.0                  0         32768 i
- *>  10.3.4.0/24      0.0.0.0                  0         32768 i
- *>  10.4.4.0/24      10.0.23.1                              0 65002 65001 65004 i
-```
-⭐ **AS-path dài dần:** `65002 65001 65004` = 3 AS → route của R4 phải đi qua 3 AS mới tới R3.
-
-**Lệnh xem có lọc:**
-```
-show ip bgp                                      ! toàn bộ BGP table
-show ip bgp <prefix>                             ! chi tiết 1 prefix + lý do best
-show ip bgp summary                              ! neighbor
-show ip bgp neighbors <ip> routes                ! route nhận từ peer đó (sau policy)
-show ip bgp neighbors <ip> advertised-routes     ! route gửi cho peer đó
-show ip bgp regexp _65003_                       ! route đi qua AS 65003
-show ip bgp regexp ^65002_                       ! route từ AS kề 65002
-show ip bgp regexp ^$                            ! route sinh trong AS của mình
-show ip bgp | include 10.3                       ! grep
-show ip bgp paths                                ! danh sách AS-path
-show ip bgp all summary                          ! mọi address family
-```
-
-✅ **Checkpoint bước 2:**
-
-| Kiểm tra | Mong đợi |
-|---|---|
-| Mọi prefix đều có ⭐ **`*>`** | ✅ |
-| Route local (`10.1.1.0/24` trên R1) có `Next Hop = 0.0.0.0` và `Weight = 32768` | ⭐ ✅ |
-| Route học từ peer có `Weight = 0` | ✅ |
-| Mọi `Path` kết thúc bằng ⭐ **`i`** (dùng `network` statement) | ✅ |
-| R3 thấy AS-path `65002 65001 65004` (3 AS) tới `10.4.4.0/24` | ⭐ ✅ |
-| `show ip bgp 10.3.3.0` trên R1 hiện `valid, external, best` | ✅ |
-
----
-
-### Bước 3 — Verify routing table (Bảng 3) & kết nối
-
-```
-R1# show ip route bgp
-```
-**Output mẫu:**
-```
-      2.0.0.0/32 is subnetted, 1 subnets
-B        2.2.2.2 [20/0] via 10.0.12.2, 00:10:22
-      3.0.0.0/32 is subnetted, 1 subnets
-B        3.3.3.3 [20/0] via 10.0.12.2, 00:09:15
-      4.0.0.0/32 is subnetted, 1 subnets
-B        4.4.4.4 [20/0] via 10.0.14.2, 00:09:44
-      10.0.0.0/8 is variably subnetted, 10 subnets, 3 masks
-B        10.2.2.0/24 [20/0] via 10.0.12.2, 00:10:22
-B        10.3.3.0/24 [20/0] via 10.0.12.2, 00:09:15
-B        10.3.4.0/24 [20/0] via 10.0.12.2, 00:09:15
-B        10.4.4.0/24 [20/0] via 10.0.14.2, 00:09:44
-```
-⭐ **`[20/0]`** = **AD 20 (eBGP) / metric 0**. Ký hiệu **`B`**.
-
-**Test kết nối:**
-```
-R1# ping 10.3.3.1 source 10.1.1.1
-R1# ping 10.4.4.1 source 10.1.1.1
-R3# ping 10.4.4.1 source 10.3.3.1
-R3# traceroute 10.4.4.1 source 10.3.3.1
-```
-**Output mẫu traceroute:**
-```
-  1 10.0.23.1 2 msec 1 msec 1 msec        ← R2 (AS 65002)
-  2 10.0.12.1 3 msec 2 msec 2 msec        ← R1 (AS 65001)
-  3 10.0.14.2 4 msec 3 msec 3 msec        ← R4 (AS 65004)
-```
-⭐ Traceroute đi qua **3 AS** — khớp với AS-path `65002 65001 65004`.
-
-✅ **Checkpoint bước 3:**
-
-| Kiểm tra | Mong đợi |
-|---|---|
-| `show ip route bgp` có ký hiệu **`B`** và **`[20/0]`** | ✅ |
-| Ping full-mesh giữa các loopback `10.x.x.1` | ✅ |
-| Traceroute đi qua đúng số AS như AS-path | ⭐ ✅ |
-
----
-
-### Bước 4 — ⭐ Chứng minh AS-path chống loop
-
-**a) Xem R3 có nhận được prefix của chính AS 65003 quay lại không:**
-```
-R3# show ip bgp 10.3.3.0
-```
-**Output mẫu:**
-```
-BGP routing table entry for 10.3.3.0/24, version 8
-Paths: (1 available, best #1, table default)
-  ...
-  Local
-    0.0.0.0 from 0.0.0.0 (3.3.3.3)
-      Origin IGP, metric 0, localpref 100, weight 32768, valid, sourced, local, best
-```
-⭐ **Chỉ có 1 path — path local.** Không có path nào "quay lại" từ R2.
-
-**b) Chứng minh R2 KHÔNG quảng bá route của AS 65003 trở lại cho AS 65003:**
-```
-R2# show ip bgp neighbors 10.0.23.2 advertised-routes
-```
-**Output mẫu:**
-```
-     Network          Next Hop            Metric LocPrf Weight Path
- *>  1.1.1.1/32       10.0.12.2                              0 65001 i
- *>  2.2.2.2/32       0.0.0.0                  0         32768 i
- *>  4.4.4.4/32       10.0.12.2                              0 65001 65004 i
- *>  10.1.1.0/24      10.0.12.2                              0 65001 i
- *>  10.1.2.0/24      10.0.12.2                              0 65001 i
- *>  10.2.2.0/24      0.0.0.0                  0         32768 i
- *>  10.4.4.0/24      10.0.12.2                              0 65001 65004 i
-```
-⭐ **KHÔNG có `10.3.3.0/24` và `10.3.4.0/24`** — R2 **không quảng bá lại** route của AS 65003
-cho chính AS 65003.
-
-> ⭐ **Cơ chế:** khi R2 chuẩn bị quảng bá cho neighbor AS 65003, nó kiểm tra AS-path.
-> Route `10.3.3.0/24` có AS-path chứa `65003` → ⭐ **loại bỏ ngay** (AS-path loop prevention).
-
-**c) ⭐ Chứng minh bằng cách "cố tình tạo loop":**
-
-Cấu hình R3 có 1 prefix và cho phép nhận lại AS của mình:
-```
-R3(config)# router bgp 65003
-R3(config-router)# neighbor 10.0.23.1 allowas-in 3          ! ⚠️ cho phép nhận AS mình 3 lần
-```
-```
-R3# clear ip bgp 10.0.23.1 soft in
-R3# show ip bgp 10.3.3.0
-```
-→ Vẫn chỉ có path local, vì **R2 không gửi**. `allowas-in` chỉ ảnh hưởng bên **nhận**.
-
-**Dọn dẹp:**
-```
-R3(config-router)# no neighbor 10.0.23.1 allowas-in
-```
-
-> ⭐ **`allowas-in` dùng khi nào (thực tế):** MPLS VPN hub-and-spoke, hoặc khi 2 site cùng ASN
-> nối qua ISP. **Rất ít khi cần** ở mạng thường — và dùng sai là mở đường cho loop.
-
-✅ **Checkpoint bước 4:**
-
-| Kiểm tra | Mong đợi |
-|---|---|
-| `show ip bgp neighbors <peer> advertised-routes` trên R2 **KHÔNG** có prefix của AS 65003 | ⭐ ✅ |
-| R3 chỉ thấy 1 path (local) cho prefix của chính nó | ✅ |
-| Giải thích được cơ chế AS-path loop prevention | ⭐ ✅ |
-
----
-
-### Bước 5 — ⭐⭐ Tái hiện & sửa 8 lỗi BGP kinh điển
-
-Làm từng lỗi, **tự chẩn đoán trước khi xem cách sửa**.
-
-#### Lỗi 1 — 🔴 Sai `remote-as`
-
-```
-R1(config)# router bgp 65001
-R1(config-router)# no neighbor 10.0.12.2 remote-as 65002
-R1(config-router)# neighbor 10.0.12.2 remote-as 65099        ! cố ý sai
-```
-```
-R1# show ip bgp summary | begin Neighbor
-Neighbor        V           AS MsgRcvd MsgSent   TblVer  InQ OutQ Up/Down  State/PfxRcd
-10.0.12.2       4        65099       0       0        1    0    0 00:00:15 Idle
-```
-⭐ Kẹt **`Idle`** hoặc nhảy Idle/Active.
-
-**Chẩn đoán — lệnh vàng:**
-```
-R1# show ip bgp neighbors 10.0.12.2 | include Last reset|notification
-  Last reset 00:00:22, due to BGP Notification received, bad AS number
-```
-⭐⭐ **`bad AS number`** — nói thẳng nguyên nhân!
-
-Hoặc:
-```
-R2# show logging | include BGP
-%BGP-3-NOTIFICATION: sent to neighbor 10.0.12.1 2/2 (peer in wrong AS) 2 bytes FE43
-```
-⭐ **`peer in wrong AS`**.
-
-**Sửa:**
-```
-R1(config-router)# no neighbor 10.0.12.2 remote-as 65099
-R1(config-router)# neighbor 10.0.12.2 remote-as 65002
-```
-
----
-
-#### Lỗi 2 — 🔴 Không có route tới neighbor → `Idle`
-
-```
-R1(config)# interface Gi0/0
-R1(config-if)# shutdown
-```
-```
-R1# show ip bgp summary | begin Neighbor
-10.0.12.2       4        65002       0       0        1    0    0 00:00:05 Idle
-```
-```
-R1# show ip route 10.0.12.2
-% Subnet not in table
-R1# ping 10.0.12.2
-! fail
-```
-⭐ **Không có route tới neighbor = BGP không thể mở TCP = `Idle`.**
-
-**Sửa:** `no shutdown`
-
----
-
-#### Lỗi 3 — 🔴🔴 TCP 179 bị chặn → `Active` (bẫy đề số 1)
-
-```
-R2(config)# access-list 100 deny tcp any any eq 179
-R2(config)# access-list 100 permit ip any any
-R2(config)# interface Gi0/0
-R2(config-if)# ip access-group 100 in
-```
-```
-R1# clear ip bgp 10.0.12.2
-R1# show ip bgp summary | begin Neighbor
-10.0.12.2       4        65002       0       0        1    0    0 00:00:20 Active
-```
-⭐⭐ **`Active`** — và ping vẫn **thành công** (ACL chỉ chặn TCP 179):
-```
-R1# ping 10.0.12.2
-Success rate is 100 percent (5/5)          ← ⚠️ ping OK mà BGP không lên!
-```
-
-**Chẩn đoán:**
-```
-R1# telnet 10.0.12.2 179
-Trying 10.0.12.2, 179 ...
-% Connection timed out; remote host not responding
-```
-⭐⭐ **Đây là cách nhanh nhất phân biệt "không có route" (Idle) với "TCP bị chặn" (Active).**
-
-```
-R2# show access-lists 100
-Extended IP access list 100
-    10 deny tcp any any eq bgp (12 matches)         ← counter tăng!
-    20 permit ip any any (45 matches)
-```
-
-**Sửa:**
-```
-R2(config)# interface Gi0/0
-R2(config-if)# no ip access-group 100 in
-R2(config)# no access-list 100
-R1# clear ip bgp 10.0.12.2
-```
-
-> ⭐ **Ghi vào `SO-TAY-LOI.md`:**
-> **`Idle`** = không có route tới neighbor (ping fail)
-> **`Active`** = có route nhưng TCP 179 không lên (ping OK, telnet 179 fail)
-
----
-
-#### Lỗi 4 — `Established` nhưng `PfxRcd = 0`
-
-```
-R2(config)# router bgp 65002
-R2(config-router)# no network 10.2.2.0 mask 255.255.255.0
-R2(config-router)# no network 2.2.2.2 mask 255.255.255.255
-```
-```
-R1# show ip bgp summary | begin Neighbor
-10.0.12.2       4        65002      15      16        9    0    0 00:12:33        3
-```
-→ Vẫn nhận 3 prefix (route của AS 65003 đi qua R2).
-
-**Trường hợp nhận 0 — thiếu `activate` khi dùng `no bgp default ipv4-unicast`:**
-```
-R2(config)# router bgp 65002
-R2(config-router)# no bgp default ipv4-unicast
-R2(config-router)# exit
-R1# clear ip bgp 10.0.12.2
-R1# show ip bgp summary | begin Neighbor
-10.0.12.2       4        65002       5       5        1    0    0 00:00:30        0
-```
-⭐ **`PfxRcd = 0`** — Established nhưng không nhận gì.
-
-**Chẩn đoán:**
-```
-R1# show ip bgp neighbors 10.0.12.2 | include Address family|Session
-! → nếu không thấy "Address family IPv4 Unicast: advertised and received" = chưa activate
-```
-
-**Sửa:**
-```
-R2(config-router)# address-family ipv4 unicast
-R2(config-router-af)#  neighbor 10.0.12.1 activate
-R2(config-router-af)#  neighbor 10.0.23.2 activate
-R2(config-router-af)#  network 10.2.2.0 mask 255.255.255.0
-R2(config-router-af)#  network 2.2.2.2 mask 255.255.255.255
-R2(config-router-af)# exit-address-family
-```
-Hoặc đơn giản: `no no bgp default ipv4-unicast` → `bgp default ipv4-unicast`.
-
----
-
-#### Lỗi 5 — 🔴 `network` statement không khớp mask
-
-```
-R1(config)# router bgp 65001
-R1(config-router)# network 10.1.0.0 mask 255.255.0.0        ! /16 — RIB không có
-```
-```
-R1# show ip bgp | include 10.1.0.0
-! → TRỐNG, không có gì
-```
-⭐ **Không có thông báo lỗi nào** — prefix chỉ đơn giản là không xuất hiện.
-
-**Chẩn đoán:**
-```
-R1# show ip route 10.1.0.0 255.255.0.0
-% Subnet not in table                                ← RIB không có /16
-R1# show ip route | include 10.1
-C        10.1.1.0/24 is directly connected, Loopback1
-L        10.1.1.1/32 is directly connected, Loopback1
-C        10.1.2.0/24 is directly connected, Loopback2
-```
-⭐ RIB chỉ có `/24`, không có `/16` → `network ... mask 255.255.0.0` **không khớp**.
-
-**Sửa — 2 cách:**
-```
-! Cách 1: dùng đúng mask có trong RIB
-R1(config-router)# no network 10.1.0.0 mask 255.255.0.0
-R1(config-router)# network 10.1.1.0 mask 255.255.255.0
-
-! Cách 2: tạo static route Null0 để "có hàng trong kho"
-R1(config)# ip route 10.1.0.0 255.255.0.0 Null0
-R1(config)# router bgp 65001
-R1(config-router)#  network 10.1.0.0 mask 255.255.0.0
-```
-```
-R1# show ip bgp | include 10.1.0.0
- *>  10.1.0.0/16      0.0.0.0                  0         32768 i        ← ✅
-```
-
----
-
-#### Lỗi 6 — ⭐ Next-hop unreachable (path valid nhưng không best)
-
-Mô phỏng: dùng loopback peering **mà thiếu route**.
-```
-R1(config)# router bgp 65001
-R1(config-router)# neighbor 3.3.3.3 remote-as 65003
-R1(config-router)# neighbor 3.3.3.3 ebgp-multihop 2
-R1(config-router)# neighbor 3.3.3.3 update-source Loopback0
-! ⚠️ CỐ Ý không tạo route tới 3.3.3.3
-```
-```
-R1# show ip bgp summary | begin Neighbor
-3.3.3.3         4        65003       0       0        1    0    0 00:00:25 Idle
-```
-→ `Idle` vì không có route tới `3.3.3.3`.
-
-**Sửa:**
-```
-R1(config)# ip route 3.3.3.3 255.255.255.255 10.0.12.2
-! Và trên R3:
-R3(config)# ip route 1.1.1.1 255.255.255.255 10.0.23.1
-R3(config)# router bgp 65003
-R3(config-router)#  neighbor 1.1.1.1 remote-as 65001
-R3(config-router)#  neighbor 1.1.1.1 ebgp-multihop 2
-R3(config-router)#  neighbor 1.1.1.1 update-source Loopback0
-```
-```
-R1# show ip bgp summary | begin Neighbor
-3.3.3.3         4        65003       4       4        9    0    0 00:00:35        3
-```
-✅ Established.
-
-**⚠️ Test bỏ `update-source`:**
-```
-R1(config-router)# no neighbor 3.3.3.3 update-source Loopback0
-R1# clear ip bgp 3.3.3.3
-R1# show ip bgp summary | begin Neighbor
-3.3.3.3         4        65003       0       0        1    0    0 00:00:15 Active
-```
-⭐ **`Active`** — R1 gửi từ IP `10.0.12.1`, nhưng R3 khai `neighbor 1.1.1.1` → **từ chối**.
-
-```
-R1# show ip bgp neighbors 3.3.3.3 | include Local host
-  Local host: 10.0.12.1, Local port: 0            ← source SAI
-```
-
-**Sửa:** đặt lại `update-source Loopback0`.
-
-**⚠️ Test bỏ `ebgp-multihop`:**
-```
-R1(config-router)# no neighbor 3.3.3.3 ebgp-multihop
-R1# clear ip bgp 3.3.3.3
-```
-→ `Active`/`Idle` — vì TTL = 1, gói chết trước khi tới `3.3.3.3` (2 hop).
-
-**Dọn dẹp lỗi 6** (bỏ peering loopback để giữ topology gọn cho Module-05B):
-```
-R1(config-router)# no neighbor 3.3.3.3
-R3(config-router)# no neighbor 1.1.1.1
-```
-
----
-
-#### Lỗi 7 — BGP password lệch
-
-```
-R1(config)# router bgp 65001
-R1(config-router)# neighbor 10.0.12.2 password Secret123
-! (R2 chưa có password)
-```
-```
-R1# show logging | include BGP|TCP
-%TCP-6-BADAUTH: No MD5 digest from 10.0.12.2(179) to 10.0.12.1(35123) tableid - 0
-```
-⭐ **`BADAUTH`** — nói thẳng vấn đề MD5.
-
-```
-R1# show ip bgp summary | begin Neighbor
-10.0.12.2       4        65002      20      22        1    0    0 00:00:40 Idle
-```
-
-**Sửa:**
-```
-R2(config)# router bgp 65002
-R2(config-router)# neighbor 10.0.12.1 password Secret123
-```
-✅ Lên `Established` sau vài giây.
-
-**Dọn dẹp:**
-```
-R1(config-router)# no neighbor 10.0.12.2 password
-R2(config-router)# no neighbor 10.0.12.1 password
-```
-
----
-
-#### Lỗi 8 — ⭐ RIB-failure (`r` trong `show ip bgp`)
-
-```
-! Tạo static route AD 1 cho một prefix BGP đang học
-R1(config)# ip route 10.2.2.0 255.255.255.0 10.0.12.2
-```
-```
-R1# show ip bgp | include 10.2.2.0
- r>  10.2.2.0/24      10.0.12.2                0             0 65002 i
-```
-⭐ **`r>`** = ⭐ **RIB-failure** — BGP chọn path này là best, nhưng ⭐ **RIB từ chối cài**
-vì đã có route AD tốt hơn (static AD 1 < eBGP AD 20).
-
-```
-R1# show ip bgp rib-failure
-```
-**Output mẫu:**
-```
-Network            Next Hop                      RIB-failure   RIB-NH Matches
-10.2.2.0/24        10.0.12.2                Higher admin distance              n/a
-```
-⭐ **`Higher admin distance`** — nói rõ nguyên nhân.
-
-```
-R1# show ip route 10.2.2.0
-Routing entry for 10.2.2.0/24
-  Known via "static", distance 1, metric 0                    ← static thắng
-```
-
-> ⭐ **`r` KHÔNG phải lỗi** — nó là thông báo *"BGP đã chọn xong, nhưng RIB dùng route khác tốt hơn"*.
-> ⚠️ Nhưng cần chú ý: BGP **vẫn quảng bá** path này cho peer, dù nó không thật sự được dùng
-> để forward → có thể gây **suboptimal routing hoặc black hole**.
-
-**Sửa:**
-```
-R1(config)# no ip route 10.2.2.0 255.255.255.0 10.0.12.2
-```
-
-✅ **Checkpoint bước 5 — điền bảng (bảng này bằng vàng khi troubleshoot):**
-
-| Lỗi | State/triệu chứng | Lệnh chẩn đoán nhanh nhất |
-|---|---|---|
-| Sai `remote-as` | | |
-| Không có route tới neighbor | | |
-| TCP 179 bị chặn | | |
-| Thiếu `activate` | | |
-| `network` không khớp mask | | |
-| Thiếu `update-source` | | |
-| Password lệch | | |
-| RIB-failure | | |
-
-<details><summary>Đáp án</summary>
-
-| Lỗi | State/triệu chứng | Lệnh chẩn đoán nhanh nhất |
-|---|---|---|
-| Sai `remote-as` | `Idle`, nhảy Idle/Active | ⭐ `show ip bgp neighbors <ip> \| inc Last reset` → **`bad AS number`** |
-| Không có route tới neighbor | ⭐ **`Idle`**, ping **fail** | `show ip route <neighbor-ip>` · `ping <neighbor-ip>` |
-| TCP 179 bị chặn | ⭐ **`Active`**, ping **OK** | ⭐ `telnet <neighbor-ip> 179` · `show access-lists` |
-| Thiếu `activate` | ⭐ `Established` nhưng **`PfxRcd = 0`** | `show ip bgp neighbors <ip> \| inc Address family` |
-| `network` không khớp mask | Prefix **không xuất hiện** trong `show ip bgp`, **không có log** | ⭐ `show ip route <prefix> <mask>` → `% Subnet not in table` |
-| Thiếu `update-source` | ⭐ `Active` | ⭐ `show ip bgp neighbors <ip> \| inc Local host` |
-| Password lệch | `Idle`, log `BADAUTH` | ⭐ `show logging \| include BADAUTH` |
-| RIB-failure | ⭐ **`r>`** trong `show ip bgp` | ⭐ `show ip bgp rib-failure` |
 </details>
 
 ---
 
-### Bước 6 — 🚀 Bảo mật & soft reset
-
-```
-! Bảo mật phiên
-R1(config)# router bgp 65001
-R1(config-router)#  neighbor 10.0.12.2 password BgpS3cr3t2026
-R1(config-router)#  neighbor 10.0.12.2 ttl-security hops 1
-R1(config-router)#  neighbor 10.0.12.2 maximum-prefix 1000 90
-!
-R2(config)# router bgp 65002
-R2(config-router)#  neighbor 10.0.12.1 password BgpS3cr3t2026
-R2(config-router)#  neighbor 10.0.12.1 ttl-security hops 1
-R2(config-router)#  neighbor 10.0.12.1 maximum-prefix 1000 90
-```
-
-> ⚠️ `ttl-security hops` và `ebgp-multihop` **loại trừ nhau** — không dùng cùng lúc.
-
-**Test `maximum-prefix`:**
-```
-R1(config-router)# neighbor 10.0.12.2 maximum-prefix 2 90
-```
-```
-R1# clear ip bgp 10.0.12.2
-R1# show logging | include MAXPFX|maximum
-%BGP-4-MAXPFX: No. of prefix received from 10.0.12.2 (afi 0) reaches 2, max 2
-%BGP-3-MAXPFXEXCEED: No. of prefix received from 10.0.12.2 (afi 0): 3 exceed limit 2
-%BGP-5-ADJCHANGE: neighbor 10.0.12.2 Down BGP Notification sent
-```
-⭐ **Phiên bị đóng** khi vượt giới hạn. Muốn chỉ **cảnh báo** không đóng:
-```
-R1(config-router)# neighbor 10.0.12.2 maximum-prefix 2 warning-only
-```
-**Trả về:**
-```
-R1(config-router)# neighbor 10.0.12.2 maximum-prefix 1000 90
-R1# clear ip bgp 10.0.12.2
-```
-
-**⭐ Soft reset vs Hard reset:**
-```
-! SOFT (dùng route-refresh, KHÔNG đóng phiên TCP)
-clear ip bgp 10.0.12.2 soft in            ! xin peer gửi lại route (sau khi đổi inbound policy)
-clear ip bgp 10.0.12.2 soft out           ! gửi lại route cho peer (sau khi đổi outbound policy)
-clear ip bgp * soft
-
-! HARD (đóng phiên TCP — GÂY DOWNTIME)
-clear ip bgp 10.0.12.2
-clear ip bgp *                            ! reset MỌI phiên — không bao giờ trên production
-```
-
-**Kiểm tra route-refresh có hỗ trợ:**
-```
-R1# show ip bgp neighbors 10.0.12.2 | include Route refresh
-    Route refresh: advertised and received(new)          ← ✅ dùng soft được
-```
-
-**Nếu peer KHÔNG hỗ trợ route-refresh** → phải lưu route nhận được trong RAM:
-```
-R1(config-router)# neighbor 10.0.12.2 soft-reconfiguration inbound
-```
-⭐ Sau đó mới dùng được:
-```
-R1# show ip bgp neighbors 10.0.12.2 received-routes      ! Adj-RIB-In thật
-```
-⚠️ Tốn RAM (lưu 2 bản copy) — chỉ dùng khi cần.
-
-✅ **Checkpoint bước 6:**
-
-| Kiểm tra | Mong đợi |
-|---|---|
-| `password` khớp 2 bên → `Established` | ✅ |
-| `maximum-prefix` vượt giới hạn → phiên **bị đóng** + log `MAXPFXEXCEED` | ⭐ ✅ |
-| `warning-only` → chỉ log, không đóng phiên | ✅ |
-| `show ip bgp neighbors <ip> \| inc Route refresh` → hỗ trợ | ✅ |
-| Phân biệt được `clear ip bgp x soft in` vs `clear ip bgp x` | ⭐ ✅ |
-
----
-
-## 💡 5. THỰC CHIẾN ĐI LÀM
+## 💡 4.6 Thực chiến đi làm
 
 | Chủ đề | Thi dạy | Thực tế đi làm |
 |---|---|---|
@@ -1632,6 +839,20 @@ R1# show ip bgp neighbors 10.0.12.2 received-routes      ! Adj-RIB-In thật
 | ⭐ **`r` RIB-failure** | Ít nhắc | ⚠️ BGP **vẫn quảng bá** path RIB-failure cho peer dù không dùng để forward → **suboptimal/black hole**. `show ip bgp rib-failure` để rà soát |
 | ⭐ **Bảng route BGP lớn** | Không dạy | ⚠️ Full Internet table >900k prefix, cần **≥ 4 GB RAM** trên router. Nhận **default route only** từ ISP nếu không cần full table |
 | ⭐ **Tài liệu hóa** | Không có | ⭐ Bảng bắt buộc: mỗi phiên eBGP — peer IP, ASN, circuit ID, nhà cung cấp, prefix mình quảng bá, prefix mong đợi nhận, `maximum-prefix`, người liên hệ NOC |
+
+---
+
+# 📎 PHỤ LỤC — TRA CỨU
+
+> 🔴 **KHÔNG đọc phần này ở lần học đầu tiên.**
+>
+> | Khi nào | Mở mục nào |
+> |---|---|
+> | Đang lab mà lỗi | **Gỡ lỗi nhanh** (§7) — quy trình 4 bước cho BGP |
+> | Quên lệnh | **Hộp lệnh** (§7.1) |
+> | Tuần 20, ôn thi | **Bẫy đề** (§6) + **Quiz** (§8) |
+> | Gặp từ lạ | **Thuật ngữ** (§9) |
+> | Tự chấm | **Đúc kết** (§10) |
 
 ---
 
