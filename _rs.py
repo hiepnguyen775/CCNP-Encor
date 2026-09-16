@@ -30,7 +30,7 @@ for i in range(iA, iM):
     L[i] = re.sub(r'^### %s\.' % ana_n, '### 2.', L[i])
 for n in range(HI, LO-1, -1):
     for i in range(iM, iE):
-        L[i] = re.sub(r'^(## .{0,14}?)%d\. ' % n, r'\g<1>%d. ' % (n+1), L[i], count=1)
+        L[i] = re.sub(r'^(## [^0-9]*)%d\. ' % n, r'\g<1>%d. ' % (n+1), L[i], count=1)
         L[i] = re.sub(r'^### %d\.' % n, '### %d.' % (n+1), L[i], count=1)
 io.open(F, "w", encoding="utf-8", newline="\n").write("\n".join(L))
 print("OK %s -> %d dong | %s -> %d dong" % (F, len(L), LABFILE,
