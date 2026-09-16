@@ -13,6 +13,80 @@
 
 ---
 
+# 📌 TÓM TẮT — đọc 10 phút là nắm khung
+
+## Module này trả lời một câu hỏi duy nhất
+
+> **AP là một hộp nhỏ gắn trần, không có cấu hình gì. Vậy nó lấy cấu hình ở đâu,
+> và làm sao client đi lại khắp tòa nhà mà không rớt mạng?**
+
+## Split-MAC — hiểu cái này là hiểu cả module
+
+```
+   ┌───────── AP (lễ tân giỏi tay chân, KHÔNG có quyền) ─────────┐
+   │  Việc phải xong trong MICRO-GIÂY  ->  AP tự làm             │
+   │   · Beacon, Probe Response                                  │
+   │   · ACK  (phải trả trong SIFS ~10 us — không kịp hỏi WLC)   │
+   │   · Mã hóa/giải mã AES-CCMP                                 │
+   │   · CSMA/CA, backoff, retransmission                        │
+   └──────────────────────┬──────────────────────────────────────┘
+                          │
+          CAPWAP CONTROL  │  UDP 5246  (DTLS LUÔN bật)
+          CAPWAP DATA     │  UDP 5247  (DTLS tùy chọn)
+                          │
+   ┌──────────────────────┴──────────────────────────────────────┐
+   │  WLC (sếp) — việc chậm hơn được  ->  WLC làm                │
+   │   · Xác thực 802.1X / RADIUS                                │
+   │   · Quản lý client database, quyết định roaming             │
+   │   · RRM: chọn channel và công suất cho TOÀN BỘ AP           │
+   └─────────────────────────────────────────────────────────────┘
+
+   Nguyên tắc chia: "việc này có phải xong trong vài micro-giây không?"
+```
+
+## 7 ý phải nhớ
+
+| # | Ý | Một câu |
+|:---:|---|---|
+| 1 | ⭐⭐ **CAPWAP hai tunnel** | **Control = UDP 5246** *(DTLS luôn bật)* · **Data = UDP 5247** *(DTLS tùy chọn, mặc định tắt)* |
+| 2 | ⭐⭐ **5 cách AP tìm WLC** | Primed/NVRAM · tĩnh · **DHCP option 43** · **DNS** · broadcast.<br>🔴 **Broadcast KHÔNG qua router** nên khác subnet phải có option 43 hoặc DNS |
+| 3 | ⭐⭐ **Thứ tự chọn WLC** | Primary → Secondary → Tertiary → Master → **Least-loaded**.<br>⭐ *Least-loaded nghĩa là **dư nhiều chỗ nhất**, KHÔNG phải ít AP nhất* |
+| 4 | 🔴 ⭐ **Sai giờ thì AP không join** | DTLS dùng **chứng thư số** nên đồng hồ sai sẽ làm chứng thư bị coi là chưa hiệu lực |
+| 5 | ⭐⭐ **Roaming L2 vs L3** | L2 (cùng subnet) bản ghi **MOVE**, không cần tunnel · **L3** (khác subnet) bản ghi **COPY** + **mobility tunnel**, **ANCHOR** là WLC gốc, **FOREIGN** là WLC hiện tại |
+| 6 | ⭐⭐ **FlexConnect standalone** | Local switching + **local auth** thì sống hết · Local switching + **central auth** thì client **cũ sống, mới chết** · **Central switching** thì **rớt ngay** |
+| 7 | 🔴 ⭐⭐ **AP Registered KHÔNG phải là SSID đã phát** | Còn phải **gán Policy Tag**. Luôn chạy `show ap tag summary` |
+
+## Bảng lệnh cốt lõi
+
+| Lệnh | Cho biết gì |
+|---|---|
+| `show ap summary` | AP nào up, mode gì, bao nhiêu client |
+| ⭐⭐ `show ap tag summary` | **AP đang dùng tag nào** — thiếu tag là không phát SSID |
+| ⭐ `show ap join stats detailed <mac>` | **AP hỏng ở BƯỚC NÀO** của quá trình join |
+| ⭐⭐ `show wireless client mac-address <mac> detail` | **Client dừng ở State nào** — lệnh quan trọng nhất |
+| `show wireless mobility summary` | Mobility peer Up hay Down |
+| ⭐ `show interface trunk` *(trên SWITCH)* | **VLAN có thật sự đi được không** |
+
+## 🗺️ Bố cục module
+
+| Phần | Tên | Thời gian |
+|:---:|---|:---:|
+| **1** | 🧠 **CÁI ĐÓ LÀ GÌ** — 4 ví von | 45 phút |
+| **2** | ⚙️ **NÓ CHẠY THẾ NÀO** — ⭐ **§10 Troubleshoot là phần quan trọng nhất** | 5 giờ |
+| **3** | 🧪 **NHÌN THẤY NÓ** — [LAB 07B](Module-07B-LAB.md), ⭐ **học bằng đầu, RAM 0 GB** | 3 giờ |
+| **4** | 🏗️ **TOPO & KIẾN TRÚC** — Local mode vs FlexConnect | 45 phút |
+| **📎** | **PHỤ LỤC** — 🔴 không đọc lần đầu | — |
+
+> 🔴 ⭐⭐ **Điều quan trọng nhất của module này:** mục **3.3.e (Troubleshoot)** là
+> **mục DUY NHẤT trong cả Domain 3.3 không dùng từ Describe**.
+>
+> Nghĩa là đề **sẽ cho bạn một tình huống hỏng** và bắt chỉ ra nguyên nhân.
+> ⭐ **§10 (quy trình 6 tầng) và [LAB B](Module-07B-LAB.md) là phần đáng đầu tư nhất.**
+>
+> 🎉 **Hết module này là hết khối Wireless — và hết trọn Domain 3.0 Infrastructure (30% đề).**
+
+---
+
 ## ⭐ 0. Phạm vi
 
 ### 0.1 Điều khác biệt của module này
@@ -65,9 +139,89 @@
 
 ---
 
-## 📘 2. SPLIT-MAC — nền tảng của mọi thứ trong module này
+## 🧠 PHẦN 1 — CÁI ĐÓ LÀ GÌ
 
-### 2.1 Autonomous vs Lightweight — nhắc lại và mở rộng
+> **Đọc phần này TRƯỚC, đọc một mạch.** Không lệnh, không bảng tra.
+>
+> Module-07B toàn cơ chế vô hình: AP nói chuyện với WLC qua đường hầm, client nhảy giữa
+> các AP mà không đứt kết nối. Bốn ví von dưới đây làm chúng hiện ra.
+>
+> **Tự kiểm tra:** đọc xong mỗi mục, gấp tài liệu lại, nói lại trong 3 câu.
+
+### 2.1 CAPWAP là "cái ống nói" giữa AP và WLC
+
+⭐ AP giống một **nhân viên lễ tân giỏi việc tay chân** nhưng **không có quyền quyết định**:
+- Lễ tân **tự chào khách, tự gật đầu xác nhận** (beacon, ACK) — không thể chạy đi hỏi sếp mỗi lần
+- Nhưng ⭐ **"anh này có được vào không?"** thì phải bấm ⭐ **ống nói** hỏi sếp (CAPWAP control 5246)
+- Và ⭐ **hàng hóa khách mang theo** thì đưa qua ⭐ **băng chuyền riêng** (CAPWAP data 5247)
+
+⭐ **Ống nói luôn được mã hóa** (DTLS bắt buộc) vì nó chở mật khẩu và cấu hình.
+⭐ **Băng chuyền thì thường không** — vì hàng đã được đóng gói mã hóa từ trước rồi (WPA2), và mã hóa thêm sẽ chậm.
+
+⭐ **FlexConnect** = lễ tân được **giao chìa khóa cửa sau**: khách đã duyệt rồi thì
+⭐ **cho đi thẳng ra ngoài**, không cần đi vòng qua phòng sếp.
+
+### 2.2 Roaming L3 là "chuyển tiếp thư"
+
+Bạn có địa chỉ nhà ở Quận 1 (⭐ **IP gốc**). Bạn chuyển tạm sang Quận 7 (⭐ **foreign**).
+
+- 🔴 **Cách tệ:** khai địa chỉ mới → ⭐ **mọi thư đang gửi tới địa chỉ cũ đều thất lạc** (session TCP đứt)
+- ⭐ **Cách hay:** đăng ký ⭐ **dịch vụ chuyển tiếp thư** ở bưu điện Quận 1 (⭐ **anchor**).
+  Thư vẫn gửi tới Quận 1, ⭐ bưu điện Quận 1 chuyển tiếp sang Quận 7.
+
+⭐ Với thế giới bên ngoài, ⭐ **bạn vẫn ở Quận 1**. Đó chính là mobility tunnel.
+⭐ **Anchor = bưu điện nơi bạn đăng ký hộ khẩu. Foreign = nơi bạn đang ở thật.**
+
+⭐ **Và guest anchor** là phiên bản cố ý: khách vào tòa nhà nào cũng được, nhưng
+⭐ **thư của khách luôn được chuyển hết về một bưu điện đặt ngoài hàng rào (DMZ)** —
+để không ai đi lang thang trong nhà.
+
+### 2.3 Vì sao "AP join được nhưng không phát SSID" lại phổ biến đến thế
+
+⭐ Vì có **hai chuỗi độc lập** phải cùng đúng:
+
+```
+   Chuỗi 1 — AP có kết nối được với WLC không?
+       IP → Discovery → Select → DTLS → Image → Config → AP "UP"
+
+   Chuỗi 2 — WLC có BẢO AP phát gì không?
+       WLAN Profile + Policy Profile → Policy Tag → GÁN TAG CHO AP
+```
+
+⭐ **Chuỗi 1 đúng mà chuỗi 2 sai** → AP hiện `Registered/Up` trên WLC,
+⭐ **đèn xanh, mọi thứ trông ổn — nhưng trên không trung không có SSID nào.**
+🔴 ⭐ **Đây là lý do bạn phải luôn chạy `show ap tag summary`, không chỉ `show ap summary`.**
+
+### 2.4 Split-MAC: ai làm gì phụ thuộc vào "có kịp không"
+
+⭐ **Một câu hỏi duy nhất quyết định mọi thứ:** *"Việc này có phải xong trong vài micro-giây không?"*
+
+- ⭐ **ACK** phải trả trong ⭐ **SIFS ~10 µs** → ⭐ **không thể** chạy về WLC (đi về mất hàng ms) → **AP làm**
+- ⭐ **Xác thực RADIUS** mất hàng trăm ms và **client sẵn sàng chờ** → ⭐ **WLC làm**
+- ⭐ **Chọn channel cho toàn tòa nhà** cần dữ liệu của **mọi AP** → chỉ WLC có → ⭐ **WLC làm**
+
+⭐ **Nhớ nguyên tắc này thì không cần học thuộc bảng §2.2.**
+
+
+---
+
+## ⚙️ PHẦN 2 — NÓ CHẠY THẾ NÀO
+
+> | Phần 1 (ví von) | → | Phần 2 (cơ chế) |
+> |---|:---:|---|
+> | §2.1 ống nói giữa lễ tân và sếp | → | **§3 Split-MAC · §4 CAPWAP** ⭐⭐ |
+> | §2.2 dịch vụ chuyển tiếp thư | → | **§7 Roaming L3 (anchor/foreign)** ⭐⭐ |
+> | §2.3 hai chuỗi độc lập | → | **§10 Troubleshoot** 🔴 ⭐⭐ |
+> | §2.4 ai làm gì phụ thuộc "có kịp không" | → | **§3 Split-MAC** |
+>
+> ⚠️ **Mục §10 (Troubleshoot) là phần quan trọng nhất module** — vì **3.3.e là mục DUY NHẤT
+> trong Domain 3.3 không dùng từ "Describe"**. Đề sẽ cho tình huống và bắt bạn chỉ ra nguyên nhân.
+
+---
+
+## 📘 3. SPLIT-MAC — nền tảng của mọi thứ trong module này
+
+### 3.1 Autonomous vs Lightweight — nhắc lại và mở rộng
 
 | | ⭐ **Autonomous AP** | ⭐⭐ **Lightweight AP (LAP)** |
 |---|---|---|
@@ -78,7 +232,7 @@
 | ⭐ Mất WLC thì sao? | Vẫn chạy bình thường | ⭐ **Ngừng phục vụ** — *(trừ FlexConnect, xem §5)* |
 | Còn dùng không? | Vài trường hợp rất nhỏ | ⭐ **Gần như toàn bộ mạng doanh nghiệp hiện nay** |
 
-### 2.2 ⭐⭐ Split-MAC — chia việc như thế nào
+### 3.2 ⭐⭐ Split-MAC — chia việc như thế nào
 
 > ⭐ **Ý tưởng:** chức năng MAC của 802.11 bị **chẻ đôi** giữa AP và WLC.
 > ⭐ **Nguyên tắc chia: việc gì phải làm NGAY (tính bằng micro-giây) thì để ở AP.
@@ -126,7 +280,7 @@
 > ⭐ Nhớ nguyên tắc: ⭐ **cái gì tính bằng micro-giây → AP.** ⭐ **ACK và mã hóa luôn ở AP.**
 > 🔴 ⭐ **Xác thực 802.1X KHÔNG ở AP** (trừ FlexConnect local auth — xem §5).
 
-### 2.3 ⭐ Nền tảng WLC — biết tên để không bỡ ngỡ
+### 3.3 ⭐ Nền tảng WLC — biết tên để không bỡ ngỡ
 
 | Nền tảng | OS | Ghi chú |
 |---|---|---|
@@ -143,9 +297,9 @@
 
 ---
 
-## 📘 3. ⭐⭐ CAPWAP (blueprint 3.3.c)
+## 📘 4. ⭐⭐ CAPWAP (blueprint 3.3.c)
 
-### 3.1 CAPWAP là gì
+### 4.1 CAPWAP là gì
 
 > ⭐ **CAPWAP** = *Control And Provisioning of Wireless Access Points* — **RFC 5415**.
 > ⭐ Đây là **giao thức đường hầm giữa AP và WLC**. Nó thay thế **LWAPP** (giao thức Cisco độc quyền cũ).
@@ -157,7 +311,7 @@
 | Bảo mật | AES key riêng | ⭐ **DTLS** |
 | Port | 12222 / 12223 | ⭐ **5246 / 5247** |
 
-### 3.2 ⭐⭐ Hai tunnel — bảng PHẢI thuộc
+### 4.2 ⭐⭐ Hai tunnel — bảng PHẢI thuộc
 
 ```
      [ Lightweight AP ]                              [ WLC ]
@@ -180,7 +334,7 @@
 > 3. ⭐ **CAPWAP chạy trên UDP/IP → AP và WLC KHÔNG cần cùng subnet, cùng VLAN.**
 >    Đây chính là điều làm mô hình tập trung khả thi.
 
-### 3.3 ⭐ Vấn đề MTU — nguyên nhân "lỗi khó tìm" số 1
+### 4.3 ⭐ Vấn đề MTU — nguyên nhân "lỗi khó tìm" số 1
 
 ```
   Frame gốc của client (tối đa 1500 byte)
@@ -205,7 +359,7 @@
 > ```
 > Không đi được ở size lớn nhưng đi được ở size nhỏ → ⭐ **chắc chắn là MTU**.
 
-### 3.4 ⭐⭐ AP JOIN PROCESS — 6 giai đoạn, học thuộc thứ tự
+### 4.4 ⭐⭐ AP JOIN PROCESS — 6 giai đoạn, học thuộc thứ tự
 
 ```
   ① AP BOOT & LẤY IP
@@ -247,7 +401,7 @@
 
 ---
 
-### 3.5 ⭐⭐ DISCOVERY ALGORITHMS — 5 cách AP tìm WLC (blueprint nói thẳng)
+### 4.5 ⭐⭐ DISCOVERY ALGORITHMS — 5 cách AP tìm WLC (blueprint nói thẳng)
 
 > ⭐ **AP dùng TẤT CẢ các cách dưới đây để XÂY DANH SÁCH ứng viên**, rồi mới chọn ở §3.6.
 > ⭐ **Thứ tự dưới đây là thứ tự thường được dạy và hỏi trong đề.**
@@ -303,7 +457,7 @@ AP không biết ghép hậu tố nào → không phân giải được → khô
 
 ---
 
-### 3.6 ⭐⭐ WLC SELECTION PROCESS — thứ tự ưu tiên (blueprint nói thẳng)
+### 4.6 ⭐⭐ WLC SELECTION PROCESS — thứ tự ưu tiên (blueprint nói thẳng)
 
 > ⭐ AP đã có danh sách WLC trả lời Discovery. ⭐ **Bây giờ chọn theo đúng thứ tự này:**
 
@@ -346,7 +500,7 @@ ap name AP-TANG3-01 controller primary WLC-HQ-01 10.10.10.5
 ap name AP-TANG3-01 controller secondary WLC-HQ-02 10.10.10.6
 ```
 
-### 3.7 ⭐ AP High Availability
+### 4.7 ⭐ AP High Availability
 
 | Cơ chế | Là gì | ⭐ Khi WLC chính chết thì sao |
 |---|---|---|
@@ -361,7 +515,7 @@ ap name AP-TANG3-01 controller secondary WLC-HQ-02 10.10.10.6
 
 ---
 
-## 📘 4. ⭐ ĐƯỜNG ĐI CỦA TRAFFIC — Centralized (Local mode)
+## 📘 5. ⭐ ĐƯỜNG ĐI CỦA TRAFFIC — Centralized (Local mode)
 
 ```
    Client  ~~~~  [ AP - Local mode ]                    [ WLC ]           [ Mạng có dây ]
@@ -398,9 +552,9 @@ ap name AP-TANG3-01 controller secondary WLC-HQ-02 10.10.10.6
 
 ---
 
-## 📘 5. ⭐⭐ FLEXCONNECT
+## 📘 6. ⭐⭐ FLEXCONNECT
 
-### 5.1 Ý tưởng
+### 6.1 Ý tưởng
 
 > ⭐ **FlexConnect** (tên cũ **H-REAP** — *Hybrid Remote Edge AP*): AP vẫn **do WLC ở HQ quản lý**,
 > nhưng ⭐ **traffic của client được đổ thẳng ra mạng LAN tại chỗ**, không chạy về HQ.
@@ -415,7 +569,7 @@ ap name AP-TANG3-01 controller secondary WLC-HQ-02 10.10.10.6
                               KHÔNG chạy về HQ
 ```
 
-### 5.2 ⭐⭐ Hai trục lựa chọn — bảng phải hiểu
+### 6.2 ⭐⭐ Hai trục lựa chọn — bảng phải hiểu
 
 ⭐ FlexConnect có **hai quyết định độc lập nhau**:
 
@@ -435,7 +589,7 @@ ap name AP-TANG3-01 controller secondary WLC-HQ-02 10.10.10.6
 | ⭐ **Local** | ⭐ **Local** | ⭐ Chi nhánh cần **sống sót khi đứt WAN** hoàn toàn |
 | Central | Local | Hiếm |
 
-### 5.3 ⭐⭐ Connected mode vs Standalone mode — bảng đề rất hay hỏi
+### 6.3 ⭐⭐ Connected mode vs Standalone mode — bảng đề rất hay hỏi
 
 | | ⭐ **Connected mode** | ⭐⭐ **Standalone mode** |
 |---|---|---|
@@ -461,7 +615,7 @@ ap name AP-TANG3-01 controller secondary WLC-HQ-02 10.10.10.6
 - ⚠️ ⭐ Roaming giữa các AP chi nhánh vẫn được **nếu** dùng ⭐ **FlexConnect Group** (chia sẻ key)
 - ⭐ AP liên tục thử liên lạc lại WLC; nối lại được → tự về Connected mode
 
-### 5.4 ⭐ Cấu hình FlexConnect — những điểm bắt buộc
+### 6.4 ⭐ Cấu hình FlexConnect — những điểm bắt buộc
 
 ```
 ! ═══ ĐIỀU KIỆN 1: PORT SWITCH CỦA AP PHẢI LÀ TRUNK ═══
@@ -500,7 +654,7 @@ wireless tag site SITE-CHINHANH-HN
 > ⭐ `no local-site` = AP ở **site xa** → chạy **FlexConnect**.
 > ⭐ Quên dòng này thì mọi cấu hình flex profile ở trên **không có tác dụng**.
 
-### 5.5 ⭐ FlexConnect Group & các biến thể
+### 6.5 ⭐ FlexConnect Group & các biến thể
 
 | Tính năng | Làm gì |
 |---|---|
@@ -512,9 +666,9 @@ wireless tag site SITE-CHINHANH-HN
 
 ---
 
-## 📘 6. ⭐⭐ ROAMING (blueprint 3.3.d)
+## 📘 7. ⭐⭐ ROAMING (blueprint 3.3.d)
 
-### 6.1 Nguyên tắc nền — nhắc lại và nhấn mạnh
+### 7.1 Nguyên tắc nền — nhắc lại và nhấn mạnh
 
 > 🔴 ⭐⭐ **CLIENT quyết định khi nào roam, và roam sang AP nào. WLC KHÔNG ép được.**
 > ⭐ WLC chỉ có thể: (a) **gợi ý** qua **802.11v**, (b) **cung cấp thông tin** qua **802.11k**,
@@ -532,7 +686,7 @@ wireless tag site SITE-CHINHANH-HN
 
 ---
 
-### 6.2 ⭐⭐ BA LOẠI ROAM — bảng cốt lõi của 3.3.d
+### 7.2 ⭐⭐ BA LOẠI ROAM — bảng cốt lõi của 3.3.d
 
 | | ⭐ **Intra-controller**<br>*(Layer 2, cùng WLC)* | ⭐ **Inter-controller Layer 2**<br>*(khác WLC, CÙNG subnet)* | ⭐⭐ **Inter-controller Layer 3**<br>*(khác WLC, KHÁC subnet)* |
 |---|---|---|---|
@@ -593,7 +747,7 @@ wireless tag site SITE-CHINHANH-HN
 
 ---
 
-### 6.3 ⭐ Mobility Group & Mobility Domain
+### 7.3 ⭐ Mobility Group & Mobility Domain
 
 | Khái niệm | Nghĩa |
 |---|---|
@@ -612,7 +766,7 @@ show wireless mobility peer ip <ip>
 > ⭐ **phải xác thực lại từ đầu và đổi IP** → rớt session. ⭐ Kiểm tra ngay `show wireless mobility summary`
 > xem peer có ở trạng thái **Up** không.
 
-### 6.4 ⭐⭐ Guest Anchor — ứng dụng thực tế quan trọng nhất của L3 roaming
+### 7.4 ⭐⭐ Guest Anchor — ứng dụng thực tế quan trọng nhất của L3 roaming
 
 > ⭐ Đây là **use case số 1** mà blueprint nhắc tới bằng cụm *"use cases for L3 roaming"*.
 
@@ -637,7 +791,7 @@ chứ không phải do roam.
 
 ---
 
-### 6.5 ⭐⭐ Fast Roaming — làm sao roam < 50 ms
+### 7.5 ⭐⭐ Fast Roaming — làm sao roam < 50 ms
 
 ⭐ **Vấn đề:** với **WPA2-Enterprise (802.1X)**, mỗi lần roam mà phải làm lại **toàn bộ** EAP với RADIUS
 → ⭐ **mất 300–800 ms** → 🔴 **rớt cuộc gọi VoIP**.
@@ -661,7 +815,7 @@ chứ không phải do roam.
 > ⭐ **Thứ tự áp dụng trong thực tế:** bật ⭐ **802.11k + 802.11v** cho mọi WLAN (gần như không có nhược điểm),
 > rồi bật ⭐ **802.11r** cho WLAN voice — và ⭐ **kiểm tra kỹ client cũ** trước khi bật đại trà.
 
-### 6.6 🔴 ⭐ Sticky client — vấn đề roaming số 1 ngoài đời
+### 7.6 🔴 ⭐ Sticky client — vấn đề roaming số 1 ngoài đời
 
 > ⭐ **"Sticky client"**: client **bám dai** vào AP cũ dù đã đi rất xa, vì nó **chỉ roam khi RSSI quá tệ**.
 
@@ -686,12 +840,12 @@ chứ không phải do roam.
 
 ---
 
-## 📘 7. ⭐ CẤU HÌNH WLAN — mô hình TAG của Catalyst 9800
+## 📘 8. ⭐ CẤU HÌNH WLAN — mô hình TAG của Catalyst 9800
 
 > ⭐ Phần này phục vụ trực tiếp **3.3.e** (*Troubleshoot **WLAN configuration***).
 > ⭐ Không cần thuộc lệnh — ⭐ **cần hiểu chuỗi liên kết**, vì lỗi cấu hình WLAN 90% là **đứt chuỗi này**.
 
-### 7.1 ⭐⭐ Chuỗi liên kết trên C9800
+### 8.1 ⭐⭐ Chuỗi liên kết trên C9800
 
 ```
    ┌─────────────────┐     ┌──────────────────┐
@@ -741,7 +895,7 @@ chứ không phải do roam.
 > · ⭐ **`default-policy-tag` chỉ tự map WLAN có ID 1–16.** Tạo WLAN ID 17 rồi thắc mắc sao không thấy → đây.
 > · ⭐ **Đổi tag của một AP làm AP đó JOIN LẠI** (rớt ~1 phút). ⭐ **Đừng làm giờ hành chính.**
 
-### 7.2 ⭐ Cấu hình mẫu tối thiểu (C9800 CLI)
+### 8.2 ⭐ Cấu hình mẫu tối thiểu (C9800 CLI)
 
 ```
 ! ═══ ① WLAN Profile — tên SSID + bảo mật ═══
@@ -783,11 +937,11 @@ show ap summary
 
 ---
 
-## 📘 8. 🟡 WIRELESS SECURITY — vừa đủ để troubleshoot (blueprint 5.4)
+## 📘 9. 🟡 WIRELESS SECURITY — vừa đủ để troubleshoot (blueprint 5.4)
 
 > ⭐ **Module-10 sẽ đào sâu 802.1X/RADIUS/ISE.** Ở đây chỉ cần đủ để **đọc được lỗi client**.
 
-### 8.1 ⭐ Các thế hệ bảo mật
+### 9.1 ⭐ Các thế hệ bảo mật
 
 | Thế hệ | Xác thực | Mã hóa | ⭐ Trạng thái |
 |---|---|---|---|
@@ -797,7 +951,7 @@ show ap summary
 | ⭐ **WPA3** | ⭐ **SAE** (Personal) / 802.1X (Enterprise) | AES-GCMP / CCMP | ⭐ **Bắt buộc PMF (802.11w)** · chống dò mật khẩu offline |
 | **OWE** (Enhanced Open) | Không có mật khẩu | Có **mã hóa** | ⭐ Cho Wi-Fi công cộng — mã hóa mà không cần mật khẩu |
 
-### 8.2 ⭐⭐ Personal vs Enterprise — phân biệt cho chắc
+### 9.2 ⭐⭐ Personal vs Enterprise — phân biệt cho chắc
 
 | | ⭐ **Personal (PSK / SAE)** | ⭐⭐ **Enterprise (802.1X / EAP)** |
 |---|---|---|
@@ -808,7 +962,7 @@ show ap summary
 | Hợp với | Nhà, quán, mạng khách | ⭐ **Mọi mạng doanh nghiệp** |
 | ⭐ WPA3 dùng gì | ⭐ **SAE** (Simultaneous Authentication of Equals) thay PSK | 802.1X |
 
-### 8.3 ⭐ Các loại EAP — bảng nhận biết
+### 9.3 ⭐ Các loại EAP — bảng nhận biết
 
 | EAP type | Server cần | Client cần | ⭐ Ghi chú |
 |---|---|---|---|
@@ -818,7 +972,7 @@ show ap summary
 | **EAP-FAST** | (PAC) | PAC / username | ⭐ Của Cisco — dùng **PAC** thay chứng thư |
 | **EAP-MD5** | — | — | 🔴 Không dùng cho Wi-Fi (không tạo key mã hóa) |
 
-### 8.4 ⭐ WebAuth (Captive Portal) — cho khách
+### 9.4 ⭐ WebAuth (Captive Portal) — cho khách
 
 | Kiểu | Trang đăng nhập ở đâu |
 |---|---|
@@ -833,7 +987,7 @@ show ap summary
 > chuyển hướng được. ⭐ **ACL pre-auth phải mở cổng DNS (53) và DHCP (67/68)**, nếu không
 > trình duyệt không mở nổi trang nào → không có portal.
 
-### 8.5 ⭐ PMF / 802.11w
+### 9.5 ⭐ PMF / 802.11w
 
 | | Nghĩa |
 |---|---|
@@ -844,9 +998,9 @@ show ap summary
 
 ---
 
-## 📘 9. 🔴 ⭐⭐ TROUBLESHOOT (blueprint 3.3.e) — phần quan trọng nhất module
+## 📘 10. 🔴 ⭐⭐ TROUBLESHOOT (blueprint 3.3.e) — phần quan trọng nhất module
 
-### 9.1 ⭐⭐ Phương pháp 6 TẦNG — học thuộc thứ tự này
+### 10.1 ⭐⭐ Phương pháp 6 TẦNG — học thuộc thứ tự này
 
 > ⭐ **Nguyên tắc: đi từ dưới lên. Đừng nhảy cóc.**
 > ⭐ 80% ca "wireless hỏng" thật ra dừng ở tầng 1 hoặc tầng 5.
@@ -872,7 +1026,7 @@ show ap summary
         → Toàn bộ Module-07A
 ```
 
-### 9.2 ⭐⭐ Trạng thái client — dừng ở đâu là biết lỗi ở đâu
+### 10.2 ⭐⭐ Trạng thái client — dừng ở đâu là biết lỗi ở đâu
 
 ```
   Idle → Associating → Authenticating (L2) → IP Learn / DHCP → (Web Auth) → RUN
@@ -893,7 +1047,7 @@ show ap summary
 > show wireless client mac-address <MAC> detail | include State
 > ```
 
-### 9.3 ⭐⭐ Bảng chẩn đoán — triệu chứng → nguyên nhân → cách kiểm chứng
+### 10.3 ⭐⭐ Bảng chẩn đoán — triệu chứng → nguyên nhân → cách kiểm chứng
 
 #### A. AP không join WLC (tầng ②)
 
@@ -934,7 +1088,7 @@ show ap summary
 | ⭐ Bật 802.11r xong **một số máy không join được** | ⭐ Client cũ không hiểu FT | ⭐ Đổi sang **FT adaptive**, hoặc **tách WLAN riêng cho voice** |
 | ⭐ **FlexConnect: roam trong chi nhánh chậm** khi mất WAN | Chưa cấu hình **FlexConnect Group** → AP không chia sẻ key | ⭐ Tạo FlexConnect Group cho các AP cùng site (§5.5) |
 
-### 9.4 ⭐ Bộ lệnh troubleshoot
+### 10.4 ⭐ Bộ lệnh troubleshoot
 
 ```
 ═══ CATALYST 9800 (IOS-XE) — dùng cái này là chính ═══
@@ -987,256 +1141,118 @@ netsh wlan show wlanreport            ! lịch sử roam & lý do rớt
 > 2. ⭐ `show ap join stats detailed <mac>` — ⭐ **AP hỏng ở bước join nào**
 > 3. ⭐ `show interface trunk` **trên switch** — ⭐ **VLAN có thật sự đi được không**
 
+## 🧪 PHẦN 3 — NHÌN THẤY NÓ
+
+> ### 👉 **[LAB 07B — Tuần 13: AP join · Roaming · Chẩn đoán](Module-07B-LAB.md)**
+
+> ⭐ **Module học bằng ĐẦU, không phải bằng tay.** PC 16 GB không dựng nổi WLC + AP,
+> nhưng đề cũng **không bắt cấu hình** — nó cho tình huống và bắt **chỉ ra nguyên nhân**.
+
+| LAB | Nội dung | Ví von ở Phần 1 | Cơ chế ở Phần 2 |
+|---|---|---|---|
+| **A** | ⭐⭐ **AP sẽ join WLC nào?** (6 tình huống) | §2.1 ống nói | §3.5 · §3.6 |
+| **B** | ⭐⭐ **12 tình huống chẩn đoán** | §2.3 hai chuỗi độc lập | §3.9 |
+| **C** | Nhìn WLC thật trên DevNet | §2.1 | §3.7 |
+| **D** | Quan sát roaming bằng laptop | §2.2 chuyển tiếp thư | §3.6 |
+
+> ⚠️ **LAB A và B luyện đúng hai mục khó nhất của blueprint:**
+> **3.3.c** (*"discovery algorithms, WLC selection process"*) và
+> **3.3.e** (*"troubleshoot WLAN configuration and wireless client connectivity issues"*).
+>
+> ⭐ **3.3.e là mục DUY NHẤT trong Domain 3.3 không dùng từ "Describe"** — nên LAB B
+> là phần đáng đầu tư nhất module này.
+
 ---
 
-## 📖 10. HIỂU RÕ HƠN
+## 🏗️ PHẦN 4 — TOPO & KIẾN TRÚC
 
-### 10.1 CAPWAP là "cái ống nói" giữa AP và WLC
+> Bạn vừa học cơ chế. Phần này trả lời: **triển khai WLC cho doanh nghiệp nhiều chi nhánh thế nào?**
 
-⭐ AP giống một **nhân viên lễ tân giỏi việc tay chân** nhưng **không có quyền quyết định**:
-- Lễ tân **tự chào khách, tự gật đầu xác nhận** (beacon, ACK) — không thể chạy đi hỏi sếp mỗi lần
-- Nhưng ⭐ **"anh này có được vào không?"** thì phải bấm ⭐ **ống nói** hỏi sếp (CAPWAP control 5246)
-- Và ⭐ **hàng hóa khách mang theo** thì đưa qua ⭐ **băng chuyền riêng** (CAPWAP data 5247)
-
-⭐ **Ống nói luôn được mã hóa** (DTLS bắt buộc) vì nó chở mật khẩu và cấu hình.
-⭐ **Băng chuyền thì thường không** — vì hàng đã được đóng gói mã hóa từ trước rồi (WPA2), và mã hóa thêm sẽ chậm.
-
-⭐ **FlexConnect** = lễ tân được **giao chìa khóa cửa sau**: khách đã duyệt rồi thì
-⭐ **cho đi thẳng ra ngoài**, không cần đi vòng qua phòng sếp.
-
-### 10.2 Roaming L3 là "chuyển tiếp thư"
-
-Bạn có địa chỉ nhà ở Quận 1 (⭐ **IP gốc**). Bạn chuyển tạm sang Quận 7 (⭐ **foreign**).
-
-- 🔴 **Cách tệ:** khai địa chỉ mới → ⭐ **mọi thư đang gửi tới địa chỉ cũ đều thất lạc** (session TCP đứt)
-- ⭐ **Cách hay:** đăng ký ⭐ **dịch vụ chuyển tiếp thư** ở bưu điện Quận 1 (⭐ **anchor**).
-  Thư vẫn gửi tới Quận 1, ⭐ bưu điện Quận 1 chuyển tiếp sang Quận 7.
-
-⭐ Với thế giới bên ngoài, ⭐ **bạn vẫn ở Quận 1**. Đó chính là mobility tunnel.
-⭐ **Anchor = bưu điện nơi bạn đăng ký hộ khẩu. Foreign = nơi bạn đang ở thật.**
-
-⭐ **Và guest anchor** là phiên bản cố ý: khách vào tòa nhà nào cũng được, nhưng
-⭐ **thư của khách luôn được chuyển hết về một bưu điện đặt ngoài hàng rào (DMZ)** —
-để không ai đi lang thang trong nhà.
-
-### 10.3 Vì sao "AP join được nhưng không phát SSID" lại phổ biến đến thế
-
-⭐ Vì có **hai chuỗi độc lập** phải cùng đúng:
+### 4.1 Bản đồ: hai mô hình, hai đường đi của traffic
 
 ```
-   Chuỗi 1 — AP có kết nối được với WLC không?
-       IP → Discovery → Select → DTLS → Image → Config → AP "UP"
+   ====== CAMPUS (Local mode) ======      ====== CHI NHÁNH (FlexConnect) ======
 
-   Chuỗi 2 — WLC có BẢO AP phát gì không?
-       WLAN Profile + Policy Profile → Policy Tag → GÁN TAG CHO AP
+        ┌─────────────┐                          ┌─────────────┐
+        │     WLC     │                          │  WLC ở HQ   │
+        └──────┬──────┘                          └──────┬──────┘
+               │                                        │ chỉ CAPWAP CONTROL
+      CAPWAP control + DATA                             │ (5246, rất nhẹ)
+               │                                        │
+        ┌──────┴──────┐                          ┌──────┴──────┐
+        │     AP      │                          │     AP      │
+        └──────┬──────┘                          └──────┬──────┘
+               │                                        │
+            [client]                                 [client]
+                                                        │
+   Traffic đi VÒNG về WLC rồi quay lại         Traffic đổ THẲNG ra LAN chi nhánh
+   ("hairpinning")                              (local switching)
+
+   ✅ Chính sách tập trung, roaming mượt        ✅ Không tốn băng thông WAN
+   🔴 Tốn băng thông, mất WLC = mất Wi-Fi       🔴 Chính sách phân tán hơn
 ```
 
-⭐ **Chuỗi 1 đúng mà chuỗi 2 sai** → AP hiện `Registered/Up` trên WLC,
-⭐ **đèn xanh, mọi thứ trông ổn — nhưng trên không trung không có SSID nào.**
-🔴 ⭐ **Đây là lý do bạn phải luôn chạy `show ap tag summary`, không chỉ `show ap summary`.**
+### 4.2 Năm quyết định — và sai thì hỏng thế nào
 
-### 10.4 Split-MAC: ai làm gì phụ thuộc vào "có kịp không"
-
-⭐ **Một câu hỏi duy nhất quyết định mọi thứ:** *"Việc này có phải xong trong vài micro-giây không?"*
-
-- ⭐ **ACK** phải trả trong ⭐ **SIFS ~10 µs** → ⭐ **không thể** chạy về WLC (đi về mất hàng ms) → **AP làm**
-- ⭐ **Xác thực RADIUS** mất hàng trăm ms và **client sẵn sàng chờ** → ⭐ **WLC làm**
-- ⭐ **Chọn channel cho toàn tòa nhà** cần dữ liệu của **mọi AP** → chỉ WLC có → ⭐ **WLC làm**
-
-⭐ **Nhớ nguyên tắc này thì không cần học thuộc bảng §2.2.**
-
----
-
-## 🧪 11. LAB 07B
-
-| LAB | Cần gì | Thời gian | Bắt buộc? |
-|---|---|:---:|:---:|
-| **A** — Lab trên giấy: AP sẽ join WLC nào | Bút + giấy | 30 phút | ⭐⭐ **Bắt buộc** |
-| **B** — Lab chẩn đoán: 12 tình huống | Bút + giấy | 40 phút | ⭐⭐ **Bắt buộc** |
-| **C** — DevNet Sandbox C9800 | Trình duyệt + tài khoản Cisco | 60 phút | ⭐ Rất nên |
-| **D** — Quan sát roaming thật | Laptop Windows | 20 phút | ⭐ Nên |
-
----
-
-### LAB A — ⭐⭐ AP sẽ join WLC nào? (30 phút, trên giấy)
-
-> ⭐ **Đây chính xác là dạng câu hỏi của blueprint 3.3.c.** Làm hết 6 tình huống.
-
-**Tình huống 1.** AP mới hoàn toàn (chưa từng join ai), nằm **cùng subnet** với WLC-A. Không có DHCP option 43, không có DNS record. Chuyện gì xảy ra?
-
-<details><summary>⭐ Đáp án</summary>
-
-⭐ **AP join được WLC-A** — nhờ ⭐ **broadcast discovery trên subnet local** (§3.5, cách 5).
-⭐ Đây là lý do "cắm AP cùng VLAN với WLC thì tự chạy".
-</details>
-
-**Tình huống 2.** Như trên nhưng AP ở **VLAN 100**, WLC ở **VLAN 10** (có route thông giữa hai VLAN, ping được). Không có option 43, không DNS. Chuyện gì xảy ra?
-
-<details><summary>⭐ Đáp án</summary>
-
-🔴 ⭐ **AP KHÔNG join được**, dù **ping được WLC**.
-⭐ Vì broadcast discovery **không đi qua router**, và AP không có nguồn thông tin nào khác.
-⭐ **Cách sửa:** ⭐ **DHCP option 43**, hoặc **DNS `CISCO-CAPWAP-CONTROLLER.<domain>`**, hoặc cấu hình tĩnh qua console.
-
-⭐ **Bài học:** *"Ping được ≠ join được."* Đây là câu đề rất hay hỏi.
-</details>
-
-**Tình huống 3.** AP đã cấu hình: Primary = WLC-A, Secondary = WLC-B. Cả hai đều **online và còn chỗ**. Discovery nhận được response từ **WLC-A, WLC-B và WLC-C**. AP join ai?
-
-<details><summary>⭐ Đáp án</summary>
-
-⭐ **WLC-A** — vì nó là **Primary**, bước ① của quá trình selection (§3.6).
-⭐ Tải trọng hiện tại của các WLC **không quan trọng** khi Primary còn khả dụng.
-</details>
-
-**Tình huống 4.** AP **không có** primary/secondary/tertiary. Không có WLC nào là master. Discovery nhận response từ:
-- WLC-A: sức chứa 500 AP, đang có **480**
-- WLC-B: sức chứa 150 AP, đang có **60**
-- WLC-C: sức chứa 6000 AP, đang có **5900**
-
-AP join ai?
-
-<details><summary>⭐ Đáp án</summary>
-
-⭐ Tính **dung lượng dư** (excess capacity):
-- WLC-A: 500 − 480 = **20**
-- ⭐ **WLC-B: 150 − 60 = 90** ← **nhiều nhất**
-- WLC-C: 6000 − 5900 = **100** ← ⭐ **thật ra đây mới là nhiều nhất!**
-
-⭐ **Đáp án: WLC-C** (dư 100).
-
-🔴 ⭐ **Bẫy kép ở câu này:** (a) không phải "WLC ít AP nhất" (đó là WLC-B với 60 AP);
-(b) không phải "WLC ít tải nhất theo %" (WLC-B đang 40%, WLC-C đang 98%).
-⭐ **Là WLC có SỐ CHỖ TRỐNG TUYỆT ĐỐI lớn nhất.**
-</details>
-
-**Tình huống 5.** AP đã từng join WLC-A (thuộc mobility group "HQ" cùng WLC-B và WLC-C). Hôm nay WLC-A **tắt để bảo trì**. AP reboot. Chuyện gì xảy ra?
-
-<details><summary>⭐ Đáp án</summary>
-
-⭐ AP nhớ trong **NVRAM** không chỉ WLC-A mà cả ⭐ **danh sách thành viên mobility group** mà WLC-A đã cung cấp.
-→ ⭐ AP gửi discovery tới **WLC-B và WLC-C** → join một trong hai (theo thứ tự selection §3.6).
-
-⭐ **Đây là lý do mobility group giúp cả roaming lẫn khả năng phục hồi khi join.**
-</details>
-
-**Tình huống 6.** AP có IP, ping được WLC, firewall đã mở UDP 5246/5247. `show ap join stats detailed` cho thấy hỏng ở giai đoạn **DTLS**. Nguyên nhân khả dĩ nhất?
-
-<details><summary>⭐ Đáp án</summary>
-
-⭐⭐ **Sai thời gian hệ thống** trên WLC (hoặc AP).
-⭐ DTLS xác thực bằng **chứng thư số**; chứng thư có ngày hiệu lực và ngày hết hạn.
-⭐ Đồng hồ sai → chứng thư bị coi là **"chưa có hiệu lực"** hoặc **"đã hết hạn"** → bắt tay thất bại.
-
-⭐ **Sửa:** cấu hình **NTP** cho WLC (⭐ **Module-06B §3** — bạn đã học rồi!) và kiểm tra `show clock`.
-
-⭐ *(Nguyên nhân khả dĩ khác: chứng thư MIC của AP hết hạn — gặp với AP rất cũ; hoặc AP nằm trong danh sách chặn.)*
-</details>
-
----
-
-### LAB B — ⭐⭐ 12 tình huống chẩn đoán (40 phút, trên giấy)
-
-> ⭐ **Cách làm:** với mỗi tình huống, ⭐ **viết ra (a) tầng nào trong 6 tầng §9.1, (b) lệnh bạn gõ đầu tiên, (c) nguyên nhân khả dĩ nhất.**
-> ⭐ Viết trước khi mở đáp án — đây mới là luyện tập.
-
-| # | Tình huống |
-|:---:|---|
-| 1 | AP hiện `Registered` trên WLC, đèn xanh, nhưng **không client nào thấy SSID** |
-| 2 | Client gõ đúng mật khẩu nhưng bị **đá ra ngay lập tức** |
-| 3 | Client **Authenticated** nhưng **không nhận được IP** |
-| 4 | AP ở chi nhánh: client có IP nhưng **sai subnet** |
-| 5 | Khách kết nối SSID mở, có IP, nhưng **không hiện trang đăng nhập** |
-| 6 | Người dùng đi từ tầng 2 sang tầng 3 thì **cuộc gọi rớt**, dữ liệu vẫn chạy |
-| 7 | Chỉ **máy quét mã vạch** không thấy SSID, laptop và điện thoại đều thấy |
-| 8 | AP mới lắp: có IP, **ping được WLC**, nhưng không join |
-| 9 | Tất cả AP chi nhánh **rớt cùng lúc** lúc 2 giờ sáng, tự khôi phục lúc 2:05 |
-| 10 | Client kết nối được, nhưng **tải file lớn thì treo**; ping và web nhỏ vẫn OK |
-| 11 | Bật 802.11r xong, **5 laptop cũ không join được** |
-| 12 | Vạch sóng đầy, SNR 28 dB, nhưng **mạng vẫn rất chậm** vào giờ họp |
-
-<details><summary>⭐ Đáp án LAB B</summary>
-
-| # | Tầng | ⭐ Lệnh đầu tiên | ⭐ Nguyên nhân khả dĩ nhất |
-|:---:|:---:|---|---|
-| 1 | ③ | ⭐ `show ap tag summary` | ⭐⭐ **Chưa gán Policy Tag cho AP**, hoặc tag không chứa WLAN nào. *(Xem §10.3 — hai chuỗi độc lập)* |
-| 2 | ④ | `show wireless client mac-address <mac> detail` | ⭐ Sai PSK · hoặc ⭐ **PMF Required** mà client không hỗ trợ 802.11w |
-| 3 | ⑤ | ⭐ `show interface trunk` (trên **switch**) + `show ip dhcp binding` | ⭐⭐ **VLAN sai trong Policy Profile**, hoặc **VLAN chưa được phép qua trunk**, hoặc DHCP scope cạn/thiếu `ip helper-address` |
-| 4 | ⑤ | `show wireless profile flex …` + `show interface trunk` | ⭐⭐ **VLAN mapping trong Flex Profile sai** hoặc **native VLAN của trunk sai** |
-| 5 | ④/⑤ | Kiểm tra ACL pre-auth | ⭐ **ACL pre-auth chặn DNS (UDP 53)** → trình duyệt không mở được trang nào → không có redirect |
-| 6 | ④ | `show wireless client … mobility history` · `show wireless mobility summary` | ⭐ **Roam quá chậm** (chưa bật 11r/OKC) · hoặc **roam L3 giữa 2 WLC mà mobility peer Down** → đổi IP |
-| 7 | ①/③ | `netsh wlan show networks` từ laptop cạnh đó | ⭐ **Client capabilities**: chỉ hỗ trợ **2.4 GHz** · hoặc AP đang ở **channel DFS** · hoặc **data rate thấp đã bị tắt** |
-| 8 | ② | ⭐ `show ap join stats detailed <mac>` | ⭐ Firewall chặn **UDP 5246/5247** · hoặc ⭐ **sai giờ → DTLS hỏng** · hoặc ⭐ **MTU** *(ping được vì gói ping nhỏ)* |
-| 9 | ② | `show ap uptime` + log WAN | ⭐ **Đứt WAN → AP vào Standalone mode.** Nếu là **central switching** → client rớt hết (§5.3). Xem thêm: cửa sổ bảo trì / backup job làm nghẽn WAN |
-| 10 | ② | ⭐ `ping <WLC> df-bit size 1500` | ⭐⭐ **MTU** trên đường AP↔WLC (§3.3) — gói nhỏ qua, gói lớn drop. ⭐ **Dấu hiệu kinh điển** |
-| 11 | ③/④ | `show wlan id <n>` | ⭐ Client cũ **không hỗ trợ FT** → dùng **FT adaptive** hoặc ⭐ **tách WLAN riêng cho voice** |
-| 12 | ① | ⭐ `show ap auto-rf dot11 5ghz` (channel utilization) | ⭐ **Không phải vấn đề tín hiệu** — là **CAPACITY**: quá nhiều client/CCI trên cùng cell. ⭐ Xem Module-07A §4.2 (thêm AP, giảm công suất, 20/40 MHz, bớt SSID) |
-
-⭐ **Điểm chung của 12 câu:** ⭐ **chỉ có câu 12 là vấn đề RF thuần túy.** Đa số ca "Wi-Fi hỏng"
-thực ra là **cấu hình, VLAN, hoặc mạng có dây** — ⭐ **đây là bài học lớn nhất của mục 3.3.e.**
-</details>
-
----
-
-### LAB C — ⭐ DevNet Sandbox Catalyst 9800 (60 phút)
-
-| Bước | Làm |
-|:---:|---|
-| 1 | `developer.cisco.com/site/sandbox/` → đăng nhập tài khoản Cisco (miễn phí) |
-| 2 | Tìm sandbox **Catalyst 9800** — ⭐ ưu tiên loại **Always-On** (không cần đặt lịch/VPN) |
-| 3 | ⚠️ ⭐ **Lấy URL + tài khoản từ chính trang sandbox** — Cisco đổi định kỳ, đừng chép ở nguồn khác |
-| 4 | Đăng nhập **GUI** (và **SSH** nếu sandbox cho phép) |
-
-⭐ **Bảng việc cần làm — mỗi dòng là một khái niệm bạn vừa học:**
-
-| # | Tìm cái gì | Ở đâu (GUI) | Lệnh CLI tương đương | Liên hệ mục |
-|:---:|---|---|---|:---:|
-| 1 | ⭐ Danh sách AP, mode, channel, Tx power | Monitoring → Wireless → AP Statistics | `show ap summary` | 07A §5 |
-| 2 | ⭐⭐ **AP đang dùng tag nào** | Configuration → Wireless → Access Points → *(chọn AP)* | ⭐ `show ap tag summary` | §7.1 |
-| 3 | ⭐ Danh sách WLAN + trạng thái enable | Configuration → Tags & Profiles → WLANs | `show wlan summary` | §7 |
-| 4 | ⭐ Policy Profile: **VLAN** và central/local switching | Configuration → Tags & Profiles → Policy | `show wireless profile policy summary` | §7.1 |
-| 5 | ⭐⭐ **Policy Tag map WLAN nào với Policy nào** | Configuration → Tags & Profiles → Tags → Policy | `show wireless tag policy detailed <tag>` | §7.1 |
-| 6 | ⭐ Site Tag — có bật FlexConnect (`no local-site`) không | Tags → Site | `show wireless tag site detailed <tag>` | §5.4 |
-| 7 | ⭐ Client đang kết nối: **RSSI, SNR, State, VLAN** | Monitoring → Wireless → Clients | ⭐ `show wireless client mac-address <mac> detail` | §9.2 |
-| 8 | ⭐ Mobility peer Up/Down | Configuration → Wireless → Mobility | ⭐ `show wireless mobility summary` | §6.3 |
-| 9 | ⭐ Thiết lập RRM: DCA, TPC, channel list | Configuration → Radio Configurations → RRM | `show ap auto-rf dot11 5ghz` | 07A §2.7 |
-| 10 | ⭐ Cấu hình bảo mật của một WLAN (WPA2/3, PSK/802.1X, PMF, FT) | WLANs → *(chọn)* → Security | `show wlan id <n>` | §8 |
-
-> ⚠️ ⭐ **Sandbox always-on là môi trường DÙNG CHUNG.**
-> ⭐ **Chỉ XEM, đừng đổi cấu hình** (trừ khi trang sandbox nói rõ được phép).
-> Mục tiêu là **nhìn thấy các khái niệm nằm ở đâu**, không phải để cấu hình.
-
-✅ **Checkpoint LAB C — trả lời được 4 câu này là đạt:**
-1. ⭐ Vẽ lại (trên giấy) chuỗi **WLAN Profile → Policy Profile → Policy Tag → AP** của **một** SSID có thật trong sandbox
-2. ⭐ Chỉ ra **một AP** và nói nó đang chạy **Local mode hay FlexConnect** — dựa vào đâu?
-3. ⭐ Nếu muốn đổi VLAN của một SSID, bạn sửa ở **Policy Profile** hay **WLAN Profile**? Vì sao?
-4. ⭐ Tìm được **một client** và đọc được **State / RSSI / SNR / VLAN** của nó
-
----
-
-### LAB D — ⭐ Quan sát roaming thật bằng laptop (20 phút)
-
-| Bước | Làm |
-|:---:|---|
-| 1 | Ở văn phòng/nơi có **nhiều AP cùng SSID**. Kết nối Wi-Fi |
-| 2 | Ghi lại **BSSID** hiện tại: `netsh wlan show interfaces \| findstr BSSID` |
-| 3 | ⭐ **Đi bộ** sang khu vực khác, chờ 30 giây, ghi lại BSSID |
-| 4 | Lặp lại 3–4 lần ở các vị trí khác nhau |
-| 5 | Chạy `netsh wlan show wlanreport`, mở file HTML, xem bảng **Wireless Sessions** |
-
-✅ **Checkpoint:**
-
-| # | Cần quan sát được | Ý nghĩa |
+| # | Quyết định | 🔴 Sai thì hỏng thế nào |
 |:---:|---|---|
-| 1 | ⭐ **BSSID thay đổi nhưng SSID giữ nguyên** | ⭐ Đó là **roaming trong một ESS** |
-| 2 | ⭐ **IP có đổi không?** (`ipconfig`) | ⭐ Không đổi → **roam L2** (hoặc L3 có mobility tunnel hoạt động đúng) |
-| 3 | ⭐ Trong `wlanreport`, có lần nào **rớt hẳn rồi kết nối lại** không? | ⭐ Rớt hẳn = **roam thất bại** — thiếu overlap hoặc client sticky |
-| 4 | ⭐ Thử **đứng yên giữa 2 AP** rồi xem BSSID có nhảy qua lại không | ⭐ Nhảy liên tục = **"ping-pong roaming"** — cell overlap quá nhiều |
-| 5 | ⭐ Đi thật xa AP cũ rồi mới quay lại xem BSSID — nó có đổi **muộn** không? | ⭐ Đổi muộn = **sticky client** (§6.6) |
+| ① | **Chi nhánh qua WAN thì dùng FlexConnect** | Dùng Local mode thì **toàn bộ traffic 30 AP chạy về HQ** qua WAN 50 Mbps — nghẽn và độ trễ cao |
+| ② | **FlexConnect: port AP phải là TRUNK** | Để access port thì AP join được (VLAN mgmt đúng) nhưng **client sai VLAN hoặc không có IP** |
+| ③ | ⭐⭐ **Cấu hình Critical VLAN** *(nếu dùng 802.1X)* | ISE bảo trì 10 phút thì **cả công ty mất mạng**, và bạn cũng không SSH vào được |
+| ④ | ⭐⭐ **NTP trước, WLC sau** | Sai giờ thì chứng thư DTLS bị coi là *chưa hiệu lực* — ⭐ **AP KHÔNG JOIN ĐƯỢC**, và không có thông báo nào nói rõ |
+| ⑤ | **MTU đường AP↔WLC ≥ 1500** | MTU nhỏ thì AP join được nhưng ⭐ **client tải file lớn bị treo** (gói nhỏ qua, gói lớn drop) |
+
+### 4.3 Ba sự thật mà chỉ người đi làm mới biết
+
+| Sự thật | Giải thích |
+|---|---|
+| 🔴 ⭐⭐ **AP Registered KHÔNG có nghĩa là SSID đã phát** | Có **hai chuỗi độc lập**: (1) AP↔WLC join được chưa · (2) WLC có **bảo AP phát gì** không. Chuỗi 1 đúng mà chuỗi 2 sai thì AP hiện `Up`, đèn xanh, **nhưng không có SSID nào trên không trung**. ⭐ **Luôn chạy `show ap tag summary`, không chỉ `show ap summary`** |
+| ⭐⭐ **Client không có IP thì đi xem SWITCH** | Đa số ca *Wi-Fi hỏng* thực ra là **VLAN chưa được phép qua trunk**. Lệnh đầu tiên là `show interface trunk` **trên switch**, không phải soi WLC |
+| ⭐ **CLIENT quyết định khi nào roam** | WLC **không ép được**. Nó chỉ **gợi ý** (802.11v), **chỉ đường** (802.11k), **làm nhanh hơn** (802.11r). Sticky client thường là **lỗi driver của client** |
+
+### 4.4 Những thứ này sẽ lớn lên thành gì
+
+| Bạn vừa học | Sẽ thành | Ở module |
+|---|---|---|
+| CAPWAP, split-MAC | ⭐ **SD-Access wireless**: data đi **VXLAN thẳng vào edge**, không CAPWAP về WLC | **Module-09 §7.5** |
+| Roaming L3 anchor/foreign | Guest anchor về DMZ | **Module-09 §6.4** |
+| Wireless security (§9) | 802.1X · EAP · WebAuth · PMF ở mức cấu hình | **Module-10 §7** |
+| WLC deployment model | Thiết kế WLAN (blueprint 1.2.a) | **Module-09 §4** |
+| Troubleshoot 6 tầng | Quy trình chẩn đoán chung | **Module-11** |
+
+### 4.5 Vẽ lại để nhớ
+
+> **Bài tập 15 phút, trên giấy.**
+>
+> 1. Vẽ lại **cả hai** mô hình ở §4.1, chỉ rõ đường đi của **control** và **data**
+> 2. Đánh dấu ① đến ⑤
+> 3. Trả lời: *AP hiện Registered trên WLC, đèn xanh, mọi thứ trông ổn — nhưng không client nào thấy SSID. Bạn gõ lệnh gì ĐẦU TIÊN?*
+
+<details>
+<summary>Đáp án câu 3</summary>
+
+⭐⭐ **`show ap tag summary`**
+
+Vì có **hai chuỗi độc lập** phải cùng đúng:
+
+```
+Chuỗi 1 — AP có kết nối được với WLC không?
+   IP -> Discovery -> Select -> DTLS -> Image -> Config -> AP "UP"   ✅ đang đúng
+
+Chuỗi 2 — WLC có BẢO AP phát gì không?
+   WLAN Profile + Policy Profile -> Policy Tag -> GÁN TAG CHO AP     ❌ thường thiếu ở đây
+```
+
+`show ap summary` chỉ cho biết **chuỗi 1** — nên nó báo `Registered` và bạn tưởng ổn.
+
+⭐ Kiểm tra thêm: WLAN đã `no shutdown` chưa · Policy Profile đã `no shutdown` chưa ·
+WLAN ID có **lớn hơn 16** không *(`default-policy-tag` chỉ tự map WLAN ID 1 đến 16)*.
+
+</details>
 
 ---
 
-## 💡 12. THỰC CHIẾN ĐI LÀM
+## 💡 4.6 Thực chiến đi làm
 
 | # | Tình huống thật | ⭐ Điều người mới làm sai | ⭐ Cách làm đúng |
 |:---:|---|---|---|
@@ -1257,6 +1273,20 @@ thực ra là **cấu hình, VLAN, hoặc mạng có dây** — ⭐ **đây là 
 > 1. ⭐ **"NTP trước, WLC sau."**
 > 2. ⭐ **"`show ap summary` chưa đủ — phải xem `show ap tag summary`."**
 > 3. ⭐ **"Client không có IP thì đi xem TRUNK trên switch, đừng ngồi soi WLC."**
+
+---
+
+# 📎 PHỤ LỤC — TRA CỨU
+
+> 🔴 **KHÔNG đọc phần này ở lần học đầu tiên.**
+>
+> | Khi nào | Mở mục nào |
+> |---|---|
+> | Đang lab mà lỗi | **Gỡ lỗi nhanh** (§14) + ⭐ **§10 Troubleshoot 6 tầng** ở Phần 2 |
+> | Quên lệnh | **Hộp lệnh** (§14.1) |
+> | Tuần 20, ôn thi | **Bẫy đề** (§13) + **Quiz** (§15) |
+> | Gặp từ lạ | **Thuật ngữ** (§16) |
+> | Tự chấm | **Đúc kết** (§17) |
 
 ---
 
