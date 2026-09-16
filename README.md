@@ -55,7 +55,7 @@ Tôi sẽ không nói với bạn "3 tháng có CCNP". Đây là những gì th�
 | File | Nội dung | Tuần |
 |---|---|---|
 | [Module-01-Packet-Forwarding-va-Kien-truc-Thiet-bi.md](Module-01-Packet-Forwarding-va-Kien-truc-Thiet-bi.md)<br>+ 🧪 [**Module-01-LAB.md**](Module-01-LAB.md) | Control/Data/Management plane, Process switching → CEF, RIB vs FIB, CAM/TCAM, SDM<br>⭐ **Có trang TÓM TẮT 10 phút + lộ trình đọc 3 mức + LAB tách riêng** | Tuần 3 |
-| [Module-02-Layer2-STP-RSTP-MST-EtherChannel.md](Module-02-Layer2-STP-RSTP-MST-EtherChannel.md) | STP sâu, RSTP, MST, các loại Guard + UDLD, EtherChannel LACP/PAgP | Tuần 4–5 |
+| [Module-02-Layer2-STP-RSTP-MST-EtherChannel.md](Module-02-Layer2-STP-RSTP-MST-EtherChannel.md)<br>+ 🧪 [**LAB Tuần 4**](Module-02-LAB-Tuan4.md) · 🧪 [**LAB Tuần 5**](Module-02-LAB-Tuan5.md) | STP sâu, RSTP, MST, các loại Guard + UDLD, EtherChannel LACP/PAgP<br>⭐ **Có trang TÓM TẮT 10 phút + bố cục 4 phần + LAB tách theo tuần** | Tuần 4–5 |
 | [Module-03-IP-Routing-Nen-tang.md](Module-03-IP-Routing-Nen-tang.md) | Bảng định tuyến, AD, longest-prefix, static + **IP SLA/track**, redistribute, EIGRP↔OSPF | Tuần 6 |
 | [Module-04A-OSPF-Nen-tang-va-LSDB.md](Module-04A-OSPF-Nen-tang-va-LSDB.md) | Neighbor states, network type, **DR/BDR**, **LSA type 1–3**, đọc LSDB | Tuần 7 |
 | [Module-04B-OSPF-Area-Summarization-OSPFv3.md](Module-04B-OSPF-Area-Summarization-OSPFv3.md) | LSA 4–5–7, **area type** (stub/NSSA), **summarization**, filtering, virtual-link, auth, OSPFv3 | Tuần 8 |

@@ -10,6 +10,85 @@
 
 ---
 
+# 📌 TÓM TẮT — đọc 10 phút là nắm khung
+
+## Module này trả lời một câu hỏi duy nhất
+
+> **"Mạng có nhiều đường dự phòng thì tốt — nhưng vì sao nhiều đường lại làm mạng CHẾT,
+> và người ta chặn nó bằng cách nào?"**
+
+## Vấn đề gốc, trong một hình
+
+```
+   KHÔNG CÓ STP — frame broadcast gặp vòng lặp:
+
+      SW1 ──▶ SW2 ──▶ SW3 ──▶ SW1 ──▶ SW2 ──▶ ... MÃI MÃI
+       ▲                                            │
+       └────────────────────────────────────────────┘
+
+   Mỗi vòng switch lại nhân bản ra mọi port
+        → số frame TĂNG THEO CẤP SỐ NHÂN
+        → vài giây sau: CPU 100%, mạng CHẾT HOÀN TOÀN
+
+   ⚠️ Frame Layer 2 KHÔNG CÓ TTL — không có gì tự dừng nó lại.
+
+
+   CÓ STP — chủ động CHẶN bớt đường để còn đúng một lối đi:
+
+      SW1 ──▶ SW2 ──▶ SW3
+       ▲               ╳  ← port bị BLOCK (vẫn cắm dây, chỉ không cho đi)
+       └───────────────┘
+
+   Link đứt? → STP mở lại port đang block → mạng tự lành.
+```
+
+## 6 ý phải nhớ
+
+| # | Ý | Một câu |
+|:---:|---|---|
+| 1 | **Vì sao cần STP** | Frame L2 **không có TTL** → vòng lặp = broadcast storm = mạng chết trong vài giây |
+| 2 | **Bầu Root Bridge** | So **Priority** trước, hòa thì so **MAC** — số **nhỏ hơn thắng** |
+| 3 | **STP vs RSTP** | STP hội tụ **~50 giây** · RSTP **vài giây**, nhờ **hỏi thẳng hàng xóm** thay vì chờ timer |
+| 4 | **MST giải quyết gì** | PVST+ chạy **một cây cho MỖI VLAN** → 1000 VLAN = 1000 cây = CPU chết. MST **gom nhiều VLAN vào một cây** |
+| 5 | **Guards** | **Root Guard** = "cấm cướp ngôi root" · **BPDU Guard** = "port này cấm switch cắm vào" |
+| 6 | **EtherChannel** | Gộp nhiều cáp thành **một đường logic** → STP thấy 1 link nên **không chặn** → dùng hết băng thông |
+
+## Bảng lệnh cốt lõi
+
+| Lệnh | Cho biết gì |
+|---|---|
+| `show spanning-tree` | Ai là Root, port nào `BLK`, cost bao nhiêu |
+| `show spanning-tree root` | Root Bridge của từng VLAN |
+| `show spanning-tree interface <x> detail` | Chi tiết một port: role, state, cost |
+| `show spanning-tree mst configuration` | Tên region, revision, VLAN nào vào instance nào |
+| `show etherchannel summary` | EtherChannel lên chưa — **lệnh quan trọng nhất** |
+| `show interfaces trunk` | Trunk chở VLAN nào |
+| `show errdisable recovery` | Port nào bị tắt, vì lý do gì |
+
+## 🗺️ Bố cục module — đọc theo đúng thứ tự này
+
+| Phần | Tên | Đọc thế nào | Thời gian |
+|:---:|---|---|:---:|
+| **1** | 🧠 **CÁI ĐÓ LÀ GÌ** | 5 ví von, đọc **một mạch**, không lệnh | 45 phút |
+| **2** | ⚙️ **NÓ CHẠY THẾ NÀO** | 5 khối: STP → RSTP → MST → Guards → EtherChannel | 6 giờ |
+| **3** | 🧪 **NHÌN THẤY NÓ** | [LAB Tuần 4](Module-02-LAB-Tuan4.md) + [LAB Tuần 5](Module-02-LAB-Tuan5.md) | 12 giờ |
+| **4** | 🏗️ **TOPO & KIẾN TRÚC** | 6 quyết định thiết kế. **Vẽ lại trên giấy** | 1 giờ |
+| **📎** | **PHỤ LỤC** | 🔴 **KHÔNG đọc lần đầu** — chỉ tra | — |
+
+**Chia theo 2 tuần:**
+
+| Tuần | Đọc | Lab |
+|:---:|---|---|
+| **4** | Phần 1 → Phần 2 **§3 (STP), §4 (RSTP), §6 (Guards)** | [LAB Tuần 4](Module-02-LAB-Tuan4.md) |
+| **5** | Phần 2 **§5 (MST), §7 (EtherChannel)** → **Phần 4** | [LAB Tuần 5](Module-02-LAB-Tuan5.md) |
+
+> **Đây là module dài nhất repo, và nó xứng đáng.** Layer 2 chiếm phần lớn câu hỏi
+> của Domain 3.0 (30% đề), và là thứ **dễ làm sập mạng thật nhất**.
+>
+> **Nếu thấy nản:** quay lại đọc **Phần 1**. Năm ví von đó là thứ duy nhất bạn cần *hiểu*.
+
+---
+
 ## ✅ 1. Chuẩn bị trước khi học
 
 | Cần có | Chi tiết |
@@ -35,9 +114,108 @@
 
 ---
 
-## 📘 2. LÝ THUYẾT — PHẦN A: STP CHUYÊN SÂU
+## 🧠 PHẦN 1 — CÁI ĐÓ LÀ GÌ
 
-### 2.1 Ôn nhanh (nếu 5 dòng này bạn không trả lời được → quay lại Module-P0 §2.4)
+> **Đọc phần này TRƯỚC, đọc một mạch.** Không lệnh, không bảng tra — chỉ ví von để bạn
+> bật ra *"à, ra nó là thế"*.
+>
+> Layer 2 là khối **trừu tượng nhất** của ENCOR: bạn không nhìn thấy cây STP, không nhìn thấy
+> port bị chặn. Năm ví von dưới đây là cách duy nhất để "nhìn" được chúng trước khi vào cơ chế.
+>
+> **Tự kiểm tra:** đọc xong mỗi mục, gấp tài liệu lại, nói lại trong 3 câu.
+
+### 2.1 RSTP nhanh hơn vì "hỏi thẳng" thay vì "chờ cho chắc"
+
+**STP như người mới đi làm, quá cẩn thận:**
+> "Tôi nghĩ đường này thông rồi, nhưng biết đâu phía kia còn ai đang đi.
+> Thôi tôi **đợi 15 giây** rồi lại **đợi 15 giây nữa** cho chắc."
+
+**RSTP như người có kinh nghiệm, biết cách xác nhận:**
+> "Này, tôi định cho xe đi qua đây, bạn dọn đường phía bạn chưa?" *(**Proposal**)*
+> — "Tôi vừa **chặn hết các lối khác của tôi** rồi, bạn đi đi." *(**Sync** rồi **Agreement**)*
+> → Đi ngay, không cần đợi.
+
+🧠 **Một câu để nhớ:** *STP chờ vì không dám hỏi. RSTP hỏi rồi đi ngay.
+Có xác nhận thì không cần timer.*
+
+**Và đây là lý do `shared link` (half-duplex) phá RSTP:** trên môi trường half-duplex,
+bạn không thể "vừa hỏi vừa nghe" — nên không handshake được, phải quay về chờ timer.
+
+### 2.2 MST như gộp chuyến xe bus
+
+Bạn quản lý tuyến xe cho 500 khu phố:
+
+| Cách làm | Kết quả |
+|---|---|
+| **PVST+** — mỗi khu phố **1 tuyến xe riêng** | 500 tuyến, 500 tài xế, 500 lộ trình phải tính. Chính xác nhưng **tốn kém khủng khiếp** |
+| ⭐ **MST** — nhận ra *"250 khu ở phía Đông đi cùng đường, 250 khu phía Tây đi cùng đường"* | **2 tuyến xe**, 2 lộ trình. Vẫn phục vụ đủ 500 khu |
+
+Và **MST Region** = *"chúng ta phải cùng thống nhất **khu nào đi tuyến nào**"*.
+Nếu một tài xế có bảng phân tuyến khác → anh ta **không thuộc công ty này nữa** (ra khỏi region)
+→ hành khách bị lạc.
+
+🧠 **Một câu để nhớ:** *MST không giảm số VLAN, nó giảm **số cây phải tính**.
+Và giá phải trả là: mọi switch bắt buộc có **cùng bảng phân nhóm** (name + revision + mapping).*
+
+### 2.3 Root Guard vs Loop Guard — hai loại cửa khác nhau
+
+| | Root Guard | Loop Guard |
+|---|---|---|
+| Vị trí | ⬇️ **Cửa hướng ra ngoài / xuống dưới** | ⬆️ **Cửa hướng lên trên (về nhà)** |
+| Câu nói | *"Ngoài kia có ai tự nhận là vua thì **chặn lại**"* | *"Đường về nhà **im lặng bất thường** → đừng vội tin là thông"* |
+| Chống | Kẻ lạ chiếm quyền | Ảo giác "đường đã thông" |
+
+🧠 **Một câu để nhớ:** *Root Guard bảo vệ **quyền lực** (ai làm root). Loop Guard bảo vệ khỏi
+**sự im lặng lừa dối** (BPDU mất mà link vẫn up).*
+
+### 2.4 EtherChannel như gộp làn đường
+
+**Không có EtherChannel:** 2 làn đường song song, nhưng luật giao thông (STP) sợ tai nạn
+nên **đóng 1 làn**. Bạn có 2 làn mà chỉ dùng được 1.
+
+**Có EtherChannel:** hai làn được **sơn lại thành một đường lớn có 2 làn**.
+Luật giao thông giờ chỉ thấy **một con đường** → không cần đóng làn nào.
+
+**Load-balancing hash** = cách phân xe vào làn nào. Và đây là điểm quan trọng:
+> **Xe cùng một chuyến (cùng flow) luôn đi cùng làn** — để không bị đến sai thứ tự.
+> Vì thế **một chuyến xe siêu tải (elephant flow) không thể chia ra 2 làn.**
+
+🧠 **Một câu để nhớ:** *EtherChannel tăng **tổng băng thông**, không tăng băng thông của **một flow**.
+2 link 1G ≠ 1 link 2G cho một file transfer duy nhất.*
+
+### 2.5 Vì sao `(I)` individual đáng sợ hơn `(s)` suspended
+
+| | `(s)` suspended | `(I)` individual |
+|---|---|---|
+| Port có forward traffic? | ❌ **Không** | ⚠️ **CÓ — forward độc lập** |
+| Nguy cơ loop | Không (port không hoạt động) | ⭐ **CÓ** |
+| Ví von | Cánh cửa **khóa lại** | Cánh cửa **mở tự do, không ai canh** |
+
+🧠 **Một câu để nhớ:** *`suspended` là hệ thống tự bảo vệ (khóa cửa lại).
+`individual` là hệ thống nói "tôi bỏ cuộc, cứ đi tự do" — và đó là lúc loop xuất hiện.
+Vì vậy phải bật `spanning-tree etherchannel guard misconfig`.*
+
+---
+## ⚙️ PHẦN 2 — NÓ CHẠY THẾ NÀO
+
+> Giờ lắp **cơ chế thật, con số và câu lệnh** vào hình dung bạn vừa có.
+>
+> | Phần 1 (ví von) | → | Phần 2 (cơ chế) |
+> |---|:---:|---|
+> | §2.1 hỏi thẳng thay vì chờ | → | **§4 RSTP** |
+> | §2.2 gộp chuyến xe bus | → | **§5 MST** |
+> | §2.3 hai loại cửa | → | **§6 Guards** |
+> | §2.4 gộp làn đường · §2.5 bẫy `(I)` | → | **§7 EtherChannel** |
+>
+> Phần 2 có **5 khối** (§3 → §7). Đọc theo thứ tự, vì mỗi khối xây trên khối trước.
+>
+> ⚠️ **Bảng trong phần này là để TRA CỨU về sau.** Đọc hiểu ý chính rồi quay lại tra khi làm LAB.
+
+---
+
+## 📘 3. LÝ THUYẾT — PHẦN A: STP CHUYÊN SÂU
+
+### 3.1 Ôn nhanh (nếu 5 dòng này bạn không trả lời được → quay lại Module-P0 §2.4)
 
 | Câu | Đáp án 1 dòng |
 |---|---|
@@ -49,7 +227,7 @@
 
 ---
 
-### 2.2 Cấu trúc BPDU — đọc được là troubleshoot được
+### 3.2 Cấu trúc BPDU — đọc được là troubleshoot được
 
 BPDU (Bridge Protocol Data Unit) là "phiếu bầu" mà switch gửi cho nhau. Gửi tới địa chỉ
 multicast **`01:80:C2:00:00:00`**.
@@ -84,7 +262,7 @@ multicast **`01:80:C2:00:00:00`**.
 
 ---
 
-### 2.3 Topology Change — vì sao mạng "chậm 30 giây" sau khi cắm lại dây
+### 3.3 Topology Change — vì sao mạng "chậm 30 giây" sau khi cắm lại dây
 
 Khi topology đổi, không chỉ port role đổi — mà **bảng MAC phải được dọn**.
 
@@ -123,7 +301,7 @@ show spanning-tree detail | include ieee|occurr|from|is exec
 
 ---
 
-### 2.4 PVST+ — và vấn đề của nó
+### 3.4 PVST+ — và vấn đề của nó
 
 | | Nội dung |
 |---|---|
@@ -160,9 +338,9 @@ spanning-tree vlan 10,30,50 priority 8192      ! làm backup root
 
 ---
 
-## 📘 3. LÝ THUYẾT — PHẦN B: RSTP (802.1w)
+## 📘 4. LÝ THUYẾT — PHẦN B: RSTP (802.1w)
 
-### 3.1 RSTP nhanh hơn STP nhờ 4 thay đổi
+### 4.1 RSTP nhanh hơn STP nhờ 4 thay đổi
 
 | # | Thay đổi | STP 802.1D | RSTP 802.1w |
 |:---:|---|---|---|
@@ -171,7 +349,7 @@ spanning-tree vlan 10,30,50 priority 8192      ! làm backup root
 | 3 | **Chuyển state** | Chờ timer (Listening 15 + Learning 15) | ⭐ **Proposal/Agreement handshake** — chuyển gần như tức thì |
 | 4 | **Xử lý Topology Change** | Gửi TCN lên root, root bật bit TC 35 s, mọi switch giảm MAC aging | ⭐ Flood TC ra mọi hướng ngay + **flush MAC table** |
 
-### 3.2 Port role & state RSTP
+### 4.2 Port role & state RSTP
 
 | Port Role | Nghĩa | Tương ứng STP |
 |---|---|---|
@@ -191,7 +369,7 @@ spanning-tree vlan 10,30,50 priority 8192      ! làm backup root
 > - **Alternate** = có đường khác về root (dự phòng Root Port) → **hay gặp**
 > - **Backup** = 2 port của **cùng switch** nối vào **cùng segment** → chỉ gặp khi có hub/half-duplex
 
-### 3.3 ⭐ Link Type — quyết định RSTP có nhanh được hay không
+### 4.3 ⭐ Link Type — quyết định RSTP có nhanh được hay không
 
 | Link Type | Điều kiện | RSTP làm gì |
 |---|---|---|
@@ -213,7 +391,7 @@ interface Gi0/1
 > sẽ biến thành **shared link** → RSTP mất khả năng chuyển nhanh trên port đó → hội tụ lại chậm 30–50 s.
 > **Duplex mismatch không chỉ gây lỗi CRC, nó còn phá RSTP.**
 
-### 3.4 Proposal / Agreement — cơ chế làm RSTP nhanh
+### 4.4 Proposal / Agreement — cơ chế làm RSTP nhanh
 
 Đây là phần đề ENCOR hay hỏi. Diễn biến khi 1 link mới lên giữa SW-A (gần root) và SW-B:
 
@@ -245,7 +423,7 @@ interface Gi0/1
 > nên chờ cho chắc"*. RSTP **hỏi thẳng** và bên kia **tự dọn dẹp rồi trả lời**.
 > Có xác nhận thì không cần chờ.
 
-### 3.5 Rapid PVST+ vs RSTP
+### 4.5 Rapid PVST+ vs RSTP
 
 | | RSTP (802.1w) | **Rapid PVST+** |
 |---|---|---|
@@ -267,9 +445,9 @@ show spanning-tree summary
 
 ---
 
-## 📘 4. LÝ THUYẾT — PHẦN C: MST (802.1s)
+## 📘 5. LÝ THUYẾT — PHẦN C: MST (802.1s)
 
-### 4.1 MST giải quyết vấn đề gì
+### 5.1 MST giải quyết vấn đề gì
 
 | Tình huống | PVST+ | MST |
 |---|---|---|
@@ -291,7 +469,7 @@ Không cần 500 cây riêng — chỉ cần **nhóm các VLAN có cùng đườ
   = 500 lần tính toán                = 2 lần tính toán
 ```
 
-### 4.2 ⭐ MST Region — 3 điều PHẢI GIỐNG NHAU
+### 5.2 ⭐ MST Region — 3 điều PHẢI GIỐNG NHAU
 
 Các switch chỉ ở **cùng một MST region** khi **cả 3** thứ sau khớp chính xác:
 
@@ -307,7 +485,7 @@ Các switch chỉ ở **cùng một MST region** khi **cả 3** thứ sau khớp
 >
 > Cisco tính một **digest (hash)** từ mapping và đưa vào BPDU. Lệch 1 VLAN = digest khác = khác region.
 
-### 4.3 Các loại cây trong MST
+### 5.3 Các loại cây trong MST
 
 | Tên | Viết tắt | Là gì |
 |---|---|---|
@@ -319,7 +497,7 @@ Các switch chỉ ở **cùng một MST region** khi **cả 3** thứ sau khớp
 > 🧠 **Cách hiểu:** từ ngoài nhìn vào, **cả region MST giống như MỘT switch khổng lồ**.
 > Bên ngoài chỉ nói chuyện với IST (MST0). Bên trong region thì có nhiều cây con (MST1, MST2…).
 
-### 4.4 Boundary Port & PVST Simulation
+### 5.4 Boundary Port & PVST Simulation
 
 | Khái niệm | Nghĩa |
 |---|---|
@@ -342,7 +520,7 @@ no spanning-tree mst simulate pvst global   ! tắt
 không nhất quán → port bị block. Nguyên nhân: bên kia chạy PVST+ nhưng root của các VLAN
 không đồng nhất. Xử lý: đảm bảo bên PVST+ có cùng root cho các VLAN thuộc cùng MST instance.
 
-### 4.5 Cấu hình MST
+### 5.5 Cấu hình MST
 
 ```
 configure terminal
@@ -394,7 +572,7 @@ Instance  Vlans mapped
 ```
 ⭐ Chú ý: **instance 0 (IST) tự nhận mọi VLAN còn lại**. Bạn không cần map VLAN vào instance 0.
 
-### 4.6 So sánh 3 chế độ — bảng phải thuộc
+### 5.6 So sánh 3 chế độ — bảng phải thuộc
 
 | | **PVST+** | **Rapid PVST+** | **MST** |
 |---|---|---|---|
@@ -410,9 +588,9 @@ Instance  Vlans mapped
 
 ---
 
-## 📘 5. LÝ THUYẾT — PHẦN D: BẢO VỆ STP (Guards & UDLD)
+## 📘 6. LÝ THUYẾT — PHẦN D: BẢO VỆ STP (Guards & UDLD)
 
-### 5.1 Bảng tổng hợp — thuộc bảng này là xong 1/3 câu hỏi L2 của đề
+### 6.1 Bảng tổng hợp — thuộc bảng này là xong 1/3 câu hỏi L2 của đề
 
 | Tính năng | Đặt ở port nào | Chống / Làm gì | Khi kích hoạt thì | Lệnh |
 |---|---|---|---|---|
@@ -424,7 +602,7 @@ Instance  Vlans mapped
 | **Loop Guard** | Port **Root / Alternate** (uplink) | Chống loop khi BPDU **im lặng một chiều** | Port → **loop-inconsistent** (block), **tự hồi phục** | `spanning-tree guard loop` |
 | **UDLD** | Link **fiber** (và cả copper) | Phát hiện link **một chiều** ở tầng vật lý | Log (normal) hoặc **err-disable** (aggressive) | `udld port aggressive` |
 
-### 5.2 PortFast — 3 dạng và cái bẫy với ảo hóa
+### 6.2 PortFast — 3 dạng và cái bẫy với ảo hóa
 
 ```
 ! Dạng 1 — access port (phổ biến nhất)
@@ -448,7 +626,7 @@ spanning-tree portfast bpduguard default      ! đi kèm luôn
 > Nhưng ⚠️ **vẫn phải bật BPDU Guard** — nếu ai đó cấu hình sai làm host trở thành switch
 > (bridge 2 NIC), BPDU Guard sẽ chặn loop ngay.
 
-### 5.3 ⚠️ BPDU Filter — tính năng nguy hiểm nhất
+### 6.3 ⚠️ BPDU Filter — tính năng nguy hiểm nhất
 
 Đây là chỗ đề hay gài, và cũng là chỗ gây sự cố thật.
 
@@ -464,7 +642,7 @@ spanning-tree portfast bpduguard default      ! đi kèm luôn
 > 🎓 **Đề ENCOR hỏi:** *"Sự khác biệt giữa BPDU Filter ở interface và global?"* →
 > Interface = tắt STP hẳn (nguy hiểm). Global = chỉ trên PortFast port, nhận BPDU thì tự hồi phục.
 
-### 5.4 Root Guard vs Loop Guard — cặp dễ lẫn nhất
+### 6.4 Root Guard vs Loop Guard — cặp dễ lẫn nhất
 
 | | **Root Guard** | **Loop Guard** |
 |---|---|---|
@@ -507,7 +685,7 @@ spanning-tree loopguard default
 ⚠️ **Không bật Root Guard và Loop Guard trên cùng 1 port** — chúng loại trừ nhau về mục đích
 (một cái cho downstream, một cái cho upstream).
 
-### 5.5 UDLD — bảo vệ ở tầng thấp hơn STP
+### 6.5 UDLD — bảo vệ ở tầng thấp hơn STP
 
 | | Nội dung |
 |---|---|
@@ -552,7 +730,7 @@ udld reset
 | Cần bên kia hỗ trợ? | Không | ⭐ **Có** — bên kia phải chạy UDLD |
 | Khuyến nghị Cisco | ⭐ **Dùng CẢ HAI** | ⭐ **Dùng CẢ HAI** |
 
-### 5.6 Err-disable & tự động hồi phục
+### 6.6 Err-disable & tự động hồi phục
 
 Khi BPDU Guard / UDLD / Port Security kích hoạt, port vào trạng thái **err-disable** (tắt hẳn).
 Mặc định **phải vào tay `shutdown` / `no shutdown`** mới bật lại.
@@ -587,9 +765,9 @@ Gi0/1     PC-Ke-toan         err-disabled bpduguard
 
 ---
 
-## 📘 6. LÝ THUYẾT — PHẦN E: ETHERCHANNEL
+## 📘 7. LÝ THUYẾT — PHẦN E: ETHERCHANNEL
 
-### 6.1 EtherChannel là gì và giải quyết vấn đề gì
+### 7.1 EtherChannel là gì và giải quyết vấn đề gì
 
 | Vấn đề | Không có EtherChannel | ⭐ Có EtherChannel |
 |---|---|---|
@@ -605,7 +783,7 @@ Gi0/1     PC-Ke-toan         err-disabled bpduguard
                                       (STP thấy là 1 port: Po1)
 ```
 
-### 6.2 Ba cách tạo EtherChannel
+### 7.2 Ba cách tạo EtherChannel
 
 | Protocol | Chuẩn | Mode | Ghi chú |
 |---|---|---|---|
@@ -658,7 +836,7 @@ interface range GigabitEthernet0/1 - 2
  channel-group 1 mode on
 ```
 
-### 6.3 ⭐ Điều kiện bundle — 6 thứ phải GIỐNG NHAU
+### 7.3 ⭐ Điều kiện bundle — 6 thứ phải GIỐNG NHAU
 
 Nếu 1 trong 6 thứ này lệch giữa các member port → port **không vào bundle**
 (thành `suspended` hoặc `individual`).
@@ -692,7 +870,7 @@ interface Port-channel1                ! mọi cấu hình khác gõ Ở ĐÂY
  switchport nonegotiate
 ```
 
-### 6.4 EtherChannel L2 vs L3
+### 7.4 EtherChannel L2 vs L3
 
 | | **L2 EtherChannel** | **L3 EtherChannel** |
 |---|---|---|
@@ -714,7 +892,7 @@ interface Port-channel1
 > ⚠️ Thứ tự quan trọng: `no switchport` trên **member port TRƯỚC**, rồi mới `channel-group`.
 > Làm ngược sẽ lỗi.
 
-### 6.5 Load-balancing — vì sao 3 link chia tải không đều
+### 7.5 Load-balancing — vì sao 3 link chia tải không đều
 
 ```
 ! Xem thuật toán hiện tại
@@ -751,7 +929,7 @@ Hash cho ra kết quả rồi chia vào **8 "gáo"** (bucket). Số bucket đư�
 > ⭐ **Quy tắc thực chiến:** dùng **2, 4, hoặc 8** link trong 1 EtherChannel.
 > 3 link không phải là "1.5 lần tốt hơn 2 link" — nó là "2 link + 1 link chạy non tải".
 
-### 6.6 Tính năng LACP nâng cao
+### 7.6 Tính năng LACP nâng cao
 
 | Tính năng | Lệnh | Tác dụng |
 |---|---|---|
@@ -766,7 +944,7 @@ Hash cho ra kết quả rồi chia vào **8 "gáo"** (bucket). Số bucket đư�
 > nguy hiểm nhất: một bên `on` (static), một bên chưa cấu hình → bên chưa cấu hình thấy 2 port riêng
 > → **loop**.
 
-### 6.7 Đọc `show etherchannel summary` — lệnh quan trọng nhất
+### 7.7 Đọc `show etherchannel summary` — lệnh quan trọng nhất
 
 ```
 SW1# show etherchannel summary
@@ -830,1060 +1008,130 @@ show etherchannel load-balance
 
 ---
 
-## 📖 7. HIỂU RÕ HƠN — mô hình tư duy
+## 🧪 PHẦN 3 — NHÌN THẤY NÓ
 
-### 7.1 RSTP nhanh hơn vì "hỏi thẳng" thay vì "chờ cho chắc"
+> LAB đã tách ra file riêng để bạn **mở song song** với lý thuyết — một cửa sổ đọc, một cửa sổ gõ.
 
-**STP như người mới đi làm, quá cẩn thận:**
-> "Tôi nghĩ đường này thông rồi, nhưng biết đâu phía kia còn ai đang đi.
-> Thôi tôi **đợi 15 giây** rồi lại **đợi 15 giây nữa** cho chắc."
+> ### 👉 **[LAB Tuần 4 — STP · RSTP · Guards](Module-02-LAB-Tuan4.md)**
+> ### 👉 **[LAB Tuần 5 — MST · EtherChannel](Module-02-LAB-Tuan5.md)**
 
-**RSTP như người có kinh nghiệm, biết cách xác nhận:**
-> "Này, tôi định cho xe đi qua đây, bạn dọn đường phía bạn chưa?" *(**Proposal**)*
-> — "Tôi vừa **chặn hết các lối khác của tôi** rồi, bạn đi đi." *(**Sync** rồi **Agreement**)*
-> → Đi ngay, không cần đợi.
+| Tuần | Nội dung | Trả lời câu hỏi | Ví von ở Phần 1 | Cơ chế ở Phần 2 |
+|:---:|---|---|---|---|
+| 4 | **Root Bridge & port role** | Ai làm root? Port nào bị chặn, vì sao? | — | §3.1 |
+| 4 | **Đo RSTP vs STP** | RSTP nhanh hơn **bao nhiêu giây**? | §2.1 hỏi thẳng | §3.2 |
+| 4 | **Guards** | Cắm switch lạ vào thì sao? Root vs Loop Guard? | §2.3 hai loại cửa | §3.4 |
+| 5 | **MST** | Gom VLAN vào cây chung bằng cách nào? | §2.2 chuyến xe bus | §3.3 |
+| 5 | **EtherChannel** | Gộp 2 cáp — STP còn chặn không? | §2.4 gộp làn đường | §3.5 |
+| 5 | **Bẫy `(I)` individual** | Vì sao nguy hiểm hơn `(s)` suspended? | §2.5 | §3.5 |
 
-🧠 **Một câu để nhớ:** *STP chờ vì không dám hỏi. RSTP hỏi rồi đi ngay.
-Có xác nhận thì không cần timer.*
+> ⚠️ **Layer 2 là thứ phải NHÌN mới hiểu.** Bảng port role đọc mãi vẫn mơ hồ, nhưng
+> gõ `show spanning-tree` rồi thấy đúng port đó `BLK` thì nhớ mãi.
+>
+> Đặc biệt **bài đo RSTP vs STP bằng đồng hồ bấm giây** — đó là lúc con số "50 giây vs vài giây"
+> thôi là lý thuyết và trở thành thứ bạn tự chứng kiến.
 
-**Và đây là lý do `shared link` (half-duplex) phá RSTP:** trên môi trường half-duplex,
-bạn không thể "vừa hỏi vừa nghe" — nên không handshake được, phải quay về chờ timer.
+---
 
-### 7.2 MST như gộp chuyến xe bus
+## 🏗️ PHẦN 4 — TOPO & KIẾN TRÚC
 
-Bạn quản lý tuyến xe cho 500 khu phố:
+> Bạn vừa học 5 thứ: STP, RSTP, MST, Guards, EtherChannel.
+> Phần này ghép chúng vào **một campus thật** để bạn thấy mỗi thứ đặt ở đâu.
 
-| Cách làm | Kết quả |
+### 4.1 Bản đồ: 5 công nghệ này nằm ở đâu
+
+```
+                        ┌──────────────┐  ┌──────────────┐
+          CORE (L3)     │   Core-1     │  │   Core-2     │
+                        └──┬───────┬───┘  └──┬───────┬───┘
+                           │       │         │       │
+                           │    ┌──┼─────────┘       │
+                           │    │  │                 │
+                     ┌─────┴────┴┐ │ ┌───────────────┴──┐
+       DISTRIBUTION  │  Dist-1   │═╪═│     Dist-2       │  ⑤ EtherChannel
+       (ranh giới    │           │ │ │                  │     gộp uplink
+        L2/L3)       │ ① Root    │ │ │ ② Root dự phòng  │
+                     │   Bridge  │ │ │   (priority #2)  │  ④ Root Guard
+                     └──┬────┬───┘ │ └───┬──────┬───────┘     hướng xuống
+                        │    │     │     │      │
+                        │    └─────┼─────┘      │       ③ STP/RSTP/MST
+                        │          │            │          chặn vòng lặp
+                     ┌──┴──────────┴┐        ┌──┴─────────┐
+       ACCESS (L2)   │   Access-1   │        │  Access-2  │
+                     │              │        │            │
+                     │ ⑥ PortFast + │        │            │  ⑥ trên port
+                     │   BPDU Guard │        │            │     người dùng
+                     └──┬────┬──────┘        └─────┬──────┘
+                        │    │                     │
+                      [PC] [IP Phone]            [PC]
+```
+
+### 4.2 Sáu quyết định thiết kế — và sai thì hỏng thế nào
+
+| # | Quyết định | Vì sao | 🔴 Sai thì hỏng thế nào |
+|:---:|---|---|---|
+| ① | **Ép Root Bridge ở Distribution** | Root phải nằm ở **trung tâm luồng traffic** | Để bầu tự động → **switch access đời cũ MAC thấp nhất làm root** → mọi traffic đi vòng qua nó |
+| ② | **Đặt Root dự phòng** (`priority` số 2) | Root chết thì có người kế nhiệm định sẵn | Không đặt → bầu lại loạn xạ, hội tụ lâu |
+| ③ | **Dùng Rapid PVST+ hoặc MST** *(đừng dùng STP cũ)* | STP cũ hội tụ **~50 giây** | Dùng 802.1D → mỗi lần đứt link là **mạng đứng 50 giây** |
+| ④ | **Root Guard trên port hướng XUỐNG access** | Không cho switch phía dưới cướp ngôi root | Không có → ai đó cắm switch lạ priority thấp → **cướp root, đảo lộn toàn bộ đường đi** |
+| ⑤ | **EtherChannel cho uplink** | 2 cáp thành 1 đường logic → **STP không chặn nữa** | Không gộp → STP chặn 1 cáp → **phí 50% băng thông** |
+| ⑥ | **PortFast + BPDU Guard trên port người dùng** | Port user lên ngay, và tự tắt nếu có ai cắm switch | Thiếu PortFast → PC chờ 30s mới có mạng<br>Thiếu BPDU Guard → cắm switch lạ vào là **loop** |
+
+### 4.3 Vì sao Layer 2 là chỗ dễ sập nhất
+
+> **Một sự thật khó chịu:** ở Layer 3, gói sai đường thì **TTL giảm dần rồi bị bỏ**.
+> Ở Layer 2, frame **KHÔNG có TTL**.
+
+```
+   Frame broadcast gặp vòng lặp L2:
+
+   SW1 ──▶ SW2 ──▶ SW3 ──▶ SW1 ──▶ SW2 ──▶ SW3 ──▶ ... mãi mãi
+
+   Mỗi vòng, switch lại nhân bản ra mọi port khác
+        → số frame TĂNG THEO CẤP SỐ NHÂN
+        → trong vài giây: CPU 100%, bảng MAC loạn, mạng CHẾT HOÀN TOÀN
+```
+
+**Đó là lý do toàn bộ Module-02 tồn tại.** STP không phải để tối ưu — nó là để **mạng không tự sát**.
+
+| Khái niệm | Câu để nhớ |
 |---|---|
-| **PVST+** — mỗi khu phố **1 tuyến xe riêng** | 500 tuyến, 500 tài xế, 500 lộ trình phải tính. Chính xác nhưng **tốn kém khủng khiếp** |
-| ⭐ **MST** — nhận ra *"250 khu ở phía Đông đi cùng đường, 250 khu phía Tây đi cùng đường"* | **2 tuyến xe**, 2 lộ trình. Vẫn phục vụ đủ 500 khu |
+| **Broadcast storm** | Frame broadcast chạy vòng tròn vô tận, nhân lên theo cấp số nhân |
+| **MAC table instability** | Switch thấy cùng một MAC ở nhiều port → bảng MAC loạn liên tục |
+| **Vì sao tệ hơn L3** | ⭐ **Frame L2 không có TTL** — không có gì tự dừng nó lại |
 
-Và **MST Region** = *"chúng ta phải cùng thống nhất **khu nào đi tuyến nào**"*.
-Nếu một tài xế có bảng phân tuyến khác → anh ta **không thuộc công ty này nữa** (ra khỏi region)
-→ hành khách bị lạc.
+### 4.4 Năm thứ này sẽ lớn lên thành gì
 
-🧠 **Một câu để nhớ:** *MST không giảm số VLAN, nó giảm **số cây phải tính**.
-Và giá phải trả là: mọi switch bắt buộc có **cùng bảng phân nhóm** (name + revision + mapping).*
-
-### 7.3 Root Guard vs Loop Guard — hai loại cửa khác nhau
-
-| | Root Guard | Loop Guard |
+| Bạn vừa học | Sẽ thành | Ở module |
 |---|---|---|
-| Vị trí | ⬇️ **Cửa hướng ra ngoài / xuống dưới** | ⬆️ **Cửa hướng lên trên (về nhà)** |
-| Câu nói | *"Ngoài kia có ai tự nhận là vua thì **chặn lại**"* | *"Đường về nhà **im lặng bất thường** → đừng vội tin là thông"* |
-| Chống | Kẻ lạ chiếm quyền | Ảo giác "đường đã thông" |
+| Ranh giới L2/L3 ở Distribution | Thiết kế 2-tier / 3-tier / Spine-Leaf | **Module-09 §2** |
+| EtherChannel | StackWise / VSS / vPC — gộp cả **thiết bị** | **Module-09 §3.3** |
+| Root Bridge, hội tụ nhanh | SSO / NSF / High Availability | **Module-09 §3.2** |
+| BPDU Guard, PortFast | 802.1X trên chính port đó | **Module-10 §6** |
+| VLAN trên trunk | VXLAN — VLAN chạy trên nền L3 | **Module-08 §8** |
 
-🧠 **Một câu để nhớ:** *Root Guard bảo vệ **quyền lực** (ai làm root). Loop Guard bảo vệ khỏi
-**sự im lặng lừa dối** (BPDU mất mà link vẫn up).*
+### 4.5 Vẽ lại để nhớ
 
-### 7.4 EtherChannel như gộp làn đường
+> **Bài tập 15 phút, trên giấy.**
+>
+> 1. Vẽ lại sơ đồ §4.1 **không nhìn tài liệu**
+> 2. Đánh dấu ① → ⑥ vào đúng vị trí
+> 3. Trả lời: *"Nếu tôi bỏ Root Guard ở ④, kẻ tấn công cắm switch vào port access sẽ làm được gì?"*
 
-**Không có EtherChannel:** 2 làn đường song song, nhưng luật giao thông (STP) sợ tai nạn
-nên **đóng 1 làn**. Bạn có 2 làn mà chỉ dùng được 1.
+<details>
+<summary>Đáp án câu 3</summary>
 
-**Có EtherChannel:** hai làn được **sơn lại thành một đường lớn có 2 làn**.
-Luật giao thông giờ chỉ thấy **một con đường** → không cần đóng làn nào.
+Kẻ tấn công cắm switch có **bridge priority = 0** vào port access →
+switch đó **thắng cuộc bầu Root Bridge** → ⭐ **toàn bộ traffic của campus bị kéo đi vòng qua
+con switch rẻ tiền đó** → mạng chậm thảm hại, và kẻ tấn công **nghe được traffic**.
 
-**Load-balancing hash** = cách phân xe vào làn nào. Và đây là điểm quan trọng:
-> **Xe cùng một chuyến (cùng flow) luôn đi cùng làn** — để không bị đến sai thứ tự.
-> Vì thế **một chuyến xe siêu tải (elephant flow) không thể chia ra 2 làn.**
+Đây gọi là **STP root hijack**. Chặn bằng: **Root Guard** (trên port hướng xuống) +
+**BPDU Guard** (trên port người dùng).
 
-🧠 **Một câu để nhớ:** *EtherChannel tăng **tổng băng thông**, không tăng băng thông của **một flow**.
-2 link 1G ≠ 1 link 2G cho một file transfer duy nhất.*
-
-### 7.5 Vì sao `(I)` individual đáng sợ hơn `(s)` suspended
-
-| | `(s)` suspended | `(I)` individual |
-|---|---|---|
-| Port có forward traffic? | ❌ **Không** | ⚠️ **CÓ — forward độc lập** |
-| Nguy cơ loop | Không (port không hoạt động) | ⭐ **CÓ** |
-| Ví von | Cánh cửa **khóa lại** | Cánh cửa **mở tự do, không ai canh** |
-
-🧠 **Một câu để nhớ:** *`suspended` là hệ thống tự bảo vệ (khóa cửa lại).
-`individual` là hệ thống nói "tôi bỏ cuộc, cứ đi tự do" — và đó là lúc loop xuất hiện.
-Vì vậy phải bật `spanning-tree etherchannel guard misconfig`.*
+</details>
 
 ---
 
-## 🧪 8. LAB — TUẦN 4: STP · RSTP · GUARDS
-
-### LAB 02-1 — Topology chuẩn campus (4 switch)
-
-#### Topology
-
-```
-              ╔═══════════════════════════════╗
-              ║   TẦNG DISTRIBUTION           ║
-              ║                               ║
-              ║   [SW-D1]═══Gi0/3═══[SW-D2]   ║   ← link giữa 2 dist
-              ║    │  │              │  │     ║
-              ╚════│══│══════════════│══│═════╝
-                   │  └──────┐  ┌────┘  │
-              Gi0/1│    Gi0/2│  │Gi0/1  │Gi0/2
-                   │         │  │       │
-              ┌────┴─────────┴──┴───────┴────┐
-              │  [SW-A1]        [SW-A2]      │  ← TẦNG ACCESS
-              │   Gi0/3 → PC      Gi0/3 → PC │
-              └──────────────────────────────┘
-```
-
-| Link | Đầu A | Đầu B | Ghi chú |
-|---|---|---|---|
-| 1 | SW-D1 Gi0/3 | SW-D2 Gi0/3 | Link giữa 2 distribution |
-| 2 | SW-A1 Gi0/1 | SW-D1 Gi0/1 | Uplink A1 → D1 |
-| 3 | SW-A1 Gi0/2 | SW-D2 Gi0/1 | Uplink A1 → D2 |
-| 4 | SW-A2 Gi0/1 | SW-D1 Gi0/2 | Uplink A2 → D1 |
-| 5 | SW-A2 Gi0/2 | SW-D2 Gi0/2 | Uplink A2 → D2 |
-| 6 | SW-A1 Gi0/3 | PC1 (VPCS) | Access VLAN 10 |
-| 7 | SW-A2 Gi0/3 | PC2 (VPCS) | Access VLAN 10 |
-
-**RAM: 4× 768 MB = 3 GB** ✅ · Topology này **có vòng lặp** (cố ý) — đây là topology campus thật.
-
-#### Bước 1 — Cấu hình nền (làm giống nhau, chỉ đổi hostname)
-
-```
-enable
-configure terminal
-!
-hostname SW-D1                             ! đổi theo từng switch
-no ip domain lookup
-!
-vlan 10
- name USERS
-vlan 20
- name SERVERS
-vlan 999
- name NATIVE-UNUSED                        ! native VLAN "rác"
-exit
-!
-line con 0
- exec-timeout 0 0
- logging synchronous
-!
-end
-write memory
-```
-
-#### Bước 2 — Cấu hình trunk (mọi link switch–switch)
-
-**Trên SW-D1:**
-```
-configure terminal
-interface range GigabitEthernet0/1 - 3
- description ---> TRUNK
- switchport trunk encapsulation dot1q
- switchport mode trunk
- switchport trunk allowed vlan 10,20
- switchport trunk native vlan 999
- switchport nonegotiate
- no shutdown
-end
-```
-
-**Trên SW-D2:** giống hệt (Gi0/1–3).
-
-**Trên SW-A1 và SW-A2:**
-```
-configure terminal
-! Uplink
-interface range GigabitEthernet0/1 - 2
- description ---> UPLINK TRUNK
- switchport trunk encapsulation dot1q
- switchport mode trunk
- switchport trunk allowed vlan 10,20
- switchport trunk native vlan 999
- switchport nonegotiate
- no shutdown
-!
-! Port PC
-interface GigabitEthernet0/3
- description ---> PC
- switchport mode access
- switchport access vlan 10
- no shutdown
-end
-write memory
-```
-
-✅ **Checkpoint:** `show interfaces trunk` trên mọi switch → mọi link switch–switch đều `trunking`,
-allowed vlan `10,20`, native vlan `999`.
-
-#### Bước 3 — Quan sát STP TRƯỚC khi can thiệp
-
-```
-SW-D1# show spanning-tree vlan 10
-```
-
-**Điền bảng — chạy lệnh trên cả 4 switch:**
-
-| Switch | MAC address | Là Root? | Root Port | Port Blocking |
-|---|---|:---:|---|---|
-| SW-D1 | | | | |
-| SW-D2 | | | | |
-| SW-A1 | | | | |
-| SW-A2 | | | | |
-
-```
-! Xem nhanh port nào bị block toàn mạng
-SW-A1# show spanning-tree vlan 10 | include BLK|Altn|Desg|Root
-```
-
-⚠️ **Nhận xét bạn phải rút ra:** root hiện tại là switch có **MAC nhỏ nhất** —
-rất có thể là một **switch ACCESS**, không phải distribution. **Đây là thiết kế sai.**
-
-```
-! Chứng minh: đếm số hop từ SW-A2 về root
-SW-A2# show spanning-tree vlan 10 | include Root ID|Cost
-```
-
-#### Bước 4 — ⭐ Ép root đúng thiết kế + backup root
-
-```
-! SW-D1 — root chính cho VLAN 10, backup cho VLAN 20
-SW-D1(config)# spanning-tree vlan 10 priority 4096
-SW-D1(config)# spanning-tree vlan 20 priority 8192
-
-! SW-D2 — root chính cho VLAN 20, backup cho VLAN 10
-SW-D2(config)# spanning-tree vlan 20 priority 4096
-SW-D2(config)# spanning-tree vlan 10 priority 8192
-```
-
-**Kiểm tra:**
-```
-SW-D1# show spanning-tree vlan 10 | include Root|priority
-```
-**Output mẫu:**
-```
-  Root ID    Priority    4106
-             Address     0c:1a:2b:00:d1:00
-             This bridge is the root
-  Bridge ID  Priority    4106  (priority 4096 sys-id-ext 10)
-```
-✅ `4106 = 4096 + 10`.
-
-```
-SW-D1# show spanning-tree vlan 20 | include Root ID|This bridge
-```
-✅ VLAN 20: SW-D1 **không** là root (SW-D2 là root).
-
-**Xác nhận load-balancing đã hoạt động:**
-```
-SW-A1# show spanning-tree vlan 10 | include Root FWD|Altn
-SW-A1# show spanning-tree vlan 20 | include Root FWD|Altn
-```
-⭐ **Kết quả mong đợi:** Root Port của **VLAN 10** và **VLAN 20** là **2 port khác nhau**
-→ cả 2 uplink đều có traffic.
-
-✅ **Checkpoint bước 4:**
-
-| Kiểm tra | Mong đợi |
-|---|---|
-| VLAN 10: root = SW-D1 | ✅ |
-| VLAN 20: root = SW-D2 | ✅ |
-| Trên SW-A1: Root Port của VLAN 10 ≠ Root Port của VLAN 20 | ⭐ ✅ Load-balance |
-| Đúng 1 port block mỗi VLAN trên mỗi switch access | ✅ |
-
-#### Bước 5 — Bảo vệ STP: 4 lớp Guard
-
-**a) PortFast + BPDU Guard trên port PC:**
-```
-! SW-A1 và SW-A2
-configure terminal
-interface GigabitEthernet0/3
- spanning-tree portfast
- spanning-tree bpduguard enable
-end
-```
-
-Hoặc cách thực chiến (bật mặc định toàn switch):
-```
-configure terminal
- spanning-tree portfast default
- spanning-tree portfast bpduguard default
-end
-```
-
-**b) Root Guard trên port hướng xuống access (trên distribution):**
-```
-! SW-D1
-configure terminal
-interface range GigabitEthernet0/1 - 2
- description ---> DOWN to ACCESS - Root Guard
- spanning-tree guard root
-end
-```
-Làm tương tự trên SW-D2.
-
-**c) Loop Guard trên uplink (trên access):**
-```
-! SW-A1 và SW-A2
-configure terminal
-interface range GigabitEthernet0/1 - 2
- description ---> UPLINK - Loop Guard
- spanning-tree guard loop
-end
-```
-Hoặc toàn cục: `spanning-tree loopguard default`
-
-**d) UDLD + errdisable recovery + misconfig guard:**
-```
-configure terminal
- udld aggressive                                       ! link fiber
- spanning-tree etherchannel guard misconfig            ! chuẩn bị cho tuần 5
- errdisable recovery cause bpduguard
- errdisable recovery cause udld
- errdisable recovery interval 300
-end
-write memory
-```
-
-**Kiểm tra:**
-```
-show spanning-tree summary
-```
-**Output mẫu:**
-```
-Switch is in rapid-pvst mode
-Root bridge for: VLAN0010
-Extended system ID           is enabled
-Portfast Default             is enabled
-PortFast BPDU Guard Default  is enabled
-Portfast BPDU Filter Default is disabled
-Loopguard Default            is disabled
-EtherChannel misconfig guard is enabled
-UplinkFast                   is disabled
-BackboneFast                 is disabled
-```
-⭐ Đọc bảng này để xác nhận mọi guard đã bật đúng.
-Chú ý: `BPDU Filter Default is disabled` — **đúng, không được bật cái này**.
-
-```
-show errdisable recovery
-show udld
-show spanning-tree interface Gi0/1 detail | include guard|Guard
-```
-
-✅ **Checkpoint bước 5:** `show spanning-tree summary` cho thấy PortFast Default + BPDU Guard Default
-đã bật, BPDU Filter Default **tắt**, misconfig guard bật.
-
-#### Bước 6 — ⭐ TEST TỪNG GUARD (phần giá trị nhất)
-
-Không test thì bạn chỉ *biết* guard tồn tại, chứ chưa *thấy* nó làm gì.
-
-**Test 1 — BPDU Guard**
-
-Mô phỏng "ai đó cắm switch vào port PC":
-1. Trong EVE-NG, thêm 1 vIOS-L2 mới tên `SW-ROGUE`
-2. Nối `SW-ROGUE Gi0/0` ↔ `SW-A1 Gi0/3` (port PC, đang có PortFast + BPDU Guard)
-3. Trên SW-ROGUE: cấu hình `vlan 10`, `interface Gi0/0` → `switchport mode trunk` → `no shut`
-
-**Trên SW-A1 quan sát:**
-```
-SW-A1#
-%SPANTREE-2-BLOCK_BPDUGUARD: Received BPDU on port GigabitEthernet0/3 with BPDU Guard enabled.
-                             Disabling port.
-%PM-4-ERR_DISABLE: bpduguard error detected on Gi0/3, putting Gi0/3 in err-disable state
-```
-```
-SW-A1# show interfaces status err-disabled
-Port      Name               Status       Reason               Err-disabled Vlans
-Gi0/3     PC                 err-disabled bpduguard
-```
-✅ **Checkpoint:** port bị `err-disable`, `Reason = bpduguard`. **Loop bị chặn trước khi hình thành.**
-
-**Bật lại port:**
-```
-SW-A1(config)# interface Gi0/3
-SW-A1(config-if)# shutdown
-SW-A1(config-if)# no shutdown
-```
-(hoặc chờ 300 s để `errdisable recovery` tự bật lại)
-
----
-
-**Test 2 — Root Guard**
-
-Mô phỏng "switch access cố chiếm quyền root":
-```
-! Trên SW-A1 — cố tình đặt priority thấp nhất để chiếm root
-SW-A1(config)# spanning-tree vlan 10 priority 0
-```
-
-**Trên SW-D1 (có Root Guard ở port hướng xuống) quan sát:**
-```
-SW-D1#
-%SPANTREE-2-ROOTGUARD_BLOCK: Root guard blocking port GigabitEthernet0/1 on VLAN0010.
-```
-```
-SW-D1# show spanning-tree inconsistentports
-```
-**Output mẫu:**
-```
-Name                 Interface              Inconsistency
--------------------- ---------------------- ------------------
-VLAN0010             GigabitEthernet0/1     Root Inconsistent
-
-Number of inconsistent ports (segments) in the system : 1
-```
-```
-SW-D1# show spanning-tree vlan 10 | include ROOT_Inc|BKN
-Gi0/1               Desg BKN*4         128.2    P2p *ROOT_Inc
-```
-
-⭐ **Bài học:** SW-A1 **không trở thành root được**. Port bị block cho tới khi hết Superior BPDU.
-
-**Hoàn tác:**
-```
-SW-A1(config)# spanning-tree vlan 10 priority 32768
-! Hoặc: no spanning-tree vlan 10 priority
-```
-Sau vài giây, kiểm tra lại — port tự hồi phục:
-```
-SW-D1# show spanning-tree inconsistentports
-Number of inconsistent ports (segments) in the system : 0
-```
-✅ **Root Guard tự hồi phục**, không cần can thiệp tay.
-
----
-
-**Test 3 — Đo hội tụ STP vs RSTP (bài lab quan trọng nhất tuần 4)**
-
-**a) Chuyển về PVST+ (STP chậm) trên cả 4 switch:**
-```
-configure terminal
- spanning-tree mode pvst
-end
-```
-Xác nhận: `show spanning-tree summary | include mode`
-
-**b) Ping liên tục từ PC1 sang PC2, rồi cắt Root Port của SW-A1:**
-
-Trên PC1 (VPCS):
-```
-PC1> ping 10.10.10.12 -c 100
-```
-
-Trên SW-A1, cắt Root Port đang forward (giả sử Gi0/1):
-```
-SW-A1(config)# interface GigabitEthernet0/1
-SW-A1(config-if)# shutdown
-```
-
-**Đếm số gói ping mất.**
-
-**c) Chuyển sang Rapid PVST+ và đo lại:**
-```
-! Trên CẢ 4 switch
-configure terminal
- spanning-tree mode rapid-pvst
-end
-```
-Bật lại Gi0/1, chờ ổn định, rồi lặp lại bài đo.
-
-⭐ **BẢNG KẾT QUẢ — điền vào:**
-
-| Mode | Số gói mất | Thời gian (~) | Ghi chú |
-|---|:---:|---|---|
-| PVST+ (802.1D) | | | Chờ Listening + Learning |
-| Rapid PVST+ (802.1w) | | | Proposal/Agreement |
-
-**Kết quả mong đợi:** PVST+ mất ~15–30 gói · Rapid PVST+ mất **1–3 gói**.
-
----
-
-**Test 4 — Link type & tác động của duplex**
-
-```
-! Xem link type hiện tại
-SW-A1# show spanning-tree vlan 10 | include P2p|Shr
-```
-Mọi link phải là `P2p` (vì full-duplex).
-
-**Ép half-duplex để thấy nó biến thành shared:**
-```
-SW-A1(config)# interface GigabitEthernet0/1
-SW-A1(config-if)# duplex half
-SW-A1(config-if)# speed 100
-```
-```
-SW-A1# show spanning-tree vlan 10 | include Gi0/1
-```
-→ Link type đổi thành **`Shr`**.
-
-Đo lại hội tụ với Rapid PVST+ → **chậm lại** vì không handshake được.
-
-**Hoàn tác:**
-```
-SW-A1(config-if)# duplex auto
-SW-A1(config-if)# speed auto
-```
-
-⭐ **Bài học thực chiến:** một duplex mismatch không chỉ gây lỗi CRC — nó **phá luôn khả năng
-hội tụ nhanh của RSTP** trên port đó.
-
----
-
-**Test 5 — Bắt gói BPDU bằng Wireshark**
-
-1. Trong EVE-NG: click phải link SW-A1↔SW-D1 → **Capture**
-2. Trong Wireshark, filter: `stp`
-
-⭐ **Điền bảng từ những gì bạn thấy trong gói BPDU:**
-
-| Trường trong BPDU | Giá trị bạn thấy |
-|---|---|
-| Protocol Version Identifier (0=STP, 2=RSTP) | |
-| BPDU Type | |
-| Root Identifier (priority + MAC) | |
-| Root Path Cost | |
-| Bridge Identifier | |
-| Port Identifier | |
-| Message Age / Max Age / Hello / Forward Delay | |
-| Flags (TC bit? Proposal? Agreement?) | |
-
-**Thử nghiệm:** chuyển giữa `pvst` và `rapid-pvst` rồi bắt lại → xem trường **Version** đổi từ `0` → `2`.
-Và trong RSTP, tìm gói có bit **Proposal/Agreement** lúc link vừa lên.
-
-> ⭐ Đây là lúc lý thuyết §2.2 và §3.4 trở thành thứ bạn **nhìn thấy được**. Đừng bỏ bước này.
-
----
-
-## 🧪 9. LAB — TUẦN 5: MST · ETHERCHANNEL
-
-### LAB 02-2A — MST
-
-Dùng lại topology LAB 02-1 (4 switch).
-
-#### Bước 1 — Thêm VLAN để thấy giá trị của MST
-
-```
-! Trên CẢ 4 switch
-configure terminal
-vlan 10
- name USERS-A
-vlan 20
- name USERS-B
-vlan 30
- name USERS-C
-vlan 40
- name SERVERS-A
-vlan 50
- name SERVERS-B
-vlan 60
- name SERVERS-C
-exit
-!
-! Cho phép trên mọi trunk
-interface range GigabitEthernet0/1 - 3
- switchport trunk allowed vlan 10,20,30,40,50,60
-end
-```
-
-**Xem gánh nặng của Rapid PVST+ với 6 VLAN:**
-```
-SW-D1# show spanning-tree summary totals
-```
-**Output mẫu:**
-```
-Switch is in rapid-pvst mode
-...
-Name                   Blocking Listening Learning Forwarding STP Active
----------------------- -------- --------- -------- ---------- ----------
-6 vlans                       6         0        0         18         24
-```
-⭐ **6 VLAN = 6 instance STP.** Hình dung 500 VLAN → 500 instance.
-
-#### Bước 2 — Chuyển sang MST
-
-```
-! Làm GIỐNG NHAU trên CẢ 4 switch — không được sai 1 ký tự
-configure terminal
-!
-spanning-tree mode mst
-!
-spanning-tree mst configuration
- name CAMPUS-01
- revision 1
- instance 1 vlan 10,20,30
- instance 2 vlan 40,50,60
- exit
-!
-end
-write memory
-```
-
-#### Bước 3 — Ép root cho từng instance (load-balance)
-
-```
-! SW-D1: root MST1, backup MST2
-SW-D1(config)# spanning-tree mst 1 priority 4096
-SW-D1(config)# spanning-tree mst 2 priority 8192
-
-! SW-D2: root MST2, backup MST1
-SW-D2(config)# spanning-tree mst 2 priority 4096
-SW-D2(config)# spanning-tree mst 1 priority 8192
-```
-
-#### Bước 4 — Kiểm tra
-
-**a) ⭐ Lệnh đầu tiên khi troubleshoot MST — xác nhận region:**
-```
-SW-D1# show spanning-tree mst configuration
-```
-**Output mẫu:**
-```
-Name      [CAMPUS-01]
-Revision  1     Instances configured 3
-
-Instance  Vlans mapped
---------  ---------------------------------------------------------------------
-0         1-9,11-19,21-29,31-39,41-49,51-59,61-4094
-1         10,20,30
-2         40,50,60
--------------------------------------------------------------------------------
-```
-
-**b) So sánh digest giữa các switch — cách nhanh nhất để phát hiện lệch region:**
-```
-SW-D1# show spanning-tree mst configuration digest
-```
-**Output mẫu:**
-```
-Name      [CAMPUS-01]
-Revision  1     Instances configured 3
-Digest    0x1A2B3C4D5E6F708192A3B4C5D6E7F809
-Pre-std Digest  0x...
-```
-⭐ **Chạy lệnh này trên cả 4 switch. `Digest` PHẢI GIỐNG NHAU HOÀN TOÀN.**
-Lệch 1 ký tự = lệch region = cây bị chia đôi.
-
-**Điền bảng:**
-
-| Switch | Name | Revision | Digest (8 ký tự đầu) | Cùng region? |
-|---|---|:---:|---|:---:|
-| SW-D1 | | | | |
-| SW-D2 | | | | |
-| SW-A1 | | | | |
-| SW-A2 | | | | |
-
-**c) Xem cây từng instance:**
-```
-SW-D1# show spanning-tree mst
-```
-**Output mẫu:**
-```
-##### MST0    vlans mapped:   1-9,11-19,21-29,31-39,41-49,51-59,61-4094
-Bridge        address 0c1a.2b00.d100  priority  32768 (32768 sysid 0)
-Root          this switch for the CIST
-Operational   hello time 2, forward delay 15, max age 20, txholdcount 6
-Configured    hello time 2, forward delay 15, max age 20, max hops 20
-
-Interface        Role Sts Cost      Prio.Nbr Type
----------------- ---- --- --------- -------- --------------------------------
-Gi0/1            Desg FWD 20000     128.2    P2p
-Gi0/2            Desg FWD 20000     128.3    P2p
-Gi0/3            Desg FWD 20000     128.4    P2p
-
-##### MST1    vlans mapped:   10,20,30
-Bridge        address 0c1a.2b00.d100  priority  4097  (4096 sysid 1)
-Root          this switch for MST1
-
-Interface        Role Sts Cost      Prio.Nbr Type
----------------- ---- --- --------- -------- --------------------------------
-Gi0/1            Desg FWD 20000     128.2    P2p
-Gi0/2            Desg FWD 20000     128.3    P2p
-Gi0/3            Desg FWD 20000     128.4    P2p
-
-##### MST2    vlans mapped:   40,50,60
-Bridge        address 0c1a.2b00.d100  priority  8194  (8192 sysid 2)
-Root          0c1a.2b00.d200  priority 4098  cost 20000
-              port Gi0/3
-```
-
-⭐ **Đọc output này:**
-- `priority 4097 (4096 sysid 1)` → priority 4096 + **instance ID 1** (không phải VLAN ID như PVST+!)
-- MST1: `Root this switch` → SW-D1 là root
-- MST2: `Root 0c1a.2b00.d200` → SW-D2 là root ✅ load-balance thành công
-- `Cost 20000` → MST dùng **long path cost** mặc định (1 Gbps = 20000)
-
-> ⭐ **Bẫy đề:** trong MST, `sysid` là **Instance ID**, không phải VLAN ID.
-> MST1 priority 4096 → hiện **4097**. Trong PVST+ thì VLAN 10 priority 4096 → hiện **4106**.
-
-**d) Xem giảm gánh nặng:**
-```
-SW-D1# show spanning-tree summary totals
-```
-**Output mẫu:**
-```
-Switch is in mst mode (IEEE Standard)
-...
-Name                   Blocking Listening Learning Forwarding STP Active
----------------------- -------- --------- -------- ---------- ----------
-3 msts                        2         0        0          7          9
-```
-⭐ **Từ "6 vlans" xuống "3 msts"** (MST0 + MST1 + MST2). Với 500 VLAN thì vẫn là 3 msts.
-
-**e) Xem port role cho 1 instance cụ thể:**
-```
-SW-A1# show spanning-tree mst 1
-SW-A1# show spanning-tree mst 2
-SW-A1# show spanning-tree mst interface GigabitEthernet0/1
-```
-
-✅ **Checkpoint LAB 02-2A:**
-
-| Kiểm tra | Mong đợi |
-|---|---|
-| `show spanning-tree mst configuration digest` giống nhau trên cả 4 switch | ⭐ ✅ |
-| MST1 root = SW-D1 · MST2 root = SW-D2 | ✅ |
-| Trên SW-A1: Root Port của MST1 ≠ Root Port của MST2 | ⭐ ✅ Load-balance |
-| `show spanning-tree summary totals` báo `3 msts` (không phải `6 vlans`) | ✅ |
-| Ping PC1↔PC2 vẫn hoạt động | ✅ |
-
-#### Bước 5 — ⭐ Tái hiện lỗi MST kinh điển (làm để nhớ mãi)
-
-**Lỗi: thiếu 1 VLAN trong mapping trên 1 switch**
-
-```
-! Trên SW-A2 — cố ý làm SAI: bỏ VLAN 30 khỏi instance 1
-SW-A2(config)# spanning-tree mst configuration
-SW-A2(config-mst)# instance 1 vlan 10,20
-SW-A2(config-mst)# exit
-```
-
-**Quan sát:**
-```
-SW-A2# show spanning-tree mst configuration digest
-```
-→ **Digest ĐÃ ĐỔI** → SW-A2 ra khỏi region.
-
-```
-SW-A2# show spanning-tree mst | include Boun|Bound
-```
-→ Port uplink của SW-A2 giờ là **boundary port**.
-
-```
-SW-A2# show spanning-tree mst 1
-```
-→ Cây MST1 nhìn khác hoàn toàn so với 3 switch kia.
-
-⭐ **Bài học:** chỉ thiếu **1 VLAN** trong mapping → switch ra khỏi region → topology thay đổi.
-Đây là lỗi số 1 khi triển khai MST ở production. **Ghi vào `SO-TAY-LOI.md`.**
-
-**Sửa lại:**
-```
-SW-A2(config)# spanning-tree mst configuration
-SW-A2(config-mst)# instance 1 vlan 10,20,30
-SW-A2(config-mst)# exit
-```
-Xác nhận digest quay về giống 3 switch kia.
-
-**Lỗi 2: lệch revision number**
-```
-SW-A1(config)# spanning-tree mst configuration
-SW-A1(config-mst)# revision 2                    ! cố ý sai
-SW-A1(config-mst)# exit
-```
-→ Digest cũng đổi → cùng hậu quả. Sửa về `revision 1`.
-
----
-
-### LAB 02-2B — EtherChannel
-
-#### Bước 1 — L2 EtherChannel với LACP
-
-Gộp 2 link giữa SW-D1 và SW-D2. Hiện tại chỉ có Gi0/3 — thêm link thứ 2:
-
-1. Trong EVE-NG: **Stop** SW-D1 và SW-D2 (không nối được dây khi node đang chạy)
-2. Nối thêm: `SW-D1 Gi0/4` ↔ `SW-D2 Gi0/4`
-3. Start lại
-
-> 💡 Khi Add node, nhớ đặt **Ethernets = 6** để có đủ port. Nếu đã tạo với 4 port,
-> phải xóa node và tạo lại (hoặc dùng cặp port khác đang rỗi).
-
-**Cấu hình SW-D1:**
-```
-configure terminal
-!
-! === Bước 1: xóa cấu hình cũ trên member port (quan trọng) ===
-default interface GigabitEthernet0/3
-!
-! === Bước 2: chỉ gõ channel-group trên member port ===
-interface range GigabitEthernet0/3 - 4
- description ---> ETHERCHANNEL to SW-D2
- channel-protocol lacp
- channel-group 1 mode active
- no shutdown
-!
-! === Bước 3: MỌI cấu hình khác gõ trên Port-channel ===
-interface Port-channel1
- description ---> Po1 to SW-D2
- switchport trunk encapsulation dot1q
- switchport mode trunk
- switchport trunk allowed vlan 10,20,30,40,50,60
- switchport trunk native vlan 999
- switchport nonegotiate
- no shutdown
-!
-end
-write memory
-```
-
-**Cấu hình SW-D2:** giống hệt (dùng `channel-group 1 mode active`).
-
-> 💡 `default interface Gi0/3` xóa toàn bộ cấu hình interface về mặc định — rất tiện khi làm lại.
-
-#### Bước 2 — Kiểm tra
-
-**a) ⭐ Lệnh quan trọng nhất:**
-```
-SW-D1# show etherchannel summary
-```
-**Output mong đợi:**
-```
-Group  Port-channel  Protocol    Ports
-------+-------------+-----------+----------------------------------------------
-1      Po1(SU)         LACP      Gi0/3(P)    Gi0/4(P)
-```
-✅ **Checkpoint:** `Po1(SU)` và **cả 2 port đều `(P)`**.
-
-⚠️ Nếu thấy `(I)`, `(s)`, `(u)`, `(D)` → xem bảng §6.7 và §10.2.
-
-**b) Thấy partner không:**
-```
-SW-D1# show lacp neighbor
-```
-**Output mẫu:**
-```
-Flags:  S - Device is requesting Slow LACPDUs
-        F - Device is requesting Fast LACPDUs
-        A - Device is in Active mode       P - Device is in Passive mode
-
-Channel group 1 neighbors
-Partner's information:
-                  LACP port                        Oper    Port     Port
-Port      Flags   Priority  Dev ID          Age    Key     Number   State
-Gi0/3     SA      32768     0c1a.2b00.d200  12s    0x1     0x104    0x3D
-Gi0/4     SA      32768     0c1a.2b00.d200  15s    0x1     0x105    0x3D
-```
-✅ Thấy `Dev ID` của SW-D2 → LACP bắt tay thành công.
-`Flags SA` = **S**low LACPDU + **A**ctive mode.
-
-**c) STP giờ chỉ thấy 1 port logic:**
-```
-SW-D1# show spanning-tree mst 1 | include Po1|Gi0/3|Gi0/4
-```
-**Output mẫu:**
-```
-Po1              Desg FWD 10000     128.65   P2p
-```
-⭐ **Chỉ có `Po1`, không còn `Gi0/3`/`Gi0/4` riêng lẻ.** Và cost = **10000** thay vì 20000
-(2 link 1G gộp lại = 2 Gbps → cost giảm một nửa).
-
-**d) Interface Port-channel dùng như interface thường:**
-```
-SW-D1# show interfaces Port-channel1
-SW-D1# show interfaces trunk
-```
-→ `Po1` xuất hiện như 1 trunk bình thường.
-
-#### Bước 3 — ⭐ Test failover (giá trị nhất)
-
-**a) Ping liên tục PC1 → PC2** (đường đi qua Po1):
-```
-PC1> ping 10.10.10.12 -c 200
-```
-
-**b) Cắt 1 member link:**
-```
-SW-D1(config)# interface GigabitEthernet0/3
-SW-D1(config-if)# shutdown
-```
-
-**c) Đếm gói mất:**
-```
-SW-D1# show etherchannel summary
-```
-```
-1      Po1(SU)         LACP      Gi0/3(D)    Gi0/4(P)
-```
-⭐ `Po1` **vẫn `(SU)`** — bundle còn sống, chỉ mất 1 member.
-
-⭐ **BẢNG SO SÁNH — điền vào:**
-
-| Tình huống | Số gói ping mất | Có Topology Change? |
-|---|:---:|:---:|
-| Cắt 1 member của EtherChannel | | |
-| (so sánh với LAB 02-1) Cắt Root Port khi **không** có EtherChannel, Rapid PVST+ | | |
-
-**Kết quả mong đợi:** cắt member EtherChannel mất **0–1 gói** và **KHÔNG có TC**
-(vì STP không thấy gì thay đổi — `Po1` vẫn up). Đây là ưu điểm lớn nhất của EtherChannel
-so với dựa vào STP.
-
-**Kiểm tra không có TC:**
-```
-SW-A1# show spanning-tree mst 1 detail | include topology change
-```
-
-**d) Bật lại:**
-```
-SW-D1(config-if)# no shutdown
-```
-
-#### Bước 4 — Tái hiện các lỗi EtherChannel (làm để nhớ)
-
-**Lỗi 1 — `passive + passive` không bundle**
-```
-SW-D1(config)# interface range Gi0/3 - 4
-SW-D1(config-if-range)# channel-group 1 mode passive
-! Trên SW-D2 cũng passive
-```
-```
-show etherchannel summary
-```
-→ Port thành `(s)` **suspended** hoặc bundle không lên.
-**Bài học:** phải có ít nhất 1 bên `active`. Sửa: đưa 1 bên về `active`.
-
----
-
-**Lỗi 2 — ⚠️ Trộn `on` với LACP (nguy hiểm nhất)**
-```
-SW-D1(config)# interface range Gi0/3 - 4
-SW-D1(config-if-range)# channel-group 1 mode on          ! static
-! SW-D2 vẫn để mode active (LACP)
-```
-```
-SW-D2# show etherchannel summary
-```
-→ SW-D2 báo `Gi0/3(I) Gi0/4(I)` — **individual**.
-
-⚠️ **Nguy hiểm:** SW-D1 gộp 2 port thành 1 (không gửi BPDU riêng), SW-D2 coi là 2 port riêng
-→ **có thể tạo loop**.
-
-**Xem misconfig guard bảo vệ:**
-```
-SW-D2# show spanning-tree summary | include misconfig
-EtherChannel misconfig guard is enabled
-```
-Nếu loop hình thành, guard này sẽ err-disable port.
-
-**Sửa:** đưa cả 2 bên về cùng protocol (`active`/`active`).
-
----
-
-**Lỗi 3 — Tham số lệch giữa member port**
-```
-SW-D1(config)# interface GigabitEthernet0/3
-SW-D1(config-if)# switchport trunk allowed vlan 10          ! cố ý khác Gi0/4
-```
-```
-show etherchannel summary
-```
-→ `Gi0/3(u)` — **unsuitable for bundling**.
-
-```
-SW-D1# show interfaces Gi0/3 etherchannel | include reason|Reason
-! hoặc xem log
-SW-D1# show logging | include EC5|ETHERCHANNEL
-%EC-5-CANNOT_BUNDLE2: Gi0/3 is not compatible with Gi0/4 and will be suspended
-                      (trunk vlan mismatch)
-```
-⭐ **Log nói thẳng nguyên nhân: `trunk vlan mismatch`.**
-
-**Sửa:**
-```
-SW-D1(config)# default interface GigabitEthernet0/3
-SW-D1(config)# interface GigabitEthernet0/3
-SW-D1(config-if)# channel-group 1 mode active
-```
-→ Rồi cấu hình lại **trên `interface Port-channel1`**, không trên member.
-
-**Bài học:** đây là lý do quy tắc *"chỉ gõ `channel-group` trên member, mọi thứ khác trên Port-channel"*.
-
-#### Bước 5 — LACP nâng cao & load-balancing
-
-```
-! LACP rate fast — phát hiện lỗi trong 3 s thay vì 90 s
-SW-D1(config)# interface range GigabitEthernet0/3 - 4
-SW-D1(config-if-range)# lacp rate fast
-! ⚠️ Phải đặt CẢ 2 BÊN
-```
-```
-SW-D1# show lacp neighbor | include Flags|Gi0
-```
-→ Flag đổi từ `SA` (Slow+Active) sang **`FA`** (Fast+Active).
-
-```
-! min-links: bundle chỉ up khi có ≥ 2 link
-SW-D1(config)# interface Port-channel1
-SW-D1(config-if)# port-channel min-links 2
-```
-Test: shutdown 1 member → **cả Po1 xuống** (`Po1(SM)` = minimum links not met).
-
-> ⭐ **Vì sao dùng min-links:** nếu bạn có 4×10G = 40G và 3 link chết, 1 link 10G còn lại
-> sẽ **bị dội 40G traffic** → drop nghiêm trọng. Thà cho bundle xuống để traffic đi đường khác.
-
-**Hoàn tác:**
-```
-SW-D1(config-if)# no port-channel min-links
-```
-
-```
-! Load-balancing
-SW-D1# show etherchannel load-balance
-SW-D1(config)# port-channel load-balance src-dst-ip
-SW-D1# show etherchannel load-balance
-```
-
-#### Bước 6 — 🚀 L3 EtherChannel (nâng cao)
-
-Nếu image hỗ trợ `ip routing`:
-```
-! Trên SW-D1
-configure terminal
-ip routing
-!
-default interface range GigabitEthernet0/3 - 4
-!
-interface range GigabitEthernet0/3 - 4
- no switchport                          ! TRƯỚC channel-group
- channel-group 2 mode active
- no shutdown
-!
-interface Port-channel2
- no switchport
- ip address 10.99.99.1 255.255.255.252
- no shutdown
-end
-```
-Trên SW-D2: `ip address 10.99.99.2 255.255.255.252`
-
-**Kiểm tra:**
-```
-SW-D1# show etherchannel summary
-```
-→ `Po2(RU)` — **R** = Layer3, **U** = in use.
-
-```
-SW-D1# ping 10.99.99.2
-SW-D1# show spanning-tree mst 1 | include Po2
-```
-→ **`Po2` KHÔNG xuất hiện trong STP** (vì là L3, không tham gia STP).
-
-✅ **Checkpoint LAB 02-2B:**
-
-| Kiểm tra | Mong đợi |
-|---|---|
-| `show etherchannel summary` → `Po1(SU)` + cả 2 port `(P)` | ✅ |
-| `show lacp neighbor` thấy Dev ID của switch đối diện | ✅ |
-| STP chỉ thấy `Po1`, không thấy member riêng lẻ | ⭐ ✅ |
-| Cắt 1 member: mất 0–1 gói ping, **không có TC** | ⭐ ✅ |
-| Tái hiện được `(s)`, `(I)`, `(u)` và giải thích từng cái | ✅ |
-| L3 EtherChannel: `Po2(RU)`, ping được, không có trong STP | ✅ |
-
----
-
-## 💡 10. THỰC CHIẾN ĐI LÀM
+## 💡 4.6 Thực chiến đi làm
 
 | Chủ đề | Thi dạy | Thực tế đi làm |
 |---|---|---|
@@ -1906,6 +1154,20 @@ SW-D1# show spanning-tree mst 1 | include Po2
 | **Duplex mismatch** | Gây lỗi CRC | ⭐ Còn **phá RSTP** — half-duplex → shared link → mất proposal/agreement → hội tụ chậm lại 30–50 s. Luôn kiểm tra `show interfaces status` |
 | **Đếm TC** | Không dạy | ⭐ `show spanning-tree detail \| include occurr` — nếu TC tăng liên tục = có link flapping. Đây là lệnh đầu tiên khi "mạng chậm không rõ nguyên nhân" |
 | **Tài liệu hóa** | Không có | ⭐ Mỗi switch phải có file ghi: root cho VLAN/instance nào, MST mapping, guard nào ở port nào. Không có tài liệu = người sau (hoặc bạn 6 tháng sau) không dám sửa |
+
+---
+
+# 📎 PHỤ LỤC — TRA CỨU
+
+> 🔴 **KHÔNG đọc phần này ở lần học đầu tiên.**
+>
+> | Khi nào | Mở mục nào |
+> |---|---|
+> | Đang lab mà lỗi | **Gỡ lỗi nhanh** (§12) — có quy trình 6 bước cho L2 |
+> | Quên một lệnh | **Hộp lệnh** (§12.1) |
+> | Tuần 20, ôn thi | **Bẫy đề** (§11) + **Quiz** (§13) |
+> | Gặp từ lạ | **Thuật ngữ** (§14) |
+> | Tự chấm | **Đúc kết** (§15) |
 
 ---
 
