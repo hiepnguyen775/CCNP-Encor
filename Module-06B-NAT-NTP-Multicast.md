@@ -11,6 +11,76 @@
 
 ---
 
+# 📌 TÓM TẮT — đọc 10 phút là nắm khung
+
+## Module này gộp ba chủ đề — nhưng chúng gặp nhau ở một chỗ
+
+| Chủ đề | Câu hỏi nó trả lời | Mức độ |
+|---|---|---|
+| ⭐⭐ **NAT/PAT** | *"Cả công ty chỉ có 1 IP public — làm sao 500 máy cùng ra Internet?"* | ⭐ **Configure** |
+| 🟡 **NTP** | *"Vì sao đồng hồ sai lại làm hỏng cả log lẫn chứng thư?"* | 🟡 Describe |
+| 🟡 **Multicast** | *"Một nguồn video, 500 người xem — gửi 500 bản hay 1 bản?"* | 🟡 Describe |
+
+⭐ **Cả ba đều sống ở router biên**, và **NAT là thứ duy nhất bạn phải gõ được.**
+
+## Thứ tự NAT–Routing — bẫy quan trọng nhất module
+
+```
+   ═══ INSIDE → OUTSIDE  (máy nội bộ ra Internet) ═══
+
+   Gói vào → ACL input → ROUTING → NAT (private→public) → ra
+                          ^^^^^^^
+            THIẾU DEFAULT ROUTE = GÓI BỊ BỎ TRƯỚC KHI NAT KỊP CHẠY
+            Dấu hiệu:  Hits = 0  VÀ  Misses = 0
+
+
+   ═══ OUTSIDE → INSIDE  (Internet vào server nội bộ) ═══
+
+   Gói vào → ACL input → NAT (public→private) → ROUTING → vào
+             ^^^^^^^^^
+            ACL CHẠY TRƯỚC NAT
+            → ACL ở interface outside PHẢI dùng IP PUBLIC
+```
+
+## 6 ý phải nhớ
+
+| # | Ý | Một câu |
+|:---:|---|---|
+| 1 | ⭐⭐ **Thứ tự ngược nhau** | Inside→Outside: **routing trước** · Outside→Inside: **NAT trước** |
+| 2 | ⭐⭐ **ACL luôn chạy trước NAT** | Nên ACL ở outside dùng **IP public**, ở inside dùng **IP private** |
+| 3 | **Bốn thuật ngữ NAT** | Inside Local (IP thật trong) · Inside Global (IP hóa trang) · Outside Global · Outside Local |
+| 4 | ⭐ **Dual-ISP cần NAT route-map** | NAT thường **không nhớ interface đi ra** → failover xong vẫn NAT sai IP |
+| 5 | ⭐ **NTP: `stratum 16` = chưa sync** | Và dấu `*` trước giờ trong `show clock` = **giờ không đáng tin** |
+| 6 | **Multicast: RPF check** | *"Route unicast về nguồn có dùng đúng interface gói vừa đến không?"* — cơ chế chống loop |
+
+## Bảng lệnh cốt lõi
+
+| Lệnh | Cho biết gì |
+|---|---|
+| ⭐ `show ip nat translations` | Bảng dịch — **đọc đúng 4 cột** để hiểu NAT đang làm gì |
+| ⭐ `show ip nat statistics` | **Hits / Misses** — chẩn đoán nhanh nhất |
+| `clear ip nat translation *` | Xóa bảng dịch cũ *(bắt buộc sau khi đổi cấu hình)* |
+| ⭐ `show ntp status` | `synchronized` chưa · stratum bao nhiêu |
+| ⭐ `show ntp associations` | Dấu `*` = server đang dùng · `reach 377` = 8/8 tốt |
+| `show clock detail` | ⭐ Dấu `*` trước giờ = **chưa đồng bộ** |
+| `show ip mroute` | `(*,G)` và `(S,G)` |
+
+## 🗺️ Bố cục module
+
+| Phần | Tên | Thời gian |
+|:---:|---|:---:|
+| **1** | 🧠 **CÁI ĐÓ LÀ GÌ** — 5 ví von | 30 phút |
+| **2** | ⚙️ **NÓ CHẠY THẾ NÀO** — ⭐ **§3 NAT là phần phải gõ được** | 2 giờ |
+| **3** | 🧪 **NHÌN THẤY NÓ** — [LAB 06B](Module-06B-LAB.md), 6 bước | 6 giờ |
+| **4** | 🏗️ **TOPO & KIẾN TRÚC** | 30 phút |
+| **📎** | **PHỤ LỤC** — 🔴 không đọc lần đầu | — |
+
+> ⭐ **Tiết kiệm thời gian:** đừng dựng lab PIM phức tạp. Blueprint chỉ hỏi
+> *"PIM Dense vs Sparse khác gì"*, *"IGMPv2 vs v3 khác gì"*, *"RPF check là gì"*.
+> **Học bảng §5 là đủ.**
+
+---
+
 ## ⭐ 0. Phạm vi — chú ý từ "Configure" vs "Describe"
 
 | Chủ đề | Blueprint dùng từ | Nghĩa | Thời gian |
@@ -37,9 +107,111 @@
 
 ---
 
-## 📘 2. NAT / PAT NÂNG CAO
+## 🧠 PHẦN 1 — CÁI ĐÓ LÀ GÌ
 
-### 2.1 Bốn thuật ngữ NAT — phải phân biệt chính xác
+> **Đọc phần này TRƯỚC, đọc một mạch.** Không lệnh, không bảng tra.
+>
+> Module-06B gộp **ba chủ đề không liên quan nhau** (NAT, NTP, Multicast). Năm ví von dưới đây
+> giúp bạn nắm bản chất từng cái trước khi vào chi tiết.
+>
+> **Tự kiểm tra:** đọc xong mỗi mục, gấp tài liệu lại, nói lại trong 3 câu.
+
+### 2.1 Thứ tự NAT–Routing như thủ tục sân bay
+
+**Đi ra nước ngoài (Inside → Outside):**
+1. ⭐ **Kiểm tra vé & định tuyến TRƯỚC** — *"chuyến bay này đi đâu, cửa nào?"* (**ROUTING**)
+2. Rồi mới **đổi hộ chiếu** sang hộ chiếu quốc tế (**NAT**)
+
+→ ⭐ **Không có vé (không có route) thì bị chặn ngay ở cửa, chưa kịp đổi hộ chiếu.**
+Đó là lý do ⭐ **thiếu default route = NAT vô nghĩa**.
+
+**Từ nước ngoài về (Outside → Inside):**
+1. ⭐ **Đổi hộ chiếu TRƯỚC** — quy về danh tính nội địa (**NAT**)
+2. Rồi mới **định tuyến** về địa chỉ nhà (**ROUTING**)
+
+→ ⭐ **Hải quan kiểm tra (ACL inbound) xảy ra TRƯỚC khi đổi hộ chiếu**
+→ ⭐ **ACL phải dùng IP PUBLIC**, không phải IP private.
+
+🧠 **Một câu để nhớ:** ⭐ ***"Ra: routing trước, NAT sau. Vào: NAT trước, routing sau.
+Và ACL luôn chạy TRƯỚC NAT ở chiều vào — nên dùng IP public."***
+
+### 2.2 NAT route-map cho dual-ISP — vì sao NAT thường không đủ
+
+**NAT thường** tạo entry kiểu *"`10.1.10.100` → `203.0.113.1` (IP của ISP1)"* —
+⭐ **entry này không ghi nhớ mình đi qua ISP nào**.
+
+ISP1 chết → routing chuyển sang ISP2 → nhưng ⭐ **entry NAT cũ vẫn còn** (timeout 24 giờ!)
+→ gói ra ISP2 nhưng **source IP vẫn là IP của ISP1** → ⭐ **ISP2 drop** (không phải IP của họ).
+
+⭐ **NAT route-map** tạo **fully-extended entry** có ghi cả **outside address** →
+⭐ **cùng một inside host có thể có 2 entry riêng cho 2 ISP** → chuyển đường là NAT theo đúng ISP.
+
+🧠 **Một câu để nhớ:** *Dual-ISP cần **3 lớp**: routing failover (IP SLA + track),
+**NAT failover (route-map)**, và gateway HA (HSRP). ⭐ Thiếu lớp NAT là lỗi phổ biến nhất —
+vì routing failover xong mà traffic vẫn chết, rất khó hiểu.*
+
+### 2.3 NTP stratum như tin truyền tai
+
+- **Stratum 0** = ⭐ **người chứng kiến trực tiếp** (đồng hồ nguyên tử, GPS)
+- **Stratum 1** = người nghe **trực tiếp** từ nhân chứng
+- **Stratum 2** = người nghe từ stratum 1
+- ...
+- ⭐ **Stratum 16** = ⭐ **"tôi chẳng nghe từ ai cả"** = **không đáng tin, không dùng được**
+
+⭐ Mỗi bước truyền tin thêm một chút **sai số** (`root dispersion`) —
+đó là lý do stratum càng thấp càng chính xác.
+
+🧠 **Một câu để nhớ:** ⭐ ***Thấy `stratum 16` là chưa sync. Thấy `*` trước giờ
+trong `show clock` là giờ không đáng tin. Hai dấu hiệu đó phải nhận ra trong 1 giây.***
+
+### 2.4 Multicast: unicast đi TỚI đích, multicast đi XA nguồn
+
+| | **Unicast** | ⭐ **Multicast** |
+|---|---|---|
+| Router hỏi | *"Đích ở đâu?"* → forward **TỚI đích** | ⭐ *"Nguồn ở đâu?"* → forward **XA nguồn** |
+| Chống loop | **TTL** giảm dần | ⭐ **RPF check** |
+| Bảng | Routing table | ⭐ **mroute table** (`(*,G)` và `(S,G)`) |
+
+⭐ **RPF check ví von:** dòng nước chảy **từ nguồn ra biển**.
+Nếu bạn thấy nước chảy **ngược về phía nguồn** → chắc chắn **có vòng lặp** → chặn ngay.
+
+🧠 **Một câu để nhớ:** ⭐ ***Multicast forward "away from source", và RPF check là cách
+router kiểm tra "gói này có thật sự đến từ hướng nguồn không". Sai hướng = drop.***
+
+### 2.5 Shared tree vs Source tree — bưu cục trung tâm vs giao trực tiếp
+
+- ⭐ **Shared tree `(*, G)`:** mọi thứ **đi qua bưu cục trung tâm (RP)**.
+  Đơn giản (chỉ cần biết địa chỉ bưu cục), ⭐ nhưng **đường có thể đi vòng rất xa**.
+- ⭐ **Source tree `(S, G)`:** ⭐ **giao trực tiếp** từ người gửi tới người nhận.
+  Đường ngắn nhất, nhưng router phải **nhớ từng cặp (người gửi, nhóm)** → nhiều state hơn.
+
+⭐ **PIM-SM thông minh:** ⭐ **bắt đầu bằng shared tree** (để "làm quen"),
+rồi ⭐ **tự chuyển sang source tree** (SPT switchover) khi biết source ở đâu.
+
+🧠 **Một câu để nhớ:** *`(*, G)` = "gửi qua bưu cục". `(S, G)` = "giao tận tay".
+⭐ SSM bỏ luôn bưu cục — host nói thẳng **"tôi muốn từ người này"** (IGMPv3),
+nên **không cần RP** và **chống được spoofing**.*
+
+
+---
+
+## ⚙️ PHẦN 2 — NÓ CHẠY THẾ NÀO
+
+> | Phần 1 (ví von) | → | Phần 2 (cơ chế) |
+> |---|:---:|---|
+> | §2.1 thủ tục sân bay | → | **§3.2 Thứ tự NAT vs Routing** ⭐⭐ |
+> | §2.2 vì sao NAT thường không đủ | → | **§3.3 NAT route-map dual-ISP** |
+> | §2.3 tin truyền tai | → | **§4 NTP (stratum)** |
+> | §2.4 · §2.5 | → | **§5 Multicast (IGMP, PIM)** |
+>
+> ⚠️ **Chú ý mức độ:** ⭐ **NAT là "configure"** (phải gõ được) · 🟡 **NTP và Multicast là "describe"**
+> (chỉ cần hiểu + đọc được output). Đừng dành thời gian dựng lab PIM phức tạp.
+
+---
+
+## 📘 3. NAT / PAT NÂNG CAO
+
+### 3.1 Bốn thuật ngữ NAT — phải phân biệt chính xác
 
 ⭐ **Quy tắc đọc:** **Inside/Outside** = host đó thuộc mạng nào · **Local/Global** = nhìn từ phía nào.
 
@@ -65,7 +237,7 @@ tcp  203.0.113.1:1035   10.1.10.100:1035   8.8.8.8:80         8.8.8.8:80
 ```
 ⭐ Đọc theo đúng 4 cột — đây là cách nhanh nhất hiểu NAT đang làm gì.
 
-### 2.2 ⭐⭐ Thứ tự NAT vs Routing — bẫy đề quan trọng nhất
+### 3.2 ⭐⭐ Thứ tự NAT vs Routing — bẫy đề quan trọng nhất
 
 > ⭐ **Inside → Outside:** ⭐ **ROUTING TRƯỚC, NAT SAU**
 > ⭐ **Outside → Inside:** ⭐ **NAT TRƯỚC, ROUTING SAU**
@@ -111,7 +283,7 @@ interface GigabitEthernet0/1
 > ⭐ **Đây là một trong những lỗi khó tìm nhất khi làm port forwarding.** Cấu hình NAT đúng,
 > ACL "trông đúng", mà không hoạt động — vì thứ tự xử lý.
 
-### 2.3 Các kiểu NAT — bảng đầy đủ
+### 3.3 Các kiểu NAT — bảng đầy đủ
 
 | Kiểu | Ánh xạ | Lệnh | Dùng khi |
 |---|---|---|---|
@@ -235,7 +407,7 @@ ip nat translation max-entries host 10.1.10.100 100   ! giới hạn theo host
 ⭐ **`max-entries` là bảo vệ quan trọng:** 1 PC nhiễm malware có thể tạo **hàng chục nghìn** entry
 → ⭐ **router hết RAM**. Đặt giới hạn theo host.
 
-### 2.4 🟡 NAT64 & NPTv6 (describe)
+### 3.4 🟡 NAT64 & NPTv6 (describe)
 
 | | ⭐ **NAT64** | ⭐ **NPTv6** |
 |---|---|---|
@@ -261,9 +433,9 @@ Triết lý IPv6 là *"không cần NAT"* — địa chỉ đủ dùng.
 
 ---
 
-## 📘 3. NTP
+## 📘 4. NTP
 
-### 3.1 Vì sao thời gian quan trọng (và vì sao blueprint có mục này)
+### 4.1 Vì sao thời gian quan trọng (và vì sao blueprint có mục này)
 
 | Thứ phụ thuộc thời gian đúng | Hậu quả nếu sai |
 |---|---|
@@ -278,7 +450,7 @@ Triết lý IPv6 là *"không cần NAT"* — địa chỉ đủ dùng.
 🧠 ⭐ ***"Không có NTP thì log vô giá trị."*** Đó là lý do NTP nằm trong blueprint —
 nó là **nền tảng của Network Assurance** (Module-11).
 
-### 3.2 Stratum & kiến trúc
+### 4.2 Stratum & kiến trúc
 
 ```
    Stratum 0  = Reference clock (đồng hồ nguyên tử, GPS) — KHÔNG phải thiết bị mạng
@@ -301,7 +473,7 @@ nó là **nền tảng của Network Assurance** (Module-11).
 | Multicast (nếu dùng) | 224.0.1.1 |
 | **SNTP** | ⭐ Simple NTP — **chỉ làm client**, thuật toán đơn giản hơn, kém chính xác hơn |
 
-### 3.3 Bốn chế độ NTP
+### 4.3 Bốn chế độ NTP
 
 | Chế độ | Lệnh | Nghĩa |
 |---|---|---|
@@ -310,7 +482,7 @@ nó là **nền tảng của Network Assurance** (Module-11).
 | ⭐ **Master** | `ntp master <stratum>` | ⭐ Router **tự làm nguồn thời gian** (mặc định stratum 8) |
 | Broadcast/Multicast | `ntp broadcast client` | Ít dùng |
 
-### 3.4 Cấu hình NTP đầy đủ
+### 4.4 Cấu hình NTP đầy đủ
 
 ```
 ! ═══ 1. Timezone (Việt Nam UTC+7) ═══
@@ -348,7 +520,7 @@ ntp access-group serve-only ACL-NTP-SERVE           ! ai được xin giờ từ
 | ⭐ `serve-only` | ⭐ **Chỉ trả lời request giờ** — an toàn cho router làm NTP server nội bộ |
 | `query-only` | Chỉ trả lời truy vấn control (chặt nhất) |
 
-### 3.5 ⭐ Đọc output NTP
+### 4.5 ⭐ Đọc output NTP
 
 ```
 show ntp status
@@ -438,9 +610,9 @@ Time source is NTP                          ← nguồn là NTP (tốt)
 
 ---
 
-## 📘 4. MULTICAST (describe)
+## 📘 5. MULTICAST (describe)
 
-### 4.1 Địa chỉ multicast — bảng phải nhớ
+### 5.1 Địa chỉ multicast — bảng phải nhớ
 
 | Dải | Tên | Dùng cho |
 |---|---|---|
@@ -466,7 +638,7 @@ Time source is NTP                          ← nguồn là NTP (tốt)
 | **224.0.0.102** | ⭐ **HSRPv2 / GLBP** |
 | 224.0.1.39 / .40 | Auto-RP (Announce / Discovery) |
 
-### 4.2 ⭐ Multicast MAC & vấn đề 32:1
+### 5.2 ⭐ Multicast MAC & vấn đề 32:1
 
 ```
    IP multicast:  1110 xxxx  xxxxxxxx  xxxxxxxx  xxxxxxxx    (32 bit)
@@ -487,7 +659,7 @@ Time source is NTP                          ← nguồn là NTP (tốt)
 ⭐ **Bài học thiết kế:** khi chọn địa chỉ multicast nội bộ, ⭐ **tránh dùng các địa chỉ
 có 23 bit thấp trùng nhau**. Dùng `239.x.x.x` và quy hoạch cẩn thận.
 
-### 4.3 ⭐⭐ IGMP — v1 vs v2 vs v3
+### 5.3 ⭐⭐ IGMP — v1 vs v2 vs v3
 
 **IGMP = giao tiếp giữa HOST và ROUTER** ("tôi muốn nhận group này").
 
@@ -540,7 +712,7 @@ show mac address-table multicast
 ⚠️ **Bẫy thực tế:** VLAN **không có router multicast** → ⭐ **không có querier** →
 IGMP snooping không học được gì → switch **flood**. Sửa: bật `ip igmp snooping vlan X querier`.
 
-### 4.4 ⭐⭐ PIM — 4 chế độ
+### 5.4 ⭐⭐ PIM — 4 chế độ
 
 **PIM = giao tiếp giữa ROUTER và ROUTER** (xây cây phân phối multicast).
 
@@ -677,7 +849,7 @@ show ip rpf <source>                            ! RPF interface
 
 ---
 
-## 📘 5. 🟡 IPv6 First-Hop Security (bổ trợ — không có trong blueprint ENCOR)
+## 📘 6. 🟡 IPv6 First-Hop Security (bổ trợ — không có trong blueprint ENCOR)
 
 > ℹ️ IPv6 FHS thuộc **ENARSI/SCOR**, không phải ENCOR. Đọc để biết, **không cần luyện**.
 
@@ -699,765 +871,110 @@ show ip rpf <source>                            ! RPF interface
 | IP Source Guard | ⭐ **IPv6 Source Guard** |
 | *(không có)* | ⭐ **RA Guard** — IPv6 có RA nên có nguy cơ riêng |
 
----
+## 🧪 PHẦN 3 — NHÌN THẤY NÓ
 
-## 📖 6. HIỂU RÕ HƠN
+> ### 👉 **[LAB 06B — Tuần 11: NAT/PAT · NTP · Multicast](Module-06B-LAB.md)**
 
-### 6.1 Thứ tự NAT–Routing như thủ tục sân bay
+| Bước | Nội dung | Ví von ở Phần 1 | Cơ chế ở Phần 2 |
+|:---:|---|---|---|
+| 1 | ⭐ PAT overload + chứng minh **thứ tự NAT–routing** | §2.1 thủ tục sân bay | §3.2 |
+| 2 | ⭐⭐ Static PAT + **bẫy ACL dùng IP public** | §2.1 | §3.2 |
+| 3 | Dynamic NAT với pool (test cạn pool) | — | §3.3 |
+| 4 | ⭐⭐ **NAT route-map cho dual-ISP** | §2.2 vì sao NAT thường không đủ | §3.3 |
+| 5 | ⭐ NTP + authentication | §2.3 tin truyền tai | §4 |
+| 6 | 🚀 PIM-SM (tùy chọn) | §2.4 · §2.5 | §5 |
 
-**Đi ra nước ngoài (Inside → Outside):**
-1. ⭐ **Kiểm tra vé & định tuyến TRƯỚC** — *"chuyến bay này đi đâu, cửa nào?"* (**ROUTING**)
-2. Rồi mới **đổi hộ chiếu** sang hộ chiếu quốc tế (**NAT**)
-
-→ ⭐ **Không có vé (không có route) thì bị chặn ngay ở cửa, chưa kịp đổi hộ chiếu.**
-Đó là lý do ⭐ **thiếu default route = NAT vô nghĩa**.
-
-**Từ nước ngoài về (Outside → Inside):**
-1. ⭐ **Đổi hộ chiếu TRƯỚC** — quy về danh tính nội địa (**NAT**)
-2. Rồi mới **định tuyến** về địa chỉ nhà (**ROUTING**)
-
-→ ⭐ **Hải quan kiểm tra (ACL inbound) xảy ra TRƯỚC khi đổi hộ chiếu**
-→ ⭐ **ACL phải dùng IP PUBLIC**, không phải IP private.
-
-🧠 **Một câu để nhớ:** ⭐ ***"Ra: routing trước, NAT sau. Vào: NAT trước, routing sau.
-Và ACL luôn chạy TRƯỚC NAT ở chiều vào — nên dùng IP public."***
-
-### 6.2 NAT route-map cho dual-ISP — vì sao NAT thường không đủ
-
-**NAT thường** tạo entry kiểu *"`10.1.10.100` → `203.0.113.1` (IP của ISP1)"* —
-⭐ **entry này không ghi nhớ mình đi qua ISP nào**.
-
-ISP1 chết → routing chuyển sang ISP2 → nhưng ⭐ **entry NAT cũ vẫn còn** (timeout 24 giờ!)
-→ gói ra ISP2 nhưng **source IP vẫn là IP của ISP1** → ⭐ **ISP2 drop** (không phải IP của họ).
-
-⭐ **NAT route-map** tạo **fully-extended entry** có ghi cả **outside address** →
-⭐ **cùng một inside host có thể có 2 entry riêng cho 2 ISP** → chuyển đường là NAT theo đúng ISP.
-
-🧠 **Một câu để nhớ:** *Dual-ISP cần **3 lớp**: routing failover (IP SLA + track),
-**NAT failover (route-map)**, và gateway HA (HSRP). ⭐ Thiếu lớp NAT là lỗi phổ biến nhất —
-vì routing failover xong mà traffic vẫn chết, rất khó hiểu.*
-
-### 6.3 NTP stratum như tin truyền tai
-
-- **Stratum 0** = ⭐ **người chứng kiến trực tiếp** (đồng hồ nguyên tử, GPS)
-- **Stratum 1** = người nghe **trực tiếp** từ nhân chứng
-- **Stratum 2** = người nghe từ stratum 1
-- ...
-- ⭐ **Stratum 16** = ⭐ **"tôi chẳng nghe từ ai cả"** = **không đáng tin, không dùng được**
-
-⭐ Mỗi bước truyền tin thêm một chút **sai số** (`root dispersion`) —
-đó là lý do stratum càng thấp càng chính xác.
-
-🧠 **Một câu để nhớ:** ⭐ ***Thấy `stratum 16` là chưa sync. Thấy `*` trước giờ
-trong `show clock` là giờ không đáng tin. Hai dấu hiệu đó phải nhận ra trong 1 giây.***
-
-### 6.4 Multicast: unicast đi TỚI đích, multicast đi XA nguồn
-
-| | **Unicast** | ⭐ **Multicast** |
-|---|---|---|
-| Router hỏi | *"Đích ở đâu?"* → forward **TỚI đích** | ⭐ *"Nguồn ở đâu?"* → forward **XA nguồn** |
-| Chống loop | **TTL** giảm dần | ⭐ **RPF check** |
-| Bảng | Routing table | ⭐ **mroute table** (`(*,G)` và `(S,G)`) |
-
-⭐ **RPF check ví von:** dòng nước chảy **từ nguồn ra biển**.
-Nếu bạn thấy nước chảy **ngược về phía nguồn** → chắc chắn **có vòng lặp** → chặn ngay.
-
-🧠 **Một câu để nhớ:** ⭐ ***Multicast forward "away from source", và RPF check là cách
-router kiểm tra "gói này có thật sự đến từ hướng nguồn không". Sai hướng = drop.***
-
-### 6.5 Shared tree vs Source tree — bưu cục trung tâm vs giao trực tiếp
-
-- ⭐ **Shared tree `(*, G)`:** mọi thứ **đi qua bưu cục trung tâm (RP)**.
-  Đơn giản (chỉ cần biết địa chỉ bưu cục), ⭐ nhưng **đường có thể đi vòng rất xa**.
-- ⭐ **Source tree `(S, G)`:** ⭐ **giao trực tiếp** từ người gửi tới người nhận.
-  Đường ngắn nhất, nhưng router phải **nhớ từng cặp (người gửi, nhóm)** → nhiều state hơn.
-
-⭐ **PIM-SM thông minh:** ⭐ **bắt đầu bằng shared tree** (để "làm quen"),
-rồi ⭐ **tự chuyển sang source tree** (SPT switchover) khi biết source ở đâu.
-
-🧠 **Một câu để nhớ:** *`(*, G)` = "gửi qua bưu cục". `(S, G)` = "giao tận tay".
-⭐ SSM bỏ luôn bưu cục — host nói thẳng **"tôi muốn từ người này"** (IGMPv3),
-nên **không cần RP** và **chống được spoofing**.*
+> ⚠️ **Bước 1 và 2 là hai bẫy khó tìm nhất của NAT ngoài đời**, và cả hai đều bắt nguồn
+> từ cùng một thứ: ⭐ **thứ tự xử lý NAT và routing**.
+>
+> Cấu hình *"trông hoàn toàn đúng"* nhưng không chạy — đó là lúc bạn cần hiểu bản chất
+> chứ không phải gõ thêm lệnh.
 
 ---
 
-## 🧪 7. LAB 06B
+## 🏗️ PHẦN 4 — TOPO & KIẾN TRÚC
 
-### 7.1 Chuẩn bị — dùng lại LAB 06A
+> Ba chủ đề này gặp nhau ở **đúng một chỗ: router biên**.
 
-```
-                  ┌──────────────┐
-                  │    R-ISP     │  Lo8: 8.8.8.8/32
-                  └──┬────────┬──┘  Lo9: 9.9.9.9/32
-      203.0.113.0/30 │        │ 198.51.100.0/30
-                 Gi0/1│        │Gi0/1
-                 ┌───┴──┐  ┌──┴───┐
-                 │  R1  │  │  R2  │
-                 └───┬──┘  └──┬───┘
-                     │  SW1   │
-                     └───┬────┘
-                    [PC1] 10.1.10.100
-                    [SRV] 10.1.10.50 (giả lập web server)
-```
-
-⭐ **Thay đổi trên R-ISP:** ⭐ **XÓA route về LAN private** để chứng minh NAT thật sự hoạt động.
-```
-R-ISP(config)# no ip route 10.1.10.0 255.255.255.0 203.0.113.1
-R-ISP(config)# no ip route 10.1.20.0 255.255.255.0 198.51.100.1
-```
-⭐ Giờ R-ISP **không biết** mạng `10.1.10.0/24` → nếu PC1 ping được `8.8.8.8`
-thì **chắc chắn là nhờ NAT**.
-
-⭐ **Thêm SRV (giả lập web server)** — dùng VPCS thứ 2 hoặc 1 vIOS nhẹ:
-```
-! Nếu dùng VPCS:
-SRV> ip 10.1.10.50/24 10.1.10.1
-SRV> save
-```
-
----
-
-### Bước 1 — ⭐ PAT overload + chứng minh thứ tự NAT-Routing
-
-#### 1a) Cấu hình PAT trên R1
+### 4.1 Bản đồ: NAT · NTP · Multicast nằm ở đâu
 
 ```
-R1(config)# interface GigabitEthernet0/0.10
-R1(config-subif)#  ip nat inside
-R1(config-subif)# exit
-R1(config)# interface GigabitEthernet0/0.20
-R1(config-subif)#  ip nat inside
-R1(config-subif)# exit
-R1(config)# interface GigabitEthernet0/1
-R1(config-if)#  ip nat outside
-R1(config-if)# exit
-!
-R1(config)# ip access-list standard ACL-NAT
-R1(config-std-nacl)#  permit 10.1.10.0 0.0.0.255
-R1(config-std-nacl)#  permit 10.1.20.0 0.0.0.255
-R1(config-std-nacl)# exit
-!
-R1(config)# ip nat inside source list ACL-NAT interface GigabitEthernet0/1 overload
+                    ISP-1                    ISP-2
+                      │                        │
+          ┌───────────┴────────────────────────┴──────────┐
+          │              ROUTER BIÊN                       │
+          │                                                │
+          │  ① NAT/PAT: đổi IP riêng → IP public           │
+          │  ② ACL: dùng IP PUBLIC ở chiều vào             │
+          │  ③ NAT route-map: failover đúng IP theo ISP    │
+          └───────────────────────┬────────────────────────┘
+                                  │
+          ┌───────────────────────┴────────────────────────┐
+          │              MẠNG NỘI BỘ                        │
+          │                                                 │
+          │  ④ NTP: nền của MỌI log, chứng thư, IP SLA      │
+          │  ⑤ Multicast: video/IPTV — IGMP ở access,       │
+          │     PIM ở router                                │
+          └─────────────────────────────────────────────────┘
 ```
 
-**Làm tương tự trên R2** (uplink `Gi0/1` = `198.51.100.1`).
+### 4.2 Năm quyết định — và sai thì hỏng thế nào
 
-#### 1b) Test & đọc bảng NAT
+| # | Quyết định | 🔴 Sai thì hỏng thế nào |
+|:---:|---|---|
+| ① | **Phải có default route trước khi NAT có tác dụng** | Inside→Outside **routing chạy TRƯỚC NAT** → không có route = gói bị bỏ **trước khi NAT kịp xảy ra**. Dấu hiệu: `Hits = 0` **và** `Misses = 0` |
+| ② | **ACL ở interface outside dùng IP PUBLIC** | ACL input chạy **TRƯỚC** NAT → viết IP private là **không bao giờ khớp** |
+| ③ | **Dual-ISP phải dùng NAT route-map** | NAT thường **không ghi nhớ interface đi ra** → failover xong vẫn NAT bằng IP ISP cũ → **đứt tới 24 giờ** chờ entry hết hạn |
+| ④ | **NTP là việc ĐẦU TIÊN khi dựng thiết bị** | Sai giờ → log không đối chiếu được · chứng thư 802.1X/AP join **hỏng** · IP SLA one-way delay **vô nghĩa** |
+| ⑤ | **IGMP snooping ở switch access** | Không bật → multicast bị **flood ra mọi port** như broadcast |
 
-```
-PC1> ping 8.8.8.8
-! ✅ thành công (dù R-ISP KHÔNG có route về 10.1.10.0/24)
-```
-```
-R1# show ip nat translations
-```
-**Output mẫu:**
-```
-Pro  Inside global      Inside local       Outside local      Outside global
-icmp 203.0.113.1:7      10.1.10.100:7      8.8.8.8:7          8.8.8.8:7
-```
+### 4.3 Ba sự thật mà chỉ người đi làm mới biết
 
-⭐ **Điền bảng 4 thuật ngữ từ output này:**
+| Sự thật | Giải thích |
+|---|---|
+| ⭐⭐ **Thứ tự NAT–routing ngược nhau theo chiều** | **Inside→Outside: ROUTING trước, NAT sau** · **Outside→Inside: NAT trước, ROUTING sau**. Nhưng ⭐ **ACL input LUÔN chạy trước NAT** ở cả hai chiều |
+| ⭐ **`Hits=0` và `Misses=0` cùng lúc = thiếu route** | Đây là dấu hiệu chẩn đoán nhanh nhất. Nếu NAT được gọi mà thất bại thì `Misses` phải tăng |
+| ⭐⭐ **NTP không phải việc phụ** | Nó là **điều kiện tiên quyết** của Module-10 (chứng thư), Module-11 (log, IP SLA) và Module-07B (AP join). Dựng thiết bị mà quên NTP là **để lại bom hẹn giờ** |
 
-| Thuật ngữ | Giá trị | Nghĩa |
+### 4.4 Những thứ này sẽ lớn lên thành gì
+
+| Bạn vừa học | Sẽ thành | Ở module |
 |---|---|---|
-| Inside Local | | |
-| Inside Global | | |
-| Outside Local | | |
-| Outside Global | | |
+| NAT dual-ISP + IP SLA | SD-WAN chọn đường theo ứng dụng | **Module-09 §6** |
+| ACL với NAT | ACL nâng cao · CoPP · uRPF | **Module-10 §4–5** |
+| NTP | ⭐ Nền của **toàn bộ Module-11** (syslog, IP SLA) | **Module-11 §2** |
+| Multicast (IGMP/PIM) | VXLAN dùng multicast cho BUM traffic | **Module-08 §8** |
 
-<details><summary>Đáp án</summary>
+### 4.5 Vẽ lại để nhớ
 
-| Thuật ngữ | Giá trị | Nghĩa |
-|---|---|---|
-| ⭐ **Inside Local** | `10.1.10.100` | IP **thật** của PC1 |
-| ⭐ **Inside Global** | `203.0.113.1` | PC1 **hóa trang thành** IP này (= IP interface outside của R1) |
-| **Outside Local** | `8.8.8.8` | Đích, nhìn từ nội bộ |
-| **Outside Global** | `8.8.8.8` | Đích, nhìn từ ngoài (giống Outside Local vì không dùng `ip nat outside source`) |
+> **Bài tập 15 phút, trên giấy.**
+>
+> 1. Vẽ lại sơ đồ §4.1, đánh dấu ① → ⑤
+> 2. Vẽ **thứ tự xử lý** của gói theo **cả hai chiều** (Inside→Outside và ngược lại)
+> 3. Trả lời: *"Port forward web server đã cấu hình đúng, NAT entry có, nhưng ngoài Internet không vào được. Nghi ngờ gì đầu tiên?"*
+
+<details>
+<summary>Đáp án câu 3</summary>
+
+⭐ **Nghi ngờ đầu tiên: ACL ở interface outside đang dùng IP PRIVATE.**
+
+Chiều Outside→Inside: ⭐ **ACL input chạy TRƯỚC NAT**. Lúc ACL kiểm tra, gói vẫn mang
+IP đích là **IP public** (`203.0.113.5`), chưa được dịch thành `10.1.10.50`.
+
+Nên ACL phải viết:
+
+```
+permit tcp any host 203.0.113.5 eq 80     ! ĐÚNG (IP public)
+permit tcp any host 10.1.10.50 eq 80      ! SAI (không bao giờ khớp)
+```
+
+⭐ Kiểm chứng bằng `show access-lists` — dòng đó sẽ có **0 matches**.
+
 </details>
 
-```
-R1# show ip nat statistics
-```
-**Output mẫu:**
-```
-Total active translations: 1 (0 static, 1 dynamic; 1 extended)
-Peak translations: 3, occurred 00:02:11 ago
-Outside interfaces:
-  GigabitEthernet0/1
-Inside interfaces:
-  GigabitEthernet0/0.10, GigabitEthernet0/0.20
-Hits: 24  Misses: 0
-CEF Translated packets: 24, CEF Punted packets: 6
-Expired translations: 2
-Dynamic mappings:
--- Inside Source
-[Id: 1] access-list ACL-NAT interface GigabitEthernet0/1 refcount 1
-```
-⭐ `Hits` tăng = NAT hoạt động · ⚠️ `Misses` cao = có traffic khớp ACL nhưng không NAT được.
-
-**⭐ Chứng minh NAT thật sự cần thiết:**
-```
-R-ISP# ping 10.1.10.100
-! ❌ FAIL — R-ISP không có route về mạng private
-```
-⭐ **PC1 ra được nhờ NAT, không phải nhờ routing.**
-
-#### 1c) ⭐⭐ CHỨNG MINH: thiếu default route → NAT vô nghĩa
-
-```
-R1(config)# no ip route 0.0.0.0 0.0.0.0 203.0.113.2
-```
-```
-PC1> ping 8.8.8.8
-! ❌ FAIL 100%
-R1# show ip nat translations
-! → TRỐNG (không có entry nào được tạo)
-R1# show ip nat statistics | include Misses
-! Hits: 24  Misses: 0                          ← Misses KHÔNG tăng
-```
-
-⭐⭐ **Bài học:** NAT **không được gọi tới** — vì ⭐ **routing xảy ra TRƯỚC NAT**
-ở chiều inside→outside. Không có route → gói bị **drop trước khi NAT kịp làm gì**.
-
-**Bật lại:**
-```
-R1(config)# ip route 0.0.0.0 0.0.0.0 203.0.113.2
-```
-
-#### 1d) 🧪 Bắt gói 2 bên NAT để nhìn thấy dịch địa chỉ
-
-1. EVE-NG: **Capture** link `R1 Gi0/0` (inside) → Wireshark, filter `icmp`
-2. EVE-NG: **Capture** link `R1 Gi0/1` (outside) → Wireshark, filter `icmp`
-3. PC1 ping `8.8.8.8`
-
-⭐ **Kết quả:**
-
-| Bắt ở | Source IP | Nghĩa |
-|---|---|---|
-| **Inside** (`Gi0/0`) | `10.1.10.100` | ⭐ **Inside Local** |
-| **Outside** (`Gi0/1`) | `203.0.113.1` | ⭐ **Inside Global** |
-
-⭐ **Nhìn thấy NAT bằng mắt.** Đừng bỏ bước này.
-
-✅ **Checkpoint bước 1:**
-
-| Kiểm tra | Mong đợi |
-|---|---|
-| PC1 ping `8.8.8.8` OK dù R-ISP không có route về LAN | ⭐ ✅ |
-| `show ip nat translations` có entry, đọc đúng 4 thuật ngữ | ⭐ ✅ |
-| ⭐ Xóa default route → NAT **không tạo entry**, ping fail | ⭐⭐ ✅ |
-| Bắt gói 2 bên → source IP **khác nhau** | ⭐ ✅ |
-
 ---
 
-### Bước 2 — ⭐⭐ Static PAT (port forwarding) + bẫy ACL
-
-#### 2a) Publish web server nội bộ
-
-```
-! Port forward: Internet:80 → 10.1.10.50:80
-R1(config)# ip nat inside source static tcp 10.1.10.50 80 interface GigabitEthernet0/1 80
-
-! Publish thêm SSH qua port khác
-R1(config)# ip nat inside source static tcp 10.1.10.50 22 interface GigabitEthernet0/1 2222
-```
-
-```
-R1# show ip nat translations
-```
-**Output mẫu:**
-```
-Pro  Inside global         Inside local       Outside local      Outside global
-tcp  203.0.113.1:80        10.1.10.50:80      ---                ---
-tcp  203.0.113.1:2222      10.1.10.50:22      ---                ---
-```
-⭐ Static entry hiện **ngay lập tức** (không cần traffic) và **`---`** ở 2 cột outside
-= **chờ kết nối từ bất kỳ ai**.
-
-#### 2b) Test từ "Internet"
-
-> 💡 VPCS không mở port TCP. Dùng **vIOS làm SRV** để test thật:
-> trên SRV bật `ip http server`, rồi từ R-ISP `telnet 203.0.113.1 80`.
-
-**Nếu SRV là vIOS:**
-```
-SRV(config)# ip http server
-SRV(config)# interface Gi0/0
-SRV(config-if)#  ip address 10.1.10.50 255.255.255.0
-SRV(config)# ip route 0.0.0.0 0.0.0.0 10.1.10.1
-```
-```
-R-ISP# telnet 203.0.113.1 80
-Trying 203.0.113.1, 80 ... Open              ← ✅ Port forward hoạt động
-```
-```
-R1# show ip nat translations | include :80
-tcp  203.0.113.1:80   10.1.10.50:80   203.0.113.2:38412   203.0.113.2:38412
-```
-⭐ Giờ 2 cột outside đã có giá trị (kết nối thật).
-
-#### 2c) 🔴⭐⭐ BẪY ACL — dùng IP private là SAI
-
-```
-! ❌ SAI — ACL dùng IP PRIVATE
-R1(config)# ip access-list extended ACL-OUT-IN
-R1(config-ext-nacl)#  permit tcp any host 10.1.10.50 eq 80
-R1(config-ext-nacl)#  permit icmp any any
-R1(config-ext-nacl)#  deny   ip any any log
-R1(config-ext-nacl)# exit
-R1(config)# interface GigabitEthernet0/1
-R1(config-if)#  ip access-group ACL-OUT-IN in
-```
-```
-R-ISP# telnet 203.0.113.1 80
-! ❌ FAIL — Connection refused / timeout
-```
-```
-R1# show access-lists ACL-OUT-IN
-Extended IP access list ACL-OUT-IN
-    10 permit tcp any host 10.1.10.50 eq www (0 matches)      ← 0 MATCHES!
-    20 permit icmp any any (5 matches)
-    30 deny ip any any log (3 matches)                         ← bị chặn ở đây
-```
-
-⭐⭐ **`0 matches` ở dòng permit** — ACL **không khớp** vì ở chiều **outside→inside**,
-⭐ **ACL inbound chạy TRƯỚC NAT** → lúc đó gói vẫn có destination = **`203.0.113.1` (IP public)**,
-chưa phải `10.1.10.50`.
-
-```
-! ✅ ĐÚNG — ACL dùng IP PUBLIC (Inside Global)
-R1(config)# no ip access-list extended ACL-OUT-IN
-R1(config)# ip access-list extended ACL-OUT-IN
-R1(config-ext-nacl)#  permit tcp any host 203.0.113.1 eq 80       ! IP PUBLIC
-R1(config-ext-nacl)#  permit tcp any host 203.0.113.1 eq 2222
-R1(config-ext-nacl)#  permit icmp any any
-R1(config-ext-nacl)#  deny   ip any any log
-```
-```
-R-ISP# telnet 203.0.113.1 80
-Trying 203.0.113.1, 80 ... Open              ← ✅ HOẠT ĐỘNG
-R1# show access-lists ACL-OUT-IN
-    10 permit tcp any host 203.0.113.1 eq www (2 matches)         ← CÓ MATCH
-```
-
-> ⭐⭐ **Ghi vào `SO-TAY-LOI.md`:** ⭐ **ACL inbound trên interface OUTSIDE
-> phải dùng IP PUBLIC (Inside Global)**, vì ACL chạy **TRƯỚC** NAT ở chiều outside→inside.
-
-**Dọn dẹp:**
-```
-R1(config)# interface GigabitEthernet0/1
-R1(config-if)#  no ip access-group ACL-OUT-IN in
-```
-
-✅ **Checkpoint bước 2:**
-
-| Kiểm tra | Mong đợi |
-|---|---|
-| Static PAT entry hiện **ngay** trong `show ip nat translations` với `---` | ✅ |
-| Từ "Internet" telnet vào port 80 → thành công | ✅ |
-| ⭐⭐ ACL dùng **IP private** → `0 matches`, bị chặn | ⭐⭐ ✅ |
-| ⭐ ACL dùng **IP public** → có match, hoạt động | ⭐ ✅ |
-
----
-
-### Bước 3 — ⭐ Dynamic NAT với pool (và test cạn pool)
-
-```
-R1(config)# no ip nat inside source list ACL-NAT interface GigabitEthernet0/1 overload
-!
-R1(config)# ip nat pool POOL-SMALL 203.0.113.10 203.0.113.11 netmask 255.255.255.252
-R1(config)# ip nat inside source list ACL-NAT pool POOL-SMALL       ! ⚠️ KHÔNG có overload
-```
-> ⚠️ Pool chỉ có **2 IP** và **không overload** → chỉ 2 host NAT được cùng lúc.
-> R-ISP cần route về pool: `ip route 203.0.113.8 255.255.255.248 203.0.113.1`
-
-```
-R-ISP(config)# ip route 203.0.113.8 255.255.255.248 203.0.113.1
-```
-
-**Test:**
-```
-PC1> ping 8.8.8.8            ! ✅ dùng 203.0.113.10
-SRV> ping 8.8.8.8            ! ✅ dùng 203.0.113.11
-! Host thứ 3 (nếu có) → ❌ FAIL
-```
-```
-R1# show ip nat translations
-Pro  Inside global      Inside local       Outside local      Outside global
----  203.0.113.10       10.1.10.100        ---                ---
----  203.0.113.11       10.1.10.50         ---                ---
-R1# show ip nat statistics | include Misses|pool
-! Hits: 40  Misses: 6                       ← Misses TĂNG = có host không NAT được
-R1# show logging | include NAT
-%NAT-4-ADDR_ALLOC_FAILURE: Address allocation failed; pool POOL-SMALL may be exhausted
-```
-⭐⭐ **`Misses` tăng + log `ADDR_ALLOC_FAILURE`** = ⭐ **pool cạn**.
-Đây là dấu hiệu nhận diện Dynamic NAT hết IP.
-
-**⭐ Thêm `overload` → thành PAT với pool:**
-```
-R1(config)# no ip nat inside source list ACL-NAT pool POOL-SMALL
-R1(config)# ip nat inside source list ACL-NAT pool POOL-SMALL overload
-R1# clear ip nat translation *
-```
-→ Giờ **nhiều host chung 1 IP + port** → không còn cạn pool.
-
-**Trả về PAT interface (đơn giản nhất):**
-```
-R1(config)# no ip nat inside source list ACL-NAT pool POOL-SMALL overload
-R1(config)# ip nat inside source list ACL-NAT interface GigabitEthernet0/1 overload
-R1# clear ip nat translation *
-```
-
----
-
-### Bước 4 — ⭐⭐ NAT route-map cho dual-ISP
-
-#### 4a) Cấu hình R1 với 2 uplink
-
-> 💡 Trong lab này R1 chỉ có 1 uplink tới R-ISP. Để mô phỏng dual-ISP,
-> thêm `R1 Gi0/2` ↔ `R-ISP Gi0/3` với dải `192.0.2.0/30`.
-
-```
-! ═══ R-ISP ═══
-R-ISP(config)# interface GigabitEthernet0/3
-R-ISP(config-if)#  description ---> To R1 ISP2
-R-ISP(config-if)#  ip address 192.0.2.2 255.255.255.252
-R-ISP(config-if)#  no shutdown
-
-! ═══ R1 ═══
-R1(config)# interface GigabitEthernet0/2
-R1(config-if)#  description ---> UPLINK ISP2
-R1(config-if)#  ip address 192.0.2.1 255.255.255.252
-R1(config-if)#  ip nat outside                             ! cũng là outside
-R1(config-if)#  no shutdown
-```
-
-#### 4b) Routing failover (Module-03) + NAT route-map
-
-```
-! ═══ IP SLA + track cho ISP1 ═══
-R1(config)# ip sla 1
-R1(config-ip-sla)#  icmp-echo 8.8.8.8 source-interface GigabitEthernet0/1
-R1(config-ip-sla-echo)#  frequency 5
-R1(config-ip-sla-echo)# exit
-R1(config)# ip sla schedule 1 life forever start-time now
-R1(config)# track 1 ip sla 1 reachability
-R1(config-track)#  delay down 3 up 10
-R1(config-track)# exit
-!
-! ═══ Floating static ═══
-R1(config)# no ip route 0.0.0.0 0.0.0.0 203.0.113.2
-R1(config)# ip route 0.0.0.0 0.0.0.0 203.0.113.2 track 1        ! ISP1, AD 1
-R1(config)# ip route 0.0.0.0 0.0.0.0 192.0.2.2 200              ! ISP2, AD 200
-!
-! ═══ NAT ROUTE-MAP ═══
-R1(config)# no ip nat inside source list ACL-NAT interface GigabitEthernet0/1 overload
-!
-R1(config)# route-map RM-NAT-ISP1 permit 10
-R1(config-route-map)#  match ip address ACL-NAT
-R1(config-route-map)#  match interface GigabitEthernet0/1       ! ISP1
-R1(config-route-map)# exit
-R1(config)# route-map RM-NAT-ISP2 permit 10
-R1(config-route-map)#  match ip address ACL-NAT
-R1(config-route-map)#  match interface GigabitEthernet0/2       ! ISP2
-R1(config-route-map)# exit
-!
-R1(config)# ip nat inside source route-map RM-NAT-ISP1 interface GigabitEthernet0/1 overload
-R1(config)# ip nat inside source route-map RM-NAT-ISP2 interface GigabitEthernet0/2 overload
-```
-
-#### 4c) Test failover NAT
-
-```
-! Bình thường
-PC1> ping 8.8.8.8            ! ✅
-R1# show ip nat translations
-! icmp 203.0.113.1:8   10.1.10.100:8   8.8.8.8:8   8.8.8.8:8      ← IP của ISP1
-R1# show ip route 0.0.0.0
-! * 203.0.113.2                                                     ← ISP1
-```
-
-```
-! Cắt ISP1 (mô phỏng: shutdown Lo8 trên R-ISP để IP SLA fail)
-R-ISP(config)# interface GigabitEthernet0/1
-R-ISP(config-if)# shutdown
-```
-Chờ ~10 giây:
-```
-R1# show track 1
-!   Reachability is Down
-R1# show ip route 0.0.0.0
-! * 192.0.2.2                                                       ← ĐÃ CHUYỂN ISP2
-!
-! Clear NAT để entry cũ không giữ traffic
-R1# clear ip nat translation *
-```
-```
-PC1> ping 8.8.8.8            ! ✅ hoạt động lại
-R1# show ip nat translations
-! icmp 192.0.2.1:9   10.1.10.100:9   8.8.8.8:9   8.8.8.8:9         ← IP của ISP2!
-```
-⭐⭐ **NAT đã tự dùng IP của ISP2** — nhờ `match interface` trong route-map.
-
-**⚠️ Test không clear NAT:**
-```
-R-ISP(config-if)# no shutdown       ! bật lại ISP1
-! chờ track Up, route về ISP1
-PC1> ping 8.8.8.8
-```
-→ Nếu entry cũ (IP ISP2) còn, gói ra ISP1 với source IP của ISP2 → có thể fail
-cho tới khi entry hết hạn.
-
-⭐ **Giải pháp production — dùng EEM tự động clear NAT khi track đổi trạng thái** (Module-12):
-```
-event manager applet CLEAR-NAT-ON-FAILOVER
- event track 1 state any
- action 1.0 cli command "enable"
- action 2.0 cli command "clear ip nat translation *"
- action 3.0 syslog msg "NAT translations cleared due to track 1 state change"
-```
-
-✅ **Checkpoint bước 4:**
-
-| Kiểm tra | Mong đợi |
-|---|---|
-| Bình thường: NAT dùng **IP của ISP1** | ✅ |
-| Cắt ISP1 → track `Down` → route chuyển ISP2 | ✅ |
-| ⭐ Sau `clear ip nat translation *` → NAT dùng **IP của ISP2** | ⭐⭐ ✅ |
-| Hiểu vì sao cần route-map (fully-extended entry) thay vì NAT thường | ⭐ ✅ |
-
-**Dọn dẹp (giữ lại nếu muốn):**
-```
-R1(config)# no ip nat inside source route-map RM-NAT-ISP2 interface GigabitEthernet0/2 overload
-R1(config)# no ip nat inside source route-map RM-NAT-ISP1 interface GigabitEthernet0/1 overload
-R1(config)# ip nat inside source list ACL-NAT interface GigabitEthernet0/1 overload
-R1# clear ip nat translation *
-```
-
----
-
-### Bước 5 — ⭐ NTP với authentication
-
-#### 5a) R-ISP làm NTP master (giả lập NTP server công cộng)
-
-```
-R-ISP(config)# clock timezone UTC 0
-R-ISP(config)# clock set 10:00:00 Sep 9 2026
-R-ISP(config)# ntp master 3                              ! stratum 3
-R-ISP(config)# ntp authenticate
-R-ISP(config)# ntp authentication-key 1 md5 NtpS3cret2026
-R-ISP(config)# ntp trusted-key 1
-```
-```
-R-ISP# show ntp status
-! Clock is synchronized, stratum 3, reference is 127.127.1.1
-```
-⭐ `reference is 127.127.1.1` = **đồng hồ nội bộ của chính router** (khi làm `ntp master`).
-
-#### 5b) R1, R2 làm NTP client
-
-```
-! ═══ R1 ═══
-R1(config)# clock timezone ICT 7                          ! Việt Nam UTC+7
-R1(config)# ntp authenticate
-R1(config)# ntp authentication-key 1 md5 NtpS3cret2026
-R1(config)# ntp trusted-key 1
-R1(config)# ntp server 203.0.113.2 key 1 prefer
-R1(config)# ntp source GigabitEthernet0/1
-R1(config)# ntp update-calendar
-!
-! Bật timestamp cho log (rất quan trọng — Module-11)
-R1(config)# service timestamps log datetime msec localtime show-timezone
-R1(config)# service timestamps debug datetime msec localtime show-timezone
-```
-Làm tương tự R2 (`ntp server 198.51.100.2 key 1`).
-
-#### 5c) Verify (chờ 1–3 phút để đồng bộ)
-
-```
-R1# show ntp status
-```
-**Output mẫu:**
-```
-Clock is synchronized, stratum 4, reference is 203.0.113.2
-nominal freq is 250.0000 Hz, actual freq is 250.0000 Hz, precision is 2**10
-reference time is E8F3A2B1.7C3D4E5F (17:15:32.485 ICT Mon Sep 9 2026)
-clock offset is 0.5432 msec, root delay is 3.21 msec
-root dispersion is 12.34 msec, peer dispersion is 0.98 msec
-system poll interval is 64, last update was 45 sec ago.
-```
-✅ ⭐ `Clock is synchronized` · ⭐ `stratum 4` (= master 3 + 1) · `reference is 203.0.113.2`
-
-```
-R1# show ntp associations
-```
-**Output mẫu:**
-```
-  address         ref clock       st   when   poll reach  delay  offset   disp
-*~203.0.113.2    127.127.1.1      3     45     64   377   3.210   0.543  0.980
- * sys.peer, # selected, + candidate, - outlier, x falseticker, ~ configured
-```
-⭐ ⭐ **`*`** trước địa chỉ = ⭐ **sys.peer** (đang thực sự dùng) · ⭐ **`reach 377`** = 8/8 poll OK
-
-```
-R1# show clock detail
-```
-**Output mẫu:**
-```
-17:20:15.485 ICT Mon Sep 9 2026
-Time source is NTP                              ← nguồn là NTP
-```
-⭐ **Không có dấu `*`** trước giờ = ⭐ **thời gian đáng tin**.
-
-#### 5d) ⚠️ Tái hiện 3 lỗi NTP
-
-**Lỗi 1 — key lệch:**
-```
-R1(config)# ntp authentication-key 1 md5 WrongKey
-R1# clear ntp ?               ! (không có lệnh clear ntp — chờ hoặc no ntp server rồi thêm lại)
-R1(config)# no ntp server 203.0.113.2
-R1(config)# ntp server 203.0.113.2 key 1 prefer
-```
-Chờ 1–2 phút:
-```
-R1# show ntp associations
-!  ~203.0.113.2    0.0.0.0         16     -      64     0   0.000   0.000 16000.
-!  ↑ KHÔNG có dấu * · st = 16 · reach = 0
-R1# show ntp status
-! Clock is unsynchronized, stratum 16, no reference clock       ← STRATUM 16!
-```
-⭐⭐ **`stratum 16` + `reach 0` + không có `*`** = **không đồng bộ được**.
-
-**Sửa:**
-```
-R1(config)# ntp authentication-key 1 md5 NtpS3cret2026
-```
-
-**Lỗi 2 — thiếu `ntp trusted-key`:**
-```
-R1(config)# no ntp trusted-key 1
-```
-→ Cùng triệu chứng: `stratum 16`, `reach 0`. ⭐ **Phải có CẢ BA:**
-`ntp authenticate` + `ntp authentication-key` + `ntp trusted-key`.
-
-**Sửa:** `ntp trusted-key 1`
-
-**Lỗi 3 — chưa bao giờ sync:**
-```
-R2(config)# no ntp server 198.51.100.2
-R2# show clock
-! *17:25:30.123 ICT Mon Sep 9 2026        ← DẤU * = giờ KHÔNG đáng tin
-R2# show clock detail
-! *17:25:30.123 ICT Mon Sep 9 2026
-! Time source is user configuration        ← đặt tay, sẽ drift
-```
-⭐ **Dấu `*` trước giờ** là dấu hiệu nhận diện nhanh nhất.
-
-**Sửa:** `ntp server 198.51.100.2 key 1`
-
-#### 5e) ⭐ NTP access-group (chống NTP amplification)
-
-```
-R1(config)# ip access-list standard ACL-NTP-PEER
-R1(config-std-nacl)#  permit 203.0.113.2
-R1(config-std-nacl)# exit
-R1(config)# ip access-list standard ACL-NTP-SERVE
-R1(config-std-nacl)#  permit 10.0.0.0 0.255.255.255
-R1(config-std-nacl)# exit
-R1(config)# ntp access-group peer ACL-NTP-PEER
-R1(config)# ntp access-group serve-only ACL-NTP-SERVE
-```
-⭐ Giờ R1 chỉ sync với `203.0.113.2`, và chỉ trả lời giờ cho mạng `10.0.0.0/8`.
-
-✅ **Checkpoint bước 5:**
-
-| Kiểm tra | Mong đợi |
-|---|---|
-| `show ntp status` → `Clock is synchronized, stratum 4` | ✅ |
-| `show ntp associations` → có ⭐ **`*`** và ⭐ **`reach 377`** | ⭐ ✅ |
-| `show clock detail` → `Time source is NTP`, **không có dấu `*`** | ⭐ ✅ |
-| ⭐ Tái hiện key lệch → `stratum 16`, `reach 0`, không có `*` | ⭐⭐ ✅ |
-| Hiểu phải có **cả 3** lệnh auth | ⭐ ✅ |
-| Log có timestamp đầy đủ (`service timestamps log datetime msec localtime`) | ✅ |
-
----
-
-### Bước 6 — 🚀 PIM-SM cơ bản (TÙY CHỌN — blueprint chỉ "describe")
-
-> ⭐ **Bỏ qua bước này nếu bạn đang bám tiến độ.** Đề chỉ hỏi khái niệm.
-> Làm nếu bạn muốn **thấy** `(*,G)` và `(S,G)` bằng mắt.
-
-```
-! ═══ Trên R1, R2, R-ISP ═══
-ip multicast-routing
-!
-interface <mọi interface tham gia>
- ip pim sparse-mode
- ip igmp version 2
-!
-! R-ISP làm RP
-R-ISP(config)# interface Loopback99
-R-ISP(config-if)#  ip address 10.99.99.1 255.255.255.255
-R-ISP(config-if)#  ip pim sparse-mode
-R-ISP(config)# ip pim rp-address 10.99.99.1
-!
-! Trên MỌI router: khai RP (static)
-R1(config)# ip pim rp-address 10.99.99.1
-R2(config)# ip pim rp-address 10.99.99.1
-! Và cần route tới 10.99.99.1 trên R1/R2
-R1(config)# ip route 10.99.99.1 255.255.255.255 203.0.113.2
-```
-
-**Mô phỏng receiver — cho interface join group:**
-```
-R1(config)# interface GigabitEthernet0/0.10
-R1(config-subif)#  ip igmp join-group 239.1.1.1
-```
-
-**Mô phỏng source — ping multicast từ R-ISP:**
-```
-R-ISP# ping 239.1.1.1 repeat 10 source Loopback8
-```
-
-**Verify:**
-```
-R1# show ip pim neighbor
-R1# show ip pim rp mapping
-R1# show ip igmp groups
-R1# show ip mroute
-```
-**Output mẫu `show ip mroute`:**
-```
-(*, 239.1.1.1), 00:02:15/stopped, RP 10.99.99.1, flags: SJCL
-  Incoming interface: GigabitEthernet0/1, RPF nbr 203.0.113.2
-  Outgoing interface list:
-    GigabitEthernet0/0.10, Forward/Sparse, 00:02:15/00:02:44
-
-(8.8.8.8, 239.1.1.1), 00:00:12/00:02:47, flags: LJT
-  Incoming interface: GigabitEthernet0/1, RPF nbr 203.0.113.2
-  Outgoing interface list:
-    GigabitEthernet0/0.10, Forward/Sparse, 00:00:12/00:02:47
-```
-⭐ **Nhìn thấy cả `(*, G)` và `(S, G)`** — và flag `T` = đã **SPT switchover**.
-
-```
-R1# show ip rpf 8.8.8.8
-! RPF information for ? (8.8.8.8)
-!   RPF interface: GigabitEthernet0/1
-!   RPF neighbor: ? (203.0.113.2)
-!   RPF route/mask: 0.0.0.0/0
-!   RPF type: unicast (static)
-```
-⭐ **Đây là RPF check** — router dùng bảng **unicast** để xác định interface hợp lệ cho multicast.
-
-✅ **Checkpoint bước 6 (tùy chọn):** thấy được `(*,G)` với `RP`, `(S,G)` với flag `T`,
-và `show ip rpf` chỉ ra RPF interface.
-
----
-
-## 💡 8. THỰC CHIẾN ĐI LÀM
+## 💡 4.6 Thực chiến đi làm
 
 | Chủ đề | Thi dạy | Thực tế đi làm |
 |---|---|---|
@@ -1482,6 +999,20 @@ và `show ip rpf` chỉ ra RPF interface.
 | ⭐ **RPF failure** | Khái niệm | ⭐ Nguyên nhân thật: **routing bất đối xứng**, multicast qua tunnel mà unicast không, hoặc thiếu route tới source. Chẩn đoán: `show ip rpf <source>` |
 | ⭐ **PIM-SSM** | Có trong sách | ⭐ Xu hướng hiện nay cho **one-to-many** (IPTV): không cần RP, không cần MSDP, ⭐ **chống spoofing tốt nhất**. Nếu thiết kế mới → cân nhắc SSM |
 | ⭐ **Địa chỉ multicast** | Bảng | ⭐ Dùng **`239.x.x.x`** cho nội bộ (như RFC1918). Và ⭐ **quy hoạch tránh 32:1 overlap** — đừng chọn địa chỉ có 23 bit thấp trùng nhau |
+
+---
+
+# 📎 PHỤ LỤC — TRA CỨU
+
+> 🔴 **KHÔNG đọc phần này ở lần học đầu tiên.**
+>
+> | Khi nào | Mở mục nào |
+> |---|---|
+> | Đang lab mà lỗi | **Gỡ lỗi nhanh** (§10) — ⭐ có quy trình 5 bước cho NAT |
+> | Quên lệnh | **Hộp lệnh** (§10.1) |
+> | Tuần 20, ôn thi | **Bẫy đề** (§9) + **Quiz** (§11) |
+> | Gặp từ lạ | **Thuật ngữ** (§12) |
+> | Tự chấm | **Đúc kết** (§13) |
 
 ---
 
