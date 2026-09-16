@@ -217,6 +217,21 @@ Chạm **cả sáu domain trong MỘT bài**: VLAN/EtherChannel/STP · VRRP + IP
 OSPF nhiều vùng + tóm tắt · BGP dual-homed + điều hướng hai chiều · NAT · DHCP ·
 AAA/ACL · CoPP · Syslog · NetFlow/SPAN · EEM.
 
+
+### 🔬 LAB MỞ RỘNG — ngoài phạm vi thi
+
+👉 **[LAB Nâng cao — Mạng nhiều site: từ DMVPN đến SD-WAN](LAB-NANG-CAO-Multi-Site-Overlay.md)**
+
+⚠️ **KHÔNG cần cho kỳ thi.** Làm sau khi đã xong Capstone, để hiểu
+**mô hình nhiều site đang chạy ngoài đời**.
+
+3 site nối qua Internet · 5 router · ~2,5 GB RAM · **7 giai đoạn, mỗi giai đoạn dừng được**:
+DMVPN mGRE + NHRP → iBGP route-reflector với neighbor động → **spoke-to-spoke trực tiếp**
+→ IPsec → **VRF tách vùng** → hub dự phòng → QoS theo từng site.
+
+Kết bằng bảng **ánh xạ sang SD-WAN** *(NHS→vSmart, NHRP→OMP, khóa chung→chứng thư…)*
+và 8 hướng nghiên cứu tiếp — trong đó có **sinh cấu hình site bằng Ansible**.
+
 ---
 
 ## 8. Liên quan
