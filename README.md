@@ -78,7 +78,7 @@ Tôi sẽ không nói với bạn "3 tháng có CCNP". Đây là những gì th�
 | File | Nội dung | Tuần |
 |---|---|---|
 | [Module-10-Security.md](Module-10-Security.md)<br>+ 🧪 [**Module-10-LAB.md**](Module-10-LAB.md) | Hardening & password type, ⭐ **AAA (TACACS+/RADIUS)**, ⭐ **ACL nâng cao**, ⭐ **CoPP**, 802.1X/MAB/WebAuth, wireless security, TrustSec, MACsec, NGFW, REST API security <br>⭐ **TÓM TẮT 10 phút + 4 phần + LAB riêng** | Tuần 16 |
-| [Module-11-Network-Assurance.md](Module-11-Network-Assurance.md) | Syslog, SNMPv2c/v3, ⭐ **Flexible NetFlow**, SPAN/RSPAN/ERSPAN, ⭐ **IP SLA**, ⭐ **debug an toàn**, DNA Center Assurance | Tuần 17 |
+| [Module-11-Network-Assurance.md](Module-11-Network-Assurance.md)<br>+ 🧪 [**Module-11-LAB.md**](Module-11-LAB.md) | Syslog, SNMPv2c/v3, ⭐ **Flexible NetFlow**, SPAN/RSPAN/ERSPAN, ⭐ **IP SLA**, ⭐ **debug an toàn**, DNA Center Assurance <br>⭐ **TÓM TẮT 10 phút + 4 phần + LAB riêng** | Tuần 17 |
 | Module-12-Automation-va-Programmability.md | JSON/XML/YAML, REST API, NETCONF/RESTCONF/YANG, EEM, Python netmiko, Ansible, DNAC & vManage API | Tuần 18–19 |
 
 ### Về đích
@@ -120,7 +120,7 @@ thay đổi nguy hiểm (tắt CEF, shutdown link…).
 | 2 | **Thước đo của Phần 1:** gấp tài liệu lại, giải thích cho đồng nghiệp trong **3 câu**. Không nói được = chưa hiểu |
 | 3 | **LAB của module nào chỉ được hỏng vì lý do của module đó** — không kéo theo phụ thuộc thừa |
 
-> ⚙️ **Tình trạng chuyển đổi:** các module **P0, 01, 02, 03, 04A, 04B, 05A, 05B, 06A, 06B, 07A, 07B, 08, 09, 10** đã theo khuôn này.
+> ⚙️ **Tình trạng chuyển đổi:** **TẤT CẢ 17 module** đã theo khuôn này.
 > Những module còn lại đang dùng bố cục cũ (12 khối) và sẽ được chuyển dần theo đúng
 > thứ tự bạn học tới — xem [mục 7](#7-trạng-thái-biên-soạn).
 

@@ -15,6 +15,87 @@
 
 ---
 
+# 📌 TÓM TẮT — đọc 10 phút là nắm khung
+
+## Module này trả lời một câu hỏi duy nhất
+
+> **Mạng đang chạy — làm sao biết nó có KHỎE không, và khi hỏng thì tìm nguyên nhân ở đâu?**
+
+## Năm công cụ = năm GIÁC QUAN khác nhau
+
+```
+   ┌──────────────┬────────────────────────┬───────────────────────┐
+   │ Syslog       │ Nhật ký                │ "Đã xảy ra chuyện gì?"│
+   │ SNMP         │ Bắt mạch định kỳ       │ "Tình trạng hiện giờ?"│
+   │ NetFlow      │ Sổ ghi chi tiêu        │ "AI ăn hết băng thông?"│
+   │ SPAN         │ Kính hiển vi           │ "Trong gói có gì?"    │
+   │ IP SLA       │ Máy đo huyết áp đeo    │ "Chất lượng có đạt?"  │
+   └──────────────┴────────────────────────┴───────────────────────┘
+
+   🔴 Chỉ dùng MỘT giác quan là mù.
+      Người mới thường chỉ có SNMP rồi ngạc nhiên vì
+      "tất cả đèn xanh mà người dùng vẫn kêu"
+      — vì SNMP đo THIẾT BỊ, không đo TRẢI NGHIỆM.
+```
+
+## 🔴 Điều kiện tiên quyết: NTP
+
+```
+   Sai giờ  →  log không đối chiếu được giữa các thiết bị
+            →  biểu đồ NetFlow sai thời điểm
+            →  one-way delay của IP SLA VÔ NGHĨA
+            →  chứng thư 802.1X / AP join hỏng   (M07B, M10)
+
+   ⭐ Ba dòng phải có trên MỌI thiết bị:
+        ntp server <ip>
+        service timestamps log datetime msec localtime show-timezone
+        service sequence-numbers
+```
+
+## 7 ý phải nhớ
+
+| # | Ý | Một câu |
+|:---:|---|---|
+| 1 | 🔴 ⭐⭐ **Syslog: số NHỎ = nghiêm trọng HƠN** | 0 Emergency … 7 Debugging. ⭐ **`logging trap 4` gửi mức 0–4**, không phải "chỉ 4" |
+| 2 | ⭐ **Bẫy `%LINK-3` vs `%LINEPROTO-5`** | Cùng sự kiện rút cáp nhưng **khác severity** → `trap 4` thấy interface **down** mà **không thấy nó up lại** |
+| 3 | ⭐⭐ **SNMP: agent nghe 161, manager nghe 162** | **Trap** = bắn rồi quên · **Inform** = có ACK, gửi lại · ⭐ **chỉ `authPriv` mới mã hóa** |
+| 4 | ⭐⭐ **NetFlow là 7-tuple** | 5-tuple **cộng thêm ToS và input interface**. ⭐ **`match` = KEY định nghĩa flow · `collect` chỉ ghi thêm** |
+| 5 | 🔴 ⭐⭐ **`cache timeout active` mặc định 1800s** | Flow dài **không lên collector** trong 30 phút → tưởng mạng rảnh. ⭐ **Đặt 60** |
+| 6 | 🔴 ⭐⭐ **Cổng SPAN destination thành "câm"** | Ngừng forward, không STP — nhưng ⭐ **vẫn báo `up/up`**. Thiết bị cắm vào **mất mạng** |
+| 7 | 🔴 ⭐⭐ **Quên `ip sla schedule`** | Config trông hoàn hảo nhưng operation **KHÔNG BAO GIỜ CHẠY** |
+
+## Bảng lệnh cốt lõi
+
+| Lệnh | Cho biết gì |
+|---|---|
+| ⭐ `show logging` | Cấu hình + toàn bộ buffer — **so `Buffer logging` với `Trap logging`** |
+| `show snmp user` / `show snmp group` | v3: auth/priv protocol, security level |
+| ⭐⭐ `show flow monitor <FM> cache format table` | **Xem toàn bộ flow NGAY TRÊN ROUTER** — không cần collector |
+| `show flow monitor <FM> statistics` | ⭐ **`Emergency aged > 0` = cache đầy = số liệu sai** |
+| ⭐ `show monitor session all` | SPAN — kiểm tra cổng đích có ai đang dùng không |
+| ⭐⭐ `show ip sla statistics <id>` | **Return code** + RTT/jitter/MOS |
+| ⭐⭐ `undebug all` *(`u all`)* | **Lệnh cứu hộ — học thuộc trước khi bật bất kỳ debug nào** |
+
+## 🗺️ Bố cục module
+
+| Phần | Tên | Thời gian |
+|:---:|---|:---:|
+| **1** | 🧠 **CÁI ĐÓ LÀ GÌ** — 6 ví von | 45 phút |
+| **2** | ⚙️ **NÓ CHẠY THẾ NÀO** — ⭐ **§3 (thời gian) đọc trước mọi thứ** | 5 giờ |
+| **3** | 🧪 **NHÌN THẤY NÓ** — [LAB 11](Module-11-LAB.md), ⭐ **gần như không cần server** | 4 giờ |
+| **4** | 🏗️ **TOPO & KIẾN TRÚC** — công cụ nào cho câu hỏi nào | 45 phút |
+| **📎** | **PHỤ LỤC** — 🔴 không đọc lần đầu | — |
+
+> 🔴 ⭐⭐ **CẢNH BÁO — Domain 4.0 CHƯA xong sau module này.**
+>
+> Mục **4.7 (NETCONF & RESTCONF)** thuộc **Domain 4.0 Network Assurance**, không phải
+> Domain 6.0 Automation như nhiều người tưởng. Repo này dạy nó ở **Module-12 §3**
+> vì nó không thể tách rời YANG.
+>
+> ⭐ **Đừng tick "xong Domain 4.0" sau module này.** §11 có bản tóm tắt ngắn để bạn không bị hụt.
+
+---
+
 ## ⭐ 0. Phạm vi
 
 ### 0.1 ⭐⭐ Domain "configure" đậm đặc nhất kỳ thi
@@ -89,7 +170,111 @@
 
 ---
 
-## 📘 2. 🔴 ⭐⭐ NỀN TẢNG: THỜI GIAN — đọc trước mọi thứ khác
+## 🧠 PHẦN 1 — CÁI ĐÓ LÀ GÌ
+
+> **Đọc phần này TRƯỚC, đọc một mạch.** Không lệnh, không bảng tra.
+>
+> Module-11 gom **năm công cụ giám sát** dễ lẫn nhau. Sáu ví von dưới đây cho bạn biết
+> **cái nào dùng khi nào** — quan trọng hơn cả việc nhớ cú pháp.
+>
+> **Tự kiểm tra:** đọc xong mỗi mục, gấp tài liệu lại, nói lại trong 3 câu.
+
+### 2.1 Năm công cụ = năm loại "giác quan"
+
+⭐ Một mạng cũng giống một cơ thể, và bạn cần **nhiều giác quan khác nhau**:
+
+| Công cụ | ⭐ Giác quan | Trả lời |
+|---|---|---|
+| ⭐ **Syslog** | ⭐ **Nhật ký** | *"Đã xảy ra chuyện gì?"* — **quá khứ** |
+| ⭐ **SNMP** | ⭐ **Bắt mạch định kỳ** | *"Tình trạng hiện giờ ra sao?"* — **hiện tại, đều đặn** |
+| ⭐ **NetFlow** | ⭐ **Sổ ghi chi tiêu** | *"Tiền (băng thông) đi đâu hết?"* |
+| ⭐ **SPAN** | ⭐ **Kính hiển vi** | *"Trong mẫu vật này chính xác có gì?"* |
+| ⭐ **IP SLA** | ⭐ **Máy đo huyết áp đeo liên tục** | *"Chất lượng có duy trì được không?"* |
+
+🔴 ⭐ **Chỉ dùng một giác quan là mù.** ⭐ Người mới thường **chỉ có SNMP** rồi ngạc nhiên vì
+⭐ *"tất cả đèn xanh mà người dùng vẫn kêu"* — vì ⭐ **SNMP không đo trải nghiệm, nó đo thiết bị.**
+
+### 2.2 Syslog severity: số càng nhỏ, tiếng chuông càng to
+
+⭐ Hình dung một **thang báo động ngược**:
+- ⭐ **0 = còi hú toàn nhà máy** (Emergency — cháy rồi)
+- ⭐ **3 = chuông báo một phòng** (Error — interface xuống)
+- ⭐ **5 = ghi vào sổ trực** (Notification — ai đó vừa sửa config)
+- ⭐ **7 = camera ghi hình mọi thứ** (Debugging — cực nhiều dữ liệu)
+
+⭐⭐ **`logging trap 4` = "chỉ gọi tôi khi tiếng chuông TO BẰNG mức 4 trở lên"** →
+⭐ nhận 0,1,2,3,4 và ⭐ **bỏ qua 5,6,7.**
+
+🔴 ⭐ **Và đây là lý do bẫy `%LINK-3` / `%LINEPROTO-5` tồn tại:** ⭐ **hai nửa của cùng một sự kiện
+lại nằm ở hai bên ngưỡng lọc** → bạn thấy interface **xuống** mà không thấy nó **lên lại**.
+
+### 2.3 NetFlow là hóa đơn điện thoại, SPAN là nghe lén
+
+- ⭐⭐ **NetFlow** = ⭐ **hóa đơn điện thoại chi tiết**: ai gọi ai, lúc mấy giờ, bao lâu, tốn bao nhiêu.
+  ⭐ **Rẻ, giữ được cả năm, đủ để biết "ai xài nhiều nhất"** — ⭐ **nhưng không biết họ nói gì.**
+- ⭐⭐ **SPAN** = ⭐ **ghi âm cuộc gọi**: biết chính xác từng lời.
+  🔴 ⭐ **Nhưng không thể ghi âm mọi cuộc gọi mãi mãi** — quá tốn.
+
+⭐ **Vì thế quy trình thật luôn là:** ⭐ **NetFlow chạy 24/7 để PHÁT HIỆN bất thường** →
+⭐ **rồi mới bật SPAN vào đúng chỗ đó để SOI CHI TIẾT.**
+
+### 2.4 `match` vs `collect`: cái gì làm nên "một cuộc gọi riêng biệt"
+
+⭐ Quay lại ẩn dụ hóa đơn:
+- ⭐⭐ **`match` (key)** = ⭐ **những thứ định nghĩa "đây là một cuộc gọi khác"**:
+  số gọi đi, số nhận, loại cuộc gọi. ⭐ **Đổi một trong số đó = một dòng hóa đơn mới.**
+- ⭐ **`collect` (non-key)** = ⭐ **những thứ chỉ ghi thêm vào dòng đó**: thời lượng, số tiền.
+  ⭐ **Không tạo ra dòng mới.**
+
+🔴 ⭐⭐ **Hệ quả:** nếu bạn `match` **source port** — mà mỗi lần trình duyệt mở kết nối lại dùng
+**một source port ngẫu nhiên khác** → ⭐ **một máy duyệt web tạo ra HÀNG TRĂM dòng hóa đơn.**
+⭐ **Cache đầy rất nhanh.** ⭐ **Chỉ match cái gì bạn thật sự cần phân biệt.**
+
+### 2.5 SPAN destination là "cổng đã bị trưng dụng"
+
+⭐ Khi bạn chỉ định một port làm **SPAN destination**, ⭐ **switch trưng dụng nó hoàn toàn**:
+- 🔴 ⭐ **Không chuyển traffic bình thường nữa**
+- 🔴 ⭐ **Không tham gia STP**
+- 🔴 ⭐ **Không học MAC**
+- ⭐ **Chỉ làm đúng một việc: phun bản sao ra ngoài**
+
+🔴 ⭐⭐ **Vì thế: cắm nhầm SPAN destination vào port đang có người dùng = người đó MẤT MẠNG ngay lập tức**,
+⭐ **và bạn sẽ không nghĩ ra nguyên nhân** vì `show interface` vẫn báo `up/up`.
+
+⭐ **Và bẫy oversubscription:** ⭐ **10 cổng 1 Gbps đổ vào 1 cổng 1 Gbps** → ⭐ **gói bị rơi âm thầm**.
+⭐ Bạn mở Wireshark, thấy "traffic có vẻ bình thường" — ⭐ **trong khi 60% đã bị vứt trước khi tới bạn.**
+
+### 2.6 IP SLA: ping là chụp ảnh, IP SLA là camera an ninh
+
+- ⭐ **`ping` thủ công** = ⭐ **chụp một tấm ảnh**. ⭐ Lúc bạn chụp thì mọi thứ ổn —
+  🔴 ⭐ **nhưng sự cố xảy ra lúc 3 giờ sáng thì sao?**
+- ⭐⭐ **IP SLA** = ⭐ **camera quay liên tục 24/7 và lưu lại thống kê.**
+  ⭐ Sáng hôm sau bạn xem `show ip sla statistics` và ⭐ **biết chính xác đêm qua mất bao nhiêu gói, lúc mấy giờ.**
+
+⭐⭐ **Và Responder là "người cầm đồng hồ ở đầu kia"** — ⭐ nhờ có anh ta đóng dấu thời gian,
+bạn ⭐ **tách được độ trễ CHIỀU ĐI khỏi độ trễ CHIỀU VỀ.**
+🔴 ⭐ **Nhưng hai người phải chỉnh đồng hồ giống nhau (NTP), nếu không con số vô nghĩa.**
+
+
+---
+
+## ⚙️ PHẦN 2 — NÓ CHẠY THẾ NÀO
+
+> | Phần 1 (ví von) | → | Phần 2 (cơ chế) |
+> |---|:---:|---|
+> | §2.1 năm giác quan | → | **§4 Syslog · §5 SNMP · §6 NetFlow · §7 SPAN · §8 IP SLA** |
+> | §2.2 thang báo động ngược | → | **§4 Syslog severity** ⭐⭐ |
+> | §2.3 hóa đơn vs ghi âm · §2.4 dòng hóa đơn nào | → | **§6 NetFlow (`match` vs `collect`)** ⭐⭐ |
+> | §2.5 cổng bị trưng dụng | → | **§7 SPAN destination** 🔴 |
+> | §2.6 camera an ninh vs chụp ảnh | → | **§8 IP SLA** ⭐⭐ |
+>
+> 🔴 ⭐⭐ **Đọc §3 (THỜI GIAN) trước mọi thứ khác.** Sai giờ thì cả năm công cụ ở trên
+> đều trở thành **rác**: log không đối chiếu được · biểu đồ NetFlow sai thời điểm ·
+> one-way delay của IP SLA vô nghĩa.
+
+---
+
+## 📘 3. 🔴 ⭐⭐ NỀN TẢNG: THỜI GIAN — đọc trước mọi thứ khác
 
 > 🔴 ⭐⭐ **Nếu đồng hồ sai, toàn bộ Module-11 trở nên vô dụng.** ⭐ Đây không phải lời nói quá:
 
@@ -133,9 +318,9 @@ show ntp status | include synchronized|stratum
 
 ---
 
-## 📘 3. 🔴 ⭐⭐ SYSLOG (blueprint 4.2 — CONFIGURE AND VERIFY)
+## 📘 4. 🔴 ⭐⭐ SYSLOG (blueprint 4.2 — CONFIGURE AND VERIFY)
 
-### 3.1 ⭐⭐ TÁM MỨC SEVERITY — bảng phải thuộc lòng
+### 4.1 ⭐⭐ TÁM MỨC SEVERITY — bảng phải thuộc lòng
 
 | Mức | Tên | ⭐ Nghĩa | Ví dụ thật |
 |:---:|---|---|---|
@@ -154,7 +339,7 @@ show ntp status | include synchronized|stratum
 > 🔴 ⭐⭐ **ĐIỀU QUAN TRỌNG NHẤT: SỐ CÀNG NHỎ = CÀNG NGHIÊM TRỌNG.**
 > ⭐ **0 là tệ nhất, 7 là nhẹ nhất.** ⭐ Nhiều người nhớ ngược.
 
-### 3.2 🔴 ⭐⭐ `logging trap <mức>` lọc như thế nào — bẫy đề kinh điển
+### 4.2 🔴 ⭐⭐ `logging trap <mức>` lọc như thế nào — bẫy đề kinh điển
 
 ```
    logging trap 4   →  GỬI ĐI CÁC MỨC 0, 1, 2, 3, VÀ 4
@@ -175,7 +360,7 @@ show ntp status | include synchronized|stratum
 > ⭐ **Cách nhớ:** ⭐ *"Bạn khai báo NGƯỠNG NGHIÊM TRỌNG TỐI THIỂU. Cái gì nghiêm trọng bằng
 > hoặc hơn ngưỡng đó thì được gửi."*
 
-### 3.3 ⭐ Năm nơi log có thể đi tới
+### 4.3 ⭐ Năm nơi log có thể đi tới
 
 | Đích | Lệnh | Mức mặc định | ⭐ Ghi chú |
 |---|---|:---:|---|
@@ -185,7 +370,7 @@ show ntp status | include synchronized|stratum
 | ⭐⭐ **Syslog server** | `logging host <ip>` + `logging trap <mức>` | ⭐ **6** | ⭐ **UDP 514** |
 | **SNMP trap** | `snmp-server enable traps syslog` | — | Gửi log dạng SNMP trap |
 
-### 3.4 ⭐⭐ Cấu hình đầy đủ
+### 4.4 ⭐⭐ Cấu hình đầy đủ
 
 ```
 ! ─── ① Nền thời gian (§2) ───
@@ -221,7 +406,7 @@ logging rate-limit 50 except errors         ! tối đa 50 msg/s, trừ lỗi ng
 > 2. ⭐⭐ **`logging console warnings`** — ⭐ **cứu router khỏi treo** khi có bão log hoặc khi bạn bật debug.
 > 3. ⭐ **`service sequence-numbers`** — ⭐ **biết ngay nếu có dòng log bị mất** (UDP 514 không đảm bảo).
 
-### 3.5 ⭐⭐ Đọc một dòng syslog — mổ xẻ từng phần
+### 4.5 ⭐⭐ Đọc một dòng syslog — mổ xẻ từng phần
 
 ```
 000123: Sep 10 14:23:11.456 ICT: %LINEPROTO-5-UPDOWN: Line protocol on Interface
@@ -265,7 +450,7 @@ logging rate-limit 50 except errors         ! tối đa 50 msg/s, trừ lỗi ng
 | ⭐ `%TUN` | ⭐ Tunnel — `%TUN-5-RECURDOWN` *(Module-08 §4.3)* |
 | ⭐ `%NAT` | `%NAT-4-ADDR_ALLOC_FAILURE` *(Module-06B)* |
 
-### 3.6 ⭐ Verify syslog
+### 4.6 ⭐ Verify syslog
 
 ```
 show logging                              ! lệnh chính — cấu hình + toàn bộ buffer
@@ -295,9 +480,9 @@ Syslog logging: enabled (0 messages dropped, 0 flushes, 0 overruns)
 
 ---
 
-## 📘 4. ⭐⭐ SNMP (blueprint 4.1)
+## 📘 5. ⭐⭐ SNMP (blueprint 4.1)
 
-### 4.1 ⭐ Bốn thành phần
+### 5.1 ⭐ Bốn thành phần
 
 ```
    ┌────────────────┐                          ┌─────────────────────┐
@@ -324,7 +509,7 @@ Syslog logging: enabled (0 messages dropped, 0 flushes, 0 overruns)
 >
 > ⭐ **Mẹo nhớ:** ⭐ **161 là "hỏi đáp bình thường", 162 là "báo động khẩn"** — số lớn hơn cho việc gấp hơn.
 
-### 4.2 ⭐⭐ Các thao tác — và cặp Trap vs Inform
+### 5.2 ⭐⭐ Các thao tác — và cặp Trap vs Inform
 
 | Thao tác | Ai khởi xướng | ⭐ Ghi chú |
 |---|---|---|
@@ -348,7 +533,7 @@ Syslog logging: enabled (0 messages dropped, 0 flushes, 0 overruns)
 > ⭐ **Chọn:** ⭐ **cảnh báo quan trọng (thiết bị sắp chết) → Inform.**
 > ⭐ **Sự kiện thường xuyên, mất một cái không sao → Trap.**
 
-### 4.3 ⭐⭐ v1 vs v2c vs v3 — bảng phải thuộc
+### 5.3 ⭐⭐ v1 vs v2c vs v3 — bảng phải thuộc
 
 | | **v1** | ⭐ **v2c** | ⭐⭐ **v3** |
 |---|---|---|---|
@@ -370,7 +555,7 @@ Syslog logging: enabled (0 messages dropped, 0 flushes, 0 overruns)
 > ⭐ **Mẹo nhớ:** ⭐ **"auth" = xác thực (anh là ai)** · ⭐ **"priv" = privacy = MÃ HÓA (không ai đọc trộm)**.
 > ⭐ **`authPriv` = có cả hai.**
 
-### 4.4 ⭐ Cấu hình
+### 5.4 ⭐ Cấu hình
 
 ```
 !═══════ SNMPv2c (chỉ dùng khi buộc phải) ═══════
@@ -410,7 +595,7 @@ snmp-server host 10.99.1.30 version 3 priv netops
 > ⭐⭐ **Thứ tự bắt buộc: VIEW → GROUP → USER.** ⭐ Group tham chiếu view, user tham chiếu group.
 > ⭐ Gõ sai thứ tự thì IOS báo lỗi hoặc tạo ra cấu hình không hoạt động.
 
-### 4.5 ⭐ Verify SNMP
+### 5.5 ⭐ Verify SNMP
 
 ```
 show snmp                        ! thống kê tổng, số gói vào/ra
@@ -436,9 +621,9 @@ Group-name: GRP-MONITOR
 
 ---
 
-## 📘 5. 🔴 ⭐⭐ NETFLOW & FLEXIBLE NETFLOW (blueprint 4.3 — CONFIGURE AND VERIFY)
+## 📘 6. 🔴 ⭐⭐ NETFLOW & FLEXIBLE NETFLOW (blueprint 4.3 — CONFIGURE AND VERIFY)
 
-### 5.1 ⭐⭐ NetFlow là gì — và khác SPAN chỗ nào
+### 6.1 ⭐⭐ NetFlow là gì — và khác SPAN chỗ nào
 
 > ⭐ **NetFlow ghi lại "AI nói chuyện với AI, bao nhiêu, khi nào"** — ⭐ **metadata**, không phải nội dung.
 
@@ -454,7 +639,7 @@ Group-name: GRP-MONITOR
 > ⭐⭐ **Câu chốt:** ⭐ **NetFlow = hóa đơn điện thoại** (ai gọi ai, bao lâu, lúc nào — nhưng không nghe được nội dung).
 > ⭐ **SPAN = nghe lén cuộc gọi** (nghe được hết, nhưng không thể nghe mọi cuộc mọi lúc).
 
-### 5.2 ⭐⭐ NetFlow truyền thống — 7 trường định nghĩa một FLOW
+### 6.2 ⭐⭐ NetFlow truyền thống — 7 trường định nghĩa một FLOW
 
 ```
    HAI GÓI THUỘC CÙNG MỘT FLOW khi CẢ BẢY trường sau GIỐNG NHAU:
@@ -482,7 +667,7 @@ Group-name: GRP-MONITOR
 | ⭐⭐ **v9** | ⭐⭐ **Dựa trên TEMPLATE** → linh hoạt, hỗ trợ **IPv6, MPLS, VLAN**. ⭐ **Nền của Flexible NetFlow** |
 | ⭐ **IPFIX (v10)** | ⭐ **Chuẩn IETF**, dựa trên v9. RFC 7011 |
 
-### 5.3 ⭐⭐ FLEXIBLE NETFLOW — BỐN THÀNH PHẦN (phần quan trọng nhất §5)
+### 6.3 ⭐⭐ FLEXIBLE NETFLOW — BỐN THÀNH PHẦN (phần quan trọng nhất §5)
 
 ```
    ┌──────────────────┐        ┌────────────────────┐
@@ -526,7 +711,7 @@ Group-name: GRP-MONITOR
 >
 > 🔴 ⭐ **Cache đầy → flow bị đẩy ra sớm → số liệu sai.** ⭐ **Chỉ `match` những gì thật sự cần phân biệt.**
 
-### 5.4 ⭐⭐ Cấu hình Flexible NetFlow
+### 6.4 ⭐⭐ Cấu hình Flexible NetFlow
 
 ```
 !═══════ ① FLOW RECORD — đo cái gì ═══════
@@ -590,7 +775,7 @@ interface TenGigabitEthernet0/1
 >
 > ⭐ **Thực tế: đặt `cache timeout active 60`** để có số liệu gần thời gian thực.
 
-### 5.5 ⭐⭐ Verify — và LAB không cần collector
+### 6.5 ⭐⭐ Verify — và LAB không cần collector
 
 ```
 show flow record FR-IPV4                        ! xem lại record
@@ -637,9 +822,9 @@ R1# show flow monitor FM-IPV4 statistics
 
 ---
 
-## 📘 6. 🔴 ⭐⭐ SPAN / RSPAN / ERSPAN (blueprint 4.4 — CONFIGURE AND VERIFY)
+## 📘 7. 🔴 ⭐⭐ SPAN / RSPAN / ERSPAN (blueprint 4.4 — CONFIGURE AND VERIFY)
 
-### 6.1 ⭐⭐ Bảng ba loại — học thuộc
+### 7.1 ⭐⭐ Bảng ba loại — học thuộc
 
 ```
    SPAN (local)          RSPAN (qua L2)              ERSPAN (qua L3)
@@ -664,7 +849,7 @@ R1# show flow monitor FM-IPV4 statistics
 > ⭐ **Mẹo nhớ:** ⭐ **S**PAN = **S**ame switch · ⭐ **R**SPAN = **R**emote qua VLAN (L2) ·
 > ⭐ **E**RSPAN = **E**ncapsulated qua GRE (L3, đi đâu cũng được).
 
-### 6.2 ⭐⭐ SPAN cục bộ — cấu hình và những giới hạn phải biết
+### 7.2 ⭐⭐ SPAN cục bộ — cấu hình và những giới hạn phải biết
 
 ```
 ! Sao chép traffic của port Gi1/0/1 sang port Gi1/0/24 (máy phân tích cắm ở đó)
@@ -710,7 +895,7 @@ Destination Ports    : Gi1/0/24
     Encapsulation      : Native
 ```
 
-### 6.3 ⭐ RSPAN — qua nhiều switch trong cùng L2
+### 7.3 ⭐ RSPAN — qua nhiều switch trong cùng L2
 
 ```
 !═══ BƯỚC 0: TẠO RSPAN VLAN TRÊN **MỌI** SWITCH TRÊN ĐƯỜNG ĐI ═══
@@ -741,7 +926,7 @@ interface GigabitEthernet1/0/48
 >
 > ⭐ **Đặc điểm RSPAN VLAN:** ⭐ **không học MAC, không chở traffic người dùng thường** — nó là VLAN chuyên dụng.
 
-### 6.4 ⭐⭐ ERSPAN — vượt qua mạng định tuyến
+### 7.4 ⭐⭐ ERSPAN — vượt qua mạng định tuyến
 
 ```
 !═══ PHÍA NGUỒN ═══
@@ -774,7 +959,7 @@ monitor session 2 type erspan-destination
 > `% Invalid input` → ⭐ **bình thường.** ⭐ **Đọc hiểu cấu hình trên là đủ cho đề** —
 > blueprint hỏi *"configure and verify"* nhưng đề thi hỏi ở mức **nhận diện cấu hình đúng/sai**.
 
-### 6.5 ⭐ Chọn công cụ nào — bảng quyết định
+### 7.5 ⭐ Chọn công cụ nào — bảng quyết định
 
 | Câu hỏi bạn cần trả lời | ⭐ Dùng công cụ |
 |---|---|
@@ -788,9 +973,9 @@ monitor session 2 type erspan-destination
 
 ---
 
-## 📘 7. 🔴 ⭐⭐ IP SLA (blueprint 4.5 — CONFIGURE AND VERIFY)
+## 📘 8. 🔴 ⭐⭐ IP SLA (blueprint 4.5 — CONFIGURE AND VERIFY)
 
-### 7.1 ⭐ Hai vai trò của IP SLA
+### 8.1 ⭐ Hai vai trò của IP SLA
 
 > ⭐ Bạn **đã dùng IP SLA** ở [Module-03](Module-03-IP-Routing-Nen-tang.md) và
 > [Module-06A](Module-06A-FHRP-HSRP-VRRP-GLBP.md) — nhưng chỉ ở vai trò **"công tắc failover"**.
@@ -800,7 +985,7 @@ monitor session 2 type erspan-destination
 | ⭐ **Công tắc** *(ghép với `track`)* | ⭐ **Đổi route / đổi HSRP priority khi đường chết** | Module-03, Module-06A |
 | ⭐⭐ **Thước đo** *(vai trò chính ở đây)* | ⭐⭐ **ĐO liên tục: RTT, jitter, mất gói, MOS** → chứng minh SLA với nhà mạng | ⭐ **Module-11 này** |
 
-### 7.2 ⭐⭐ Các loại operation
+### 8.2 ⭐⭐ Các loại operation
 
 | Operation | Đo gì | ⭐ Cần Responder? |
 |---|---|:---:|
@@ -816,7 +1001,7 @@ monitor session 2 type erspan-destination
 > ⭐⭐ **Nhớ cặp này cho đề:** ⭐ **`icmp-echo` = không cần Responder** ·
 > ⭐⭐ **`udp-jitter` = BẮT BUỘC có Responder.**
 
-### 7.3 ⭐⭐ Cấu hình cơ bản — icmp-echo + track
+### 8.3 ⭐⭐ Cấu hình cơ bản — icmp-echo + track
 
 ```
 !═══ ① Định nghĩa phép đo ═══
@@ -855,7 +1040,7 @@ ip route 0.0.0.0 0.0.0.0 198.51.100.254 10        ! floating static dự phòng
 > ⭐⭐ **`state`** quan tâm *"có đạt chất lượng không"* — ⭐ **đường sống nhưng RTT 900 ms vẫn bị coi là Down.**
 > ⭐ Với VoIP, ⭐ **`state` mới là cái bạn cần.**
 
-### 7.4 ⭐⭐ IP SLA Responder — khi nào cần và vì sao
+### 8.4 ⭐⭐ IP SLA Responder — khi nào cần và vì sao
 
 ```
 !═══ TRÊN THIẾT BỊ ĐÍCH (R2) ═══
@@ -880,7 +1065,7 @@ ip sla schedule 20 life forever start-time now
 > ⭐ Lệch đồng hồ 50 ms → ⭐ **one-way delay sai 50 ms** → số liệu vô nghĩa.
 > ⭐ **Đây lại là §2 — không có NTP thì đừng tin one-way delay.**
 
-### 7.5 ⭐⭐ Verify và đọc kết quả
+### 8.5 ⭐⭐ Verify và đọc kết quả
 
 ```
 show ip sla configuration 10          ! xem lại cấu hình + lịch
@@ -945,9 +1130,9 @@ IPSLA operation id: 10
 
 ---
 
-## 📘 8. 🔴 ⭐⭐ DEBUG AN TOÀN & CÔNG CỤ CHẨN ĐOÁN (blueprint 4.1)
+## 📘 9. 🔴 ⭐⭐ DEBUG AN TOÀN & CÔNG CỤ CHẨN ĐOÁN (blueprint 4.1)
 
-### 8.1 🔴 ⭐⭐ Vì sao `debug all` là tự sát
+### 9.1 🔴 ⭐⭐ Vì sao `debug all` là tự sát
 
 ```
    KỊCH BẢN: bạn gõ "debug all" trên router production
@@ -963,7 +1148,7 @@ IPSLA operation id: 10
 > 🔴 ⭐⭐ **Đây là câu chuyện có thật xảy ra thường xuyên.** ⭐ Nguyên nhân gốc **không phải debug** —
 > ⭐ **mà là CONSOLE LOGGING.** ⭐ Console ghi **đồng bộ**: CPU phải đợi ký tự in xong mới làm việc khác.
 
-### 8.2 ⭐⭐ Quy trình debug AN TOÀN — 5 bước
+### 9.2 ⭐⭐ Quy trình debug AN TOÀN — 5 bước
 
 ```
 ① TẮT LOG RA CONSOLE, CHUYỂN VÀO BUFFER
@@ -992,7 +1177,7 @@ IPSLA operation id: 10
 | ⭐ `show debugging` | ⭐ **Đang bật những debug nào** — kiểm tra trước khi rời máy |
 | ⭐ `terminal no monitor` | Ngừng đổ log ra phiên SSH của bạn |
 
-### 8.3 ⭐⭐ Conditional debug — kỹ năng quan trọng nhất mục 4.1
+### 9.3 ⭐⭐ Conditional debug — kỹ năng quan trọng nhất mục 4.1
 
 > ⭐ **Ý tưởng:** ⭐ **thay vì xem TẤT CẢ, chỉ xem đúng thứ bạn quan tâm.**
 
@@ -1031,7 +1216,7 @@ debug wireless mac aabb.ccdd.eeff internal      ! RadioActive Trace
 > mà là traffic đang được CEF xử lý. ⭐ **Muốn thấy hết phải `no ip cef`** — 🔴 ⭐ **tuyệt đối
 > KHÔNG làm điều này trên production.**
 
-### 8.4 ⭐⭐ Ping & Traceroute nâng cao
+### 9.4 ⭐⭐ Ping & Traceroute nâng cao
 
 ```
 !═══ EXTENDED PING — mọi tùy chọn trên một dòng ═══
@@ -1076,7 +1261,7 @@ traceroute 10.2.2.2 source Loopback0 numeric probe 1 ttl 1 15
 > | ⭐ Cùng một IP lặp lại nhiều lần | 🔴 ⭐ **Routing loop** |
 > | ⭐ RTT tăng vọt ở một hop rồi **giảm lại** ở hop sau | ⭐ **BÌNH THƯỜNG** — hop đó **ưu tiên thấp cho traffic gửi TỚI chính nó** (chính là **CoPP** — [Module-10 §5](Module-10-Security.md)!). ⭐ **Không phải nghẽn** |
 
-### 8.5 ⭐ Bảng chọn công cụ chẩn đoán theo tình huống
+### 9.5 ⭐ Bảng chọn công cụ chẩn đoán theo tình huống
 
 | Tình huống | ⭐ Công cụ đúng |
 |---|---|
@@ -1092,12 +1277,12 @@ traceroute 10.2.2.2 source Loopback0 numeric probe 1 ttl 1 15
 
 ---
 
-## 📘 9. 🟡 DNA CENTER ASSURANCE (blueprint 4.6 — Describe)
+## 📘 10. 🟡 DNA CENTER ASSURANCE (blueprint 4.6 — Describe)
 
 > ⭐ Nhắc lại [Module-09 §7.8](Module-09-Architecture-va-QoS.md): DNA Center có **4 workflow** —
 > ⭐ **Design → Policy → Provision → ASSURANCE**. ⭐ **Mục 4.6 hỏi về cái thứ tư.**
 
-### 9.1 ⭐ Ý tưởng: từ "thiết bị sống không" sang "người dùng có hài lòng không"
+### 10.1 ⭐ Ý tưởng: từ "thiết bị sống không" sang "người dùng có hài lòng không"
 
 | | ⭐ **Giám sát truyền thống** (SNMP/syslog) | ⭐⭐ **DNA Center Assurance** |
 |---|---|---|
@@ -1106,7 +1291,7 @@ traceroute 10.2.2.2 source Loopback0 numeric probe 1 ttl 1 15
 | Khi có sự cố | ⭐ Bạn tự ghép log từ nhiều nguồn | ⭐ **Hệ thống đưa ra "Issue" + gợi ý khắc phục** |
 | Dữ liệu quá khứ | Tùy công cụ | ⭐⭐ **Xem lại trạng thái mạng ở QUÁ KHỨ** |
 
-### 9.2 ⭐⭐ Các tính năng Assurance phải biết tên
+### 10.2 ⭐⭐ Các tính năng Assurance phải biết tên
 
 | Tính năng | ⭐ Làm gì |
 |---|---|
@@ -1129,7 +1314,7 @@ traceroute 10.2.2.2 source Loopback0 numeric probe 1 ttl 1 15
 
 ---
 
-## 📘 10. ⭐ NETCONF & RESTCONF (blueprint 4.7) — tóm tắt, học sâu ở Module-12
+## 📘 11. ⭐ NETCONF & RESTCONF (blueprint 4.7) — tóm tắt, học sâu ở Module-12
 
 > 🔴 ⭐⭐ **Nhắc lại cảnh báo §0.2: mục 4.7 THUỘC Domain 4.0**, dù nó có vẻ là chuyện "automation".
 > ⭐ **Dưới đây là phần tối thiểu để bạn không hụt nếu thi sớm.** ⭐ **Chi tiết + LAB ở Module-12 §3.**
@@ -1161,7 +1346,7 @@ show platform software yang-management process
 
 ---
 
-## 📘 11. 🟡 BỔ TRỢ — Model-Driven Telemetry
+## 📘 12. 🟡 BỔ TRỢ — Model-Driven Telemetry
 
 > ⚠️ ⭐ **Không nằm rõ trong blueprint ENCOR v1.1**, nhưng ⭐ **Cisco đang thay SNMP bằng nó**
 > và bạn sẽ gặp trong tài liệu. ⭐ **Đọc 10 phút.**
@@ -1181,710 +1366,116 @@ show platform software yang-management process
 > ⭐ **Ẩn dụ:** ⭐ **SNMP = bạn gọi điện hỏi "có gì mới không?" mỗi 5 phút.**
 > ⭐⭐ **MDT = bạn đăng ký nhận thông báo, có gì mới là nó tự báo ngay.**
 
+## 🧪 PHẦN 3 — NHÌN THẤY NÓ
+
+> ### 👉 **[LAB 11 — Tuần 17: Syslog · SNMP · NetFlow · SPAN · IP SLA](Module-11-LAB.md)**
+
+| LAB | Nội dung | Ví von ở Phần 1 | Cơ chế ở Phần 2 |
+|---|---|---|---|
+| **A** | Syslog — severity & cơ chế lọc | §2.2 thang báo động ngược | §4 |
+| **B** | SNMPv2c + v3 | §2.1 năm giác quan | §5 |
+| **C** | ⭐⭐ **Flexible NetFlow** *(lab hay nhất module)* | §2.3 hóa đơn điện thoại · §2.4 dòng hóa đơn nào | §6 |
+| **D** | ⭐⭐ SPAN + **bẫy "cổng câm"** | §2.5 cổng bị trưng dụng | §7 |
+| **E** | ⭐⭐ IP SLA + track + `udp-jitter` | §2.6 camera an ninh vs chụp ảnh | §8 |
+| **F–I** | 🚀 Conditional debug · MTU · chẩn đoán tổng hợp | — | §9 |
+
+> ⭐⭐ **LAB C là bài hay nhất module** — và là điều bất ngờ dễ chịu:
+> `show flow monitor <FM> cache` cho bạn xem **toàn bộ bảng flow ngay trên router**,
+> **không cần collector, không cần server nào cả**.
+>
+> Bạn sẽ nhìn thấy đúng thứ NetFlow làm trong mạng thật: *ai đang nói chuyện với ai, bao nhiêu byte*.
+
 ---
 
-## 📖 12. HIỂU RÕ HƠN
+## 🏗️ PHẦN 4 — TOPO & KIẾN TRÚC
 
-### 12.1 Năm công cụ = năm loại "giác quan"
+> Bạn vừa học năm công cụ. Phần này trả lời: **đặt chúng ở đâu, và dùng cái nào khi nào?**
 
-⭐ Một mạng cũng giống một cơ thể, và bạn cần **nhiều giác quan khác nhau**:
+### 4.1 Bản đồ: hệ thống giám sát của một doanh nghiệp
 
-| Công cụ | ⭐ Giác quan | Trả lời |
+```
+   ┌────────────────────────────────────────────────────────────┐
+   │              TRUNG TÂM GIÁM SÁT (NOC)                       │
+   │                                                             │
+   │  ① Syslog server    ② NMS (SNMP)    ③ NetFlow collector    │
+   │     UDP 514            UDP 161/162      UDP 2055            │
+   └───────▲──────────────────▲──────────────────▲───────────────┘
+           │                  │                  │
+           │  ⑤ NTP đồng bộ TẤT CẢ (UDP 123)     │
+           │  🔴 Sai giờ = mọi thứ trên đây thành rác
+           │                  │                  │
+   ┌───────┴──────────────────┴──────────────────┴───────────────┐
+   │                    THIẾT BỊ MẠNG                             │
+   │                                                              │
+   │  ④ IP SLA: đo CHẤT LƯỢNG đường liên tục (RTT, jitter, MOS)  │
+   │  ⑥ SPAN: chỉ bật KHI CẦN SOI CHI TIẾT (tốn tài nguyên)      │
+   └──────────────────────────────────────────────────────────────┘
+```
+
+### 4.2 Bảng quyết định — câu hỏi nào dùng công cụ nào
+
+| Bạn cần trả lời | Dùng | Vì sao |
 |---|---|---|
-| ⭐ **Syslog** | ⭐ **Nhật ký** | *"Đã xảy ra chuyện gì?"* — **quá khứ** |
-| ⭐ **SNMP** | ⭐ **Bắt mạch định kỳ** | *"Tình trạng hiện giờ ra sao?"* — **hiện tại, đều đặn** |
-| ⭐ **NetFlow** | ⭐ **Sổ ghi chi tiêu** | *"Tiền (băng thông) đi đâu hết?"* |
-| ⭐ **SPAN** | ⭐ **Kính hiển vi** | *"Trong mẫu vật này chính xác có gì?"* |
-| ⭐ **IP SLA** | ⭐ **Máy đo huyết áp đeo liên tục** | *"Chất lượng có duy trì được không?"* |
+| *Chuyện gì đã xảy ra lúc 2 giờ sáng?* | ⭐ **Syslog** | Nhật ký — chạy sẵn 24/7 |
+| *Thiết bị còn sống? CPU bao nhiêu?* | ⭐ **SNMP** | Bắt mạch định kỳ |
+| ⭐ *AI đang ăn hết băng thông?* | ⭐⭐ **NetFlow** | **Metadata, nhẹ, chạy 24/7** |
+| *Chính xác trong gói tin có gì?* | ⭐ **SPAN + Wireshark** | Bản sao toàn bộ gói — **nặng, chỉ bật khi cần** |
+| *Đường tới chi nhánh có đạt SLA không?* | ⭐⭐ **IP SLA** | Đo liên tục, có số liệu chứng minh |
+| *Router xử lý gói này thế nào?* | ⭐ **Conditional debug** | Chỉ khi 5 cái trên chưa ra |
 
-🔴 ⭐ **Chỉ dùng một giác quan là mù.** ⭐ Người mới thường **chỉ có SNMP** rồi ngạc nhiên vì
-⭐ *"tất cả đèn xanh mà người dùng vẫn kêu"* — vì ⭐ **SNMP không đo trải nghiệm, nó đo thiết bị.**
+> ⭐⭐ **Nguyên tắc vàng: đi từ RẺ đến ĐẮT.**
+> Syslog và NetFlow **đang chạy sẵn, không tốn gì thêm**.
+> SPAN và debug **tốn tài nguyên** → để cuối cùng.
+>
+> ⭐ **Và câu chốt: NetFlow để PHÁT HIỆN, SPAN để SOI.**
 
-### 12.2 Syslog severity: số càng nhỏ, tiếng chuông càng to
+### 4.3 Ba sự thật mà chỉ người đi làm mới biết
 
-⭐ Hình dung một **thang báo động ngược**:
-- ⭐ **0 = còi hú toàn nhà máy** (Emergency — cháy rồi)
-- ⭐ **3 = chuông báo một phòng** (Error — interface xuống)
-- ⭐ **5 = ghi vào sổ trực** (Notification — ai đó vừa sửa config)
-- ⭐ **7 = camera ghi hình mọi thứ** (Debugging — cực nhiều dữ liệu)
-
-⭐⭐ **`logging trap 4` = "chỉ gọi tôi khi tiếng chuông TO BẰNG mức 4 trở lên"** →
-⭐ nhận 0,1,2,3,4 và ⭐ **bỏ qua 5,6,7.**
-
-🔴 ⭐ **Và đây là lý do bẫy `%LINK-3` / `%LINEPROTO-5` tồn tại:** ⭐ **hai nửa của cùng một sự kiện
-lại nằm ở hai bên ngưỡng lọc** → bạn thấy interface **xuống** mà không thấy nó **lên lại**.
-
-### 12.3 NetFlow là hóa đơn điện thoại, SPAN là nghe lén
-
-- ⭐⭐ **NetFlow** = ⭐ **hóa đơn điện thoại chi tiết**: ai gọi ai, lúc mấy giờ, bao lâu, tốn bao nhiêu.
-  ⭐ **Rẻ, giữ được cả năm, đủ để biết "ai xài nhiều nhất"** — ⭐ **nhưng không biết họ nói gì.**
-- ⭐⭐ **SPAN** = ⭐ **ghi âm cuộc gọi**: biết chính xác từng lời.
-  🔴 ⭐ **Nhưng không thể ghi âm mọi cuộc gọi mãi mãi** — quá tốn.
-
-⭐ **Vì thế quy trình thật luôn là:** ⭐ **NetFlow chạy 24/7 để PHÁT HIỆN bất thường** →
-⭐ **rồi mới bật SPAN vào đúng chỗ đó để SOI CHI TIẾT.**
-
-### 12.4 `match` vs `collect`: cái gì làm nên "một cuộc gọi riêng biệt"
-
-⭐ Quay lại ẩn dụ hóa đơn:
-- ⭐⭐ **`match` (key)** = ⭐ **những thứ định nghĩa "đây là một cuộc gọi khác"**:
-  số gọi đi, số nhận, loại cuộc gọi. ⭐ **Đổi một trong số đó = một dòng hóa đơn mới.**
-- ⭐ **`collect` (non-key)** = ⭐ **những thứ chỉ ghi thêm vào dòng đó**: thời lượng, số tiền.
-  ⭐ **Không tạo ra dòng mới.**
-
-🔴 ⭐⭐ **Hệ quả:** nếu bạn `match` **source port** — mà mỗi lần trình duyệt mở kết nối lại dùng
-**một source port ngẫu nhiên khác** → ⭐ **một máy duyệt web tạo ra HÀNG TRĂM dòng hóa đơn.**
-⭐ **Cache đầy rất nhanh.** ⭐ **Chỉ match cái gì bạn thật sự cần phân biệt.**
-
-### 12.5 SPAN destination là "cổng đã bị trưng dụng"
-
-⭐ Khi bạn chỉ định một port làm **SPAN destination**, ⭐ **switch trưng dụng nó hoàn toàn**:
-- 🔴 ⭐ **Không chuyển traffic bình thường nữa**
-- 🔴 ⭐ **Không tham gia STP**
-- 🔴 ⭐ **Không học MAC**
-- ⭐ **Chỉ làm đúng một việc: phun bản sao ra ngoài**
-
-🔴 ⭐⭐ **Vì thế: cắm nhầm SPAN destination vào port đang có người dùng = người đó MẤT MẠNG ngay lập tức**,
-⭐ **và bạn sẽ không nghĩ ra nguyên nhân** vì `show interface` vẫn báo `up/up`.
-
-⭐ **Và bẫy oversubscription:** ⭐ **10 cổng 1 Gbps đổ vào 1 cổng 1 Gbps** → ⭐ **gói bị rơi âm thầm**.
-⭐ Bạn mở Wireshark, thấy "traffic có vẻ bình thường" — ⭐ **trong khi 60% đã bị vứt trước khi tới bạn.**
-
-### 12.6 IP SLA: ping là chụp ảnh, IP SLA là camera an ninh
-
-- ⭐ **`ping` thủ công** = ⭐ **chụp một tấm ảnh**. ⭐ Lúc bạn chụp thì mọi thứ ổn —
-  🔴 ⭐ **nhưng sự cố xảy ra lúc 3 giờ sáng thì sao?**
-- ⭐⭐ **IP SLA** = ⭐ **camera quay liên tục 24/7 và lưu lại thống kê.**
-  ⭐ Sáng hôm sau bạn xem `show ip sla statistics` và ⭐ **biết chính xác đêm qua mất bao nhiêu gói, lúc mấy giờ.**
-
-⭐⭐ **Và Responder là "người cầm đồng hồ ở đầu kia"** — ⭐ nhờ có anh ta đóng dấu thời gian,
-bạn ⭐ **tách được độ trễ CHIỀU ĐI khỏi độ trễ CHIỀU VỀ.**
-🔴 ⭐ **Nhưng hai người phải chỉnh đồng hồ giống nhau (NTP), nếu không con số vô nghĩa.**
-
----
-
-## 🧪 13. LAB 11
-
-### 13.1 Topology — dùng lại đúng Module-10
-
-```
-        ┌──────────┐              ┌──────────┐              ┌──────────┐
-        │    R1    │──Gi0/0───────│   SW1    │───────Gi0/1──│    R2    │
-        │ 10.0.0.1 │              │ vIOS-L2  │              │ 10.0.0.2 │
-        │ Lo0 1.1.1.1             │  VLAN 10 │              │ Lo0 2.2.2.2
-        └──────────┘              └──────────┘              └──────────┘
-```
-
-| LAB | Nội dung | Cần server? | Thời gian | Bắt buộc? |
-|---|---|:---:|:---:|:---:|
-| **A** | Syslog — severity & lọc | ❌ | 30 phút | ⭐⭐ |
-| **B** | SNMPv2c + v3 | ⚠️ | 20 phút | ⭐ |
-| **C** | ⭐ **Flexible NetFlow** | ❌ | 40 phút | ⭐⭐ |
-| **D** | SPAN + bẫy "cổng câm" | ❌ | 25 phút | ⭐⭐ |
-| **E** | IP SLA + track + udp-jitter | ❌ | 40 phút | ⭐⭐ |
-
-⭐ **Cấu hình nền — làm trước (§2!):**
-```
-!═══ CẢ R1 VÀ R2 ═══
-clock timezone ICT 7 0
-clock set 14:00:00 10 Sep 2026            ! lab không có NTP thì set tay CẢ HAI
-service timestamps log datetime msec localtime show-timezone
-service timestamps debug datetime msec localtime show-timezone
-service sequence-numbers
-```
-
----
-
-### LAB A — ⭐⭐ Syslog: severity và cơ chế lọc (30 phút)
-
-**Bước A1 — Bật buffer, tắt spam console:**
-```
-!═══ R1 ═══
-logging buffered 64000 debugging
-logging console warnings                  ! chỉ 0–4 ra console
-logging monitor debugging
-clear logging
-```
-
-**Bước A2 — ⭐⭐ Sinh sự kiện và quan sát HAI severity khác nhau:**
-```
-R1(config)# interface Loopback99
-R1(config-if)# ip address 99.99.99.99 255.255.255.255
-R1(config-if)# shutdown
-R1(config-if)# no shutdown
-R1(config-if)# exit
-R1# show logging | include Loopback99
-```
-```
-000045: Sep 10 14:05:12.334 ICT: %LINK-3-UPDOWN: Interface Loopback99,
-           changed state to administratively down
-000046: Sep 10 14:05:12.335 ICT: %LINEPROTO-5-UPDOWN: Line protocol on
-           Interface Loopback99, changed state to down
-000047: Sep 10 14:05:20.112 ICT: %LINK-3-UPDOWN: Interface Loopback99,
-           changed state to up
-000048: Sep 10 14:05:20.113 ICT: %LINEPROTO-5-UPDOWN: Line protocol on
-           Interface Loopback99, changed state to up
-```
-
-✅ **Checkpoint A2 — ⭐ mổ xẻ một dòng, chỉ ra 5 phần:**
-
-| Phần | Giá trị trong ví dụ |
+| Sự thật | Giải thích |
 |---|---|
-| ⭐ Sequence | `000045` *(nhờ `service sequence-numbers`)* |
-| ⭐ Timestamp | `Sep 10 14:05:12.334 ICT` *(nhờ `service timestamps ... msec localtime show-timezone`)* |
-| ⭐ Facility | `%LINK` hoặc `%LINEPROTO` |
-| ⭐⭐ **Severity** | ⭐ **`3` (Error)** vs ⭐ **`5` (Notification)** |
-| ⭐ Mnemonic | `UPDOWN` |
+| 🔴 ⭐⭐ **Thủ phạm làm treo router KHÔNG phải lệnh debug** | Mà là **console logging** — nó **đồng bộ và chậm**, CPU phải đợi từng ký tự in xong. ⭐ **`no logging console` + `logging buffered` TRƯỚC khi debug**, và thuộc **`u all`** |
+| 🔴 ⭐⭐ **Cổng SPAN destination thành "câm"** | Ngừng forward, không STP, không học MAC — nhưng ⭐ **`show interface` vẫn báo `up/up`, đèn vẫn sáng**. Thiết bị cắm vào đó **mất mạng mà không ai hiểu vì sao** |
+| 🔴 ⭐⭐ **`cache timeout active` mặc định 1800 giây** | Một cuộc tải file 25 phút **không xuất hiện trên collector** cho tới khi nó kết thúc → bạn nhìn dashboard tưởng mạng rảnh trong khi nó đang nghẽn. ⭐ **Đặt 60** |
 
-> 💡 ⭐⭐ **Đây là bẫy §3.5 hiện ra bằng dữ liệu thật:** ⭐ **cùng một hành động `shut/no shut`
-> sinh ra CẢ severity 3 LẪN severity 5.**
+### 4.4 Những thứ này sẽ lớn lên thành gì
 
-**Bước A3 — 🔴 ⭐⭐ Chứng minh `logging trap` lọc như thế nào:**
-```
-R1(config)# logging host 10.0.0.2               ! R2 đóng vai "syslog server" (không cần chạy gì)
-R1(config)# logging trap 4                    ! chỉ gửi 0–4
-R1# show logging | include Trap logging
-```
-```
-    Trap logging: level warnings, 12 message lines logged
-        Logging to 10.0.0.2 (udp port 514, audit disabled, link up),
-              12 message lines logged, 0 message lines dropped
-```
-✅ **Checkpoint A3 — ⭐ so sánh hai con số:**
-```
-R1# show logging | include Buffer logging|Trap logging
-    Buffer logging: level debugging, 312 messages logged     ← nhận HẾT (0–7)
-    Trap logging:   level warnings,  12 message lines logged ← chỉ gửi 0–4
-```
-> 💡 ⭐⭐ **Chênh lệch 312 vs 12 chính là bằng chứng của cơ chế lọc.**
-> ⭐ **Buffer nhận mức 7 nên có mọi thứ. Trap chỉ mức 4 nên bỏ qua toàn bộ `%LINEPROTO-5`, `%SYS-5`, `%SEC-6`.**
+| Bạn vừa học | Sẽ thành | Ở module |
+|---|---|---|
+| ⭐ **NETCONF/RESTCONF** *(§11 — mục 4.7)* | 🔴 **Học sâu ở Module-12** — Domain 4.0 **chưa xong** sau module này | **Module-12 §3** |
+| DNA Center Assurance | Gắn với 4 workflow đã học ở M09 | — |
+| IP SLA đo chất lượng | Nguyên lý giống **AAR của SD-WAN** *(đo bằng BFD)* | — |
+| Syslog severity, NTP | Nền của điều tra sự cố an ninh *(M10)* | — |
 
-**Bước A4 — ⭐ Đổi ngưỡng và xác nhận:**
-```
-R1(config)# logging trap 6                    ! informational
-R1(config)# interface Loopback99
-R1(config-if)# shutdown
-R1(config-if)# no shutdown
-R1# show logging | include Trap logging
-```
-✅ ⭐ **Số message gửi đi tăng nhanh hơn hẳn** — ⭐ **vì giờ `%LINEPROTO-5` cũng được gửi.**
+### 4.5 Vẽ lại để nhớ
 
-> 💡 ⭐ **Ghi vào `SO-TAY-LOI.md`:** ⭐ *"`logging trap N` = gửi mức 0 đến N. Số NHỎ = nghiêm trọng HƠN.
-> Đặt trap 4 sẽ thấy interface down (`%LINK-3`) mà KHÔNG thấy nó up lại (`%LINEPROTO-5`)."*
-
----
-
-### LAB B — ⭐ SNMPv2c và v3 (20 phút)
-
-```
-!═══ R1 — v2c (khóa bằng ACL) ═══
-ip access-list standard ACL-SNMP
- permit 10.0.0.2
- deny   any log
-!
-snmp-server community CTY-Read-0nly RO ACL-SNMP
-snmp-server location "LAB - EVE-NG"
-snmp-server contact "hocvien@lab.local"
-snmp-server host 10.0.0.2 version 2c CTY-Read-0nly
-snmp-server enable traps snmp linkdown linkup
-
-!═══ R1 — v3 (thứ tự VIEW → GROUP → USER) ═══
-snmp-server view VIEW-ALL iso included
-snmp-server group GRP-MONITOR v3 priv read VIEW-ALL access ACL-SNMP
-snmp-server user netops GRP-MONITOR v3 auth sha AuthPass2026 priv aes 128 PrivPass2026
-snmp-server host 10.0.0.2 version 3 priv netops
-```
-
-✅ **Checkpoint B — đọc và xác nhận mức bảo mật:**
-```
-R1# show snmp user
-User name: netops
-Engine ID: 800000090300...
-storage-type: nonvolatile        active
-Authentication Protocol: SHA           ← có xác thực
-Privacy Protocol: AES128               ← CÓ mã hóa → đây là authPriv ✅
-Group-name: GRP-MONITOR
-
-R1# show snmp group
-groupname: GRP-MONITOR      security model: v3 priv
-readview : VIEW-ALL           writeview: <no writeview>
-row status: active     access-list: ACL-SNMP
-
-R1# show snmp host
-Notification host: 10.0.0.2   udp-port: 162   type: trap
-user: netops   security model: v3 priv
-```
-
-> 💡 ⭐ **Thử bỏ phần `priv` khi tạo user** (`... v3 auth sha AuthPass2026`) rồi `show snmp user` →
-> ⭐ **`Privacy Protocol: None`** → ⭐ **đó là mức `authNoPriv`, dữ liệu KHÔNG được mã hóa.**
+> **Bài tập 15 phút, trên giấy.**
 >
-> ⚠️ ⭐ Muốn `snmpwalk` thật thì cần một máy Linux. ⭐ **Không có cũng không sao** — đề hỏi
-> **v2c vs v3, ba security level, trap vs inform, port 161/162** — ⭐ tất cả đều verify được ở trên.
+> 1. Vẽ lại sơ đồ §4.1, đánh dấu ① đến ⑥
+> 2. Ghi rõ **port** của từng dịch vụ
+> 3. Trả lời: *Người dùng kêu mạng chậm. Nêu thứ tự công cụ bạn dùng, và lý do của thứ tự đó.*
+
+<details>
+<summary>Đáp án câu 3</summary>
+
+⭐⭐ **Nguyên tắc: đi từ RẺ đến ĐẮT.**
+
+1. ⭐ **`show clock detail`** — thời gian có đúng không *(sai giờ thì mọi bước sau vô nghĩa)*
+2. ⭐ **SYSLOG** — `show logging | include %LINK|%LINEPROTO|%SYS-5-CONFIG_I`
+   → có flap? ai vừa đổi config?
+3. ⭐ **Thiết bị** — `show processes cpu sorted` · `show interface | include rate|drops`
+4. ⭐⭐ **NETFLOW** — `show flow monitor <FM> cache format table`
+   → ⭐ **thường tìm ra thủ phạm ở đây**
+5. ⭐ **IP SLA** — có vượt ngưỡng **150 / 30 / 1** không?
+6. ⭐ **SPAN + Wireshark** hoặc **conditional debug** — chỉ khi 5 bước trên chưa ra
+
+⭐ **Lý do của thứ tự:** syslog và NetFlow **đang chạy sẵn, không tốn gì thêm**.
+SPAN và debug **tốn tài nguyên thiết bị** và có thể **gây thêm sự cố** → để cuối.
+
+</details>
 
 ---
 
-### LAB C — ⭐⭐ FLEXIBLE NETFLOW (40 phút) — **LAB hay nhất module**
-
-> ⭐⭐ **Không cần collector.** ⭐ Bạn sẽ xem toàn bộ bảng flow ngay trên router.
-
-**Bước C1 — Cấu hình đủ 4 thành phần:**
-```
-!═══ R1 ═══
-!─── ① RECORD ───
-flow record FR-LAB
- match ipv4 source address
- match ipv4 destination address
- match ipv4 protocol
- match transport source-port
- match transport destination-port
- collect counter bytes
- collect counter packets
- collect interface output
- collect timestamp sys-uptime first
- collect timestamp sys-uptime last
-!
-!─── ② EXPORTER (trỏ vào R2 — không cần R2 chạy gì) ───
-flow exporter FE-LAB
- destination 10.0.0.2
- source Loopback0
- transport udp 2055
- export-protocol netflow-v9
-!
-!─── ③ MONITOR ───
-flow monitor FM-LAB
- record FR-LAB
- exporter FE-LAB
- cache timeout active 60
- cache timeout inactive 15
-!
-!─── ④ ÁP LÊN INTERFACE ───
-interface GigabitEthernet0/0
- ip flow monitor FM-LAB input
- ip flow monitor FM-LAB output
-```
-
-**Bước C2 — Sinh nhiều loại traffic khác nhau:**
-```
-R1# ping 10.0.0.2 repeat 50
-R1# ping 10.0.0.2 repeat 30 size 1400
-R1# telnet 10.0.0.2 80
-R1# telnet 10.0.0.2 443
-R2# ping 1.1.1.1 repeat 40 source Loopback0
-```
-
-✅ **Checkpoint C2 — ⭐⭐ xem bảng flow NGAY TRÊN ROUTER:**
-```
-R1# show flow monitor FM-LAB cache format table
-```
-```
-IPV4 SRC ADDR  IPV4 DST ADDR  TRNS SRC PORT  TRNS DST PORT  IP PROT  bytes  pkts
-=============  =============  =============  =============  =======  ========  ======
-10.0.0.1       10.0.0.2                   0              0        1      5000      50
-10.0.0.1       10.0.0.2                   0              0        1     42000      30
-2.2.2.2        1.1.1.1                    0              0        1      4000      40
-10.0.0.1       10.0.0.2               31421             80        6       120       2
-10.0.0.1       10.0.0.2               31422            443        6       120       2
-```
-
-> 💡 ⭐⭐ **Bạn vừa nhìn thấy "ai nói chuyện với ai, bao nhiêu byte" mà KHÔNG cần bất kỳ server nào.**
-> ⭐ **Đây chính là điều NetFlow làm trong mạng thật, chỉ khác là ở đó có collector vẽ biểu đồ.**
-
-✅ **Checkpoint C3 — ⭐⭐ chứng minh `match` tạo ra flow như thế nào:**
-
-⭐ Đếm số flow hiện tại:
-```
-R1# show flow monitor FM-LAB cache | include Current
-  Current entries: 5
-```
-⭐ Giờ **bỏ bớt một key field** và xem số flow thay đổi:
-```
-R1(config)# flow record FR-LAB
-R1(config-flow-record)# no match transport source-port
-R1# clear flow monitor FM-LAB cache
-R1# ping 10.0.0.2 repeat 20
-R1# telnet 10.0.0.2 80
-R1# telnet 10.0.0.2 443
-R1# show flow monitor FM-LAB cache | include Current
-```
-> 💡 ⭐⭐ **Số flow GIẢM** — vì giờ các kết nối có source port khác nhau **bị gộp thành một flow.**
-> ⭐ **Bạn vừa tự chứng minh: `match` = KEY = định nghĩa flow.**
-> ⭐ **Thêm match = nhiều flow hơn = cache đầy nhanh hơn.**
-
-✅ **Checkpoint C4 — kiểm tra sức khỏe cache và exporter:**
-```
-R1# show flow monitor FM-LAB statistics
-  Current entries: 3
-  High Watermark:   12
-  Flows added:      48
-  Flows aged:      45
-    - Active timeout   (60 secs)   6
-    - Inactive timeout (15 secs)   39
-    - Emergency aged             0        ← PHẢI là 0
-!
-R1# show flow exporter FE-LAB statistics
-  Packets sent: 24
-  Client: Flow Monitor FM-LAB
-    Exporting flows to 10.0.0.2 (2055)
-```
-> 💡 ⭐ **`Emergency aged > 0`** = ⭐ **cache đầy, số liệu không tin được** → tăng `cache entries`
-> hoặc giảm số `match`.
-
-**Bước C5 — ⭐ Quan sát `cache timeout active`:**
-```
-R1(config)# flow monitor FM-LAB
-R1(config-flow-monitor)# cache timeout active 1800      ! về mặc định 30 phút
-```
-⭐ Tạo một flow dài (`ping 10.0.0.2 repeat 10000`) rồi xem `show flow exporter ... statistics` —
-⭐ **`Packets sent` gần như không tăng**, vì flow **chưa bị đẩy đi.**
-> 💡 🔴 ⭐⭐ **Đây là lý do phải đặt `cache timeout active 60` trong thực tế** — ⭐ **nếu không,
-> collector không thấy gì trong 30 phút và bạn tưởng mạng đang rảnh.**
-
----
-
-### LAB D — ⭐⭐ SPAN và bẫy "cổng câm" (25 phút)
-
-```
-!═══ SW1 ═══
-monitor session 1 source interface GigabitEthernet0/0 both
-monitor session 1 destination interface GigabitEthernet0/3
-```
-```
-SW1# show monitor session 1
-Session 1
----------
-Type              : Local Session
-Source Ports      :
-    Both        : Gi0/0
-Destination Ports : Gi0/3
-    Encapsulation : Native
-```
-
-✅ **Checkpoint D1 — 🔴 ⭐⭐ tái hiện bẫy "cổng đích thành câm":**
-
-⭐ **Trước khi cấu hình SPAN**, cắm R2 vào `Gi0/3` và xác nhận ping được.
-⭐ **Sau khi cấu hình SPAN với destination = `Gi0/3`:**
-```
-R2# ping 10.0.0.1
-.....                                  ← MẤT MẠNG HOÀN TOÀN
-```
-```
-SW1# show interface Gi0/3 | include line protocol
-GigabitEthernet0/3 is up, line protocol is up       ← VẪN BÁO UP/UP!
-```
-> 💡 🔴 ⭐⭐ **Đây là bài học đắt nhất của LAB D:** ⭐ **cổng vẫn `up/up`, đèn vẫn sáng,
-> `show interface` hoàn toàn sạch — nhưng thiết bị cắm vào đó MẤT MẠNG.**
-> ⭐ **Vì SPAN destination đã bị trưng dụng: không chuyển traffic thường, không STP, không học MAC.**
->
-> ⭐ **Ghi vào `SO-TAY-LOI.md`:** ⭐ *"Trước khi đặt SPAN destination, LUÔN kiểm tra cổng đó có ai đang dùng không."*
-
-✅ **Checkpoint D2 — ⭐ SPAN theo VLAN và các biến thể:**
-```
-SW1(config)# no monitor session 1
-SW1(config)# monitor session 1 source vlan 10 rx
-SW1(config)# monitor session 1 destination interface Gi0/3 encapsulation replicate
-SW1# show monitor session 1 detail | include VLANs|Encapsulation
-```
-> 💡 ⭐ **`encapsulation replicate`** giữ nguyên **tag 802.1Q, CDP, STP BPDU** trong bản sao —
-> ⭐ **cần thiết khi bạn phân tích chính vấn đề VLAN/STP.**
-
-✅ **Checkpoint D3 — ⭐ RSPAN (nếu có 2 switch):**
-```
-! TRÊN CẢ HAI SWITCH:
-vlan 999
- name RSPAN
- remote-span
-!
-! Switch nguồn:
-monitor session 1 source interface Gi0/0 both
-monitor session 1 destination remote vlan 999
-!
-! Switch đích:
-monitor session 2 source remote vlan 999
-monitor session 2 destination interface Gi0/3
-```
-> 💡 🔴 ⭐ **Thử BỎ `remote-span` trên một switch** → ⭐ **RSPAN ngừng hoạt động**,
-> ⭐ và VLAN 999 trở thành VLAN thường → traffic sao chép **flood lung tung.**
-
----
-
-### LAB E — ⭐⭐ IP SLA: đo và failover (40 phút)
-
-**Bước E1 — icmp-echo + track (ôn Module-03/06A):**
-```
-!═══ R1 ═══
-ip sla 10
- icmp-echo 10.0.0.2 source-interface GigabitEthernet0/0
- frequency 5
- timeout 500
- threshold 200
- tag "R2-health"
-ip sla schedule 10 life forever start-time now
-!
-track 1 ip sla 10 reachability
- delay down 10 up 30
-```
-
-✅ **Checkpoint E1:**
-```
-R1# show ip sla statistics 10
-IPSLA operation id: 10
-    Latest RTT: 4 milliseconds
-    Latest operation return code: OK
-    Number of successes: 24
-    Number of failures: 0
-
-R1# show track 1
-Track 1
-  IP SLA 10 reachability
-  Reachability is Up                 ← ✅
-    3 changes, last change 00:02:14
-```
-
-**Bước E2 — 🔴 ⭐⭐ Tái hiện lỗi "quên `ip sla schedule`":**
-```
-R1(config)# ip sla 11
-R1(config-ip-sla)# icmp-echo 10.0.0.2
-R1(config-ip-sla)# exit
-!  CỐ Ý KHÔNG gõ "ip sla schedule 11 ..."
-R1# show ip sla statistics 11
-```
-```
-IPSLA operation id: 11
-	Operation has not been scheduled
-```
-> 💡 🔴 ⭐⭐ **Đây là lỗi số 1 với IP SLA.** ⭐ Operation nằm đầy đủ trong config,
-> ⭐ **`show run` trông hoàn toàn đúng — nhưng nó KHÔNG BAO GIỜ CHẠY.**
-
-**Bước E3 — ⭐⭐ Test failover thật:**
-```
-R1(config)# ip route 2.2.2.2 255.255.255.255 10.0.0.2 track 1
-R1# show ip route 2.2.2.2 | include via
-   * 10.0.0.2                          ← route CÓ trong bảng
-```
-⭐ **Giờ "cắt" đường** — shutdown interface phía R2:
-```
-R2(config)# interface Gi0/0
-R2(config-if)# shutdown
-```
-⭐ Chờ ~15 giây rồi xem trên R1:
-```
-R1# show track 1
-  Reachability is Down               ← track đã phát hiện
-R1# show ip route 2.2.2.2
-   % Network not in table              ← ROUTE ĐÃ TỰ BỊ GỠ
-R1# show ip sla statistics 10 | include return code|failures
-    Latest operation return code: Timeout
-    Number of failures: 3
-```
-> 💡 ⭐⭐ **Bạn vừa thấy chuỗi hoàn chỉnh: IP SLA phát hiện → track đổi trạng thái → route bị gỡ.**
-> ⭐ Đây chính là cơ chế **floating static failover** ở [Module-03](Module-03-IP-Routing-Nen-tang.md),
-> giờ bạn nhìn được **từng mắt xích**.
-
-⭐ **Bật lại `no shutdown` và xác nhận route quay về** *(chờ 30s vì `delay up 30`)*.
-
-**Bước E4 — ⭐⭐ udp-jitter với Responder (phần hay nhất LAB E):**
-```
-!═══ TRÊN R2 (đầu đích) ═══
-ip sla responder
-
-!═══ TRÊN R1 (đầu nguồn) ═══
-ip sla 20
- udp-jitter 10.0.0.2 5000 codec g711alaw
- frequency 30
- tos 184                              ! DSCP EF (Module-09!)
- tag "VoIP-quality"
-ip sla schedule 20 life forever start-time now
-```
-⭐ Chờ ~2 phút rồi xem:
-```
-R1# show ip sla statistics 20
-```
-```
-    Number of RTT: 1000     RTT Min/Avg/Max: 2/4/18 milliseconds
-    Latency one-way SD: Min/Avg/Max: 1/2/9
-    Latency one-way DS: Min/Avg/Max: 1/2/8
-    Source to Destination Jitter Min/Avg/Max: 0/1/6
-    Destination to Source Jitter Min/Avg/Max: 0/1/5
-    Packet Loss SD: 0    Packet Loss DS: 0
-    MOS score: 4.39
-```
-✅ **Checkpoint E4 — ⭐ đối chiếu với ngưỡng VoIP ([Module-09 §8.1](Module-09-Architecture-va-QoS.md)):**
-
-| Chỉ số | Ngưỡng | Đo được | Đạt? |
-|---|---|---|:---:|
-| One-way latency | ≤ 150 ms | 2 ms | ✅ |
-| Jitter | ≤ 30 ms | 1 ms | ✅ |
-| Loss | ≤ 1 % | 0 % | ✅ |
-| MOS | > 4.0 | 4.39 | ✅ |
-
-> 💡 ⭐⭐ **Bạn vừa tạo ra một báo cáo chất lượng VoIP thật.** ⭐ Trong công việc, đây chính là
-> **bằng chứng bạn gửi cho nhà mạng** khi họ nói *"đường của chúng tôi vẫn tốt"*.
-
-✅ **Checkpoint E5 — ⭐ chứng minh vai trò của Responder:**
-```
-R2(config)# no ip sla responder
-R1# clear ip sla statistics 20
-```
-⭐ Chờ 1 phút:
-```
-R1# show ip sla statistics 20 | include return code
-    Latest operation return code: Timeout
-```
-> 💡 ⭐⭐ **`udp-jitter` KHÔNG chạy được nếu thiếu Responder.** ⭐ So sánh với `ip sla 10` (icmp-echo)
-> vẫn chạy bình thường — ⭐ **đó là khác biệt "cần Responder" vs "không cần".**
-
----
-
-## 🚀 14. LAB NÂNG CAO
-
-### 14.1 🚀 ⭐⭐ LAB F — Conditional debug an toàn (25 phút)
-
-> ⭐ **Kỹ năng thật sự của mục 4.1.** ⭐ Làm đúng quy trình 5 bước §8.2.
-
-```
-!═══ ① CHUẨN BỊ AN TOÀN — làm TRƯỚC khi bật debug ═══
-R1(config)# no logging console
-R1(config)# logging buffered 128000 debugging
-R1# clear logging
-R1# show processes cpu sorted | exclude 0.00      ! CPU đang bao nhiêu?
-
-!═══ ② ACL LỌC — chỉ quan tâm traffic giữa 2 địa chỉ ═══
-R1(config)# access-list 199 permit icmp host 10.0.0.1 host 10.0.0.2
-R1(config)# access-list 199 permit icmp host 10.0.0.2 host 10.0.0.1   ! NHỚ CHIỀU VỀ
-
-!═══ ③ BẬT DEBUG CÓ ĐIỀU KIỆN ═══
-R1# debug ip packet 199 detail
-R1# show debugging
-   Generic IP:
-     IP packet debugging is on for access list 199
-
-!═══ ④ TÁI HIỆN — CHỈ VÀI GIÂY ═══
-R1# ping 10.0.0.2 repeat 3
-R1# undebug all                    ! TẮT NGAY
-
-!═══ ⑤ ĐỌC TỪ BUFFER — thoải mái ═══
-R1# show logging | include IP: s=
-```
-
-✅ **Checkpoint F1:**
-```
-IP: s=10.0.0.1 (local), d=10.0.0.2 (GigabitEthernet0/0), len 100, sending
-IP: s=10.0.0.2 (GigabitEthernet0/0), d=10.0.0.1 (GigabitEthernet0/0), len 100, rcvd 3
-```
-
-✅ **Checkpoint F2 — 🔴 ⭐⭐ tái hiện bẫy CEF (§8.3):**
-```
-! Ping XUYÊN QUA router (không phải tới router) — traffic này do CEF xử lý
-R2# ping 1.1.1.1 source 2.2.2.2 repeat 5
-R1# show logging | include IP: s=2.2.2.2
-   (TRỐNG — hoặc rất ít dòng)
-```
-> 💡 🔴 ⭐⭐ **`debug ip packet` CHỈ thấy gói được PROCESS-SWITCHED.**
-> ⭐ Traffic đi xuyên qua router được **CEF (fast path)** xử lý → ⭐ **KHÔNG hiện trong debug.**
-> ⭐ Traffic **tới chính router** (ping tới IP của nó) thì bị punt lên CPU → **có hiện.**
->
-> ⭐ *(Nhắc lại [Module-01 §3](Module-01-Packet-Forwarding-va-Kien-truc-Thiet-bi.md) và
-> [Module-10 §5.1](Module-10-Security.md) — cùng một cơ chế "punt".)*
->
-> 🔴 ⭐ **Đừng bao giờ gõ `no ip cef` trên production để "nhìn thấy hết"** — bạn vừa tắt hardware forwarding.
-
-✅ **Checkpoint F3 — ⭐ `debug condition`:**
-```
-R1# debug condition interface GigabitEthernet0/0
-R1# debug ip packet detail
-R1# show debug condition
-   Condition 1: interface Gi0/0 (1 flags triggered)
-R1# undebug all
-R1# no debug condition all
-```
-
-✅ **Checkpoint F4 — 🔴 ⭐ hiểu vì sao console nguy hiểm (làm CẨN THẬN):**
-```
-R1(config)# logging console debugging       ! bật lại console ở mức 7
-R1# debug ip packet
-R1# ping 10.0.0.2 repeat 100 size 1400
-   → quan sát console bị TRÀN, router phản hồi CHẬM HẲN
-R1# u all                                    ! tắt ngay
-R1(config)# no logging console               ! trả về an toàn
-```
-> 💡 🔴 ⭐⭐ **Đó mới chỉ là `debug ip packet` với 100 gói.** ⭐ Hình dung `debug all`
-> trên router production có 10.000 gói/giây. ⭐ **Đây là lý do quy trình §8.2 tồn tại.**
-
-### 14.2 🚀 ⭐ LAB G — Tìm MTU bằng extended ping (10 phút)
-
-> ⭐ Nối trực tiếp với [Module-08 §4.4](Module-08-Virtualization-va-Overlay.md).
-
-```
-R1# ping 10.0.0.2 df-bit size 1500
-!!!!!                                    OK (Ethernet MTU 1500)
-
-R1# ping 10.0.0.2 df-bit size 1501
-.....                                  ← vượt MTU
-
-! CHẾ ĐỘ SWEEP — router tự tìm ngưỡng
-R1# ping
-Protocol [ip]: 
-Target IP address: 10.0.0.2
-Repeat count [5]: 1
-Datagram size [100]: 
-Timeout in seconds [2]: 1
-Extended commands [n]: y
-Source address or interface: 
-Type of service [0]: 
-Set DF bit in IP header? [no]: y
-Validate reply data? [no]: 
-Data pattern [0xABCD]: 
-Loose, Strict, Record, Timestamp, Verbose[none]: 
-Sweep range of sizes [n]: y
-Sweep min size [36]: 1480
-Sweep max size [18024]: 1520
-Sweep interval [1]: 4
-```
-✅ **Checkpoint G:** ⭐ **Output cho thấy chính xác kích thước nào bắt đầu FAIL.**
-⭐ Nếu bạn dựng GRE tunnel từ Module-08 và ping qua nó → ⭐ **ngưỡng sẽ là 1476 (1500 − 24).**
-
-### 14.3 🚀 ⭐ LAB H — Ghép mọi thứ: chẩn đoán một sự cố giả lập (20 phút)
-
-> ⭐ **Bài tập tổng hợp.** ⭐ Nhờ ai đó (hoặc chính bạn, rồi quên đi vài ngày) tạo MỘT lỗi trong
-> danh sách dưới, ⭐ **rồi dùng đúng công cụ để tìm ra.**
-
-| # | Lỗi được gieo | ⭐ Công cụ nên dùng |
-|:---:|---|---|
-| 1 | `shutdown` một interface | ⭐ `show logging \| include LINK-3` |
-| 2 | Áp ACL chặn ICMP | ⭐ `show access-lists` (bộ đếm) + `debug ip packet <acl>` |
-| 3 | Đổi `cache timeout active` thành 1800 | ⭐ `show flow exporter ... statistics` → `Packets sent` không tăng |
-| 4 | Xóa `ip sla schedule` | ⭐ `show ip sla statistics` → **"has not been scheduled"** |
-| 5 | Đặt `logging trap 2` | ⭐ `show logging \| include Trap logging` → mức quá thấp |
-| 6 | Cấu hình SPAN destination lên cổng đang dùng | ⭐ Thiết bị mất mạng dù cổng `up/up` → `show monitor session all` |
-| 7 | Sai `snmp-server user` (thiếu `priv`) | ⭐ `show snmp user` → `Privacy Protocol: None` |
-| 8 | Chỉnh lệch đồng hồ R1 so với R2 30 giây | ⭐ `show clock` hai đầu → one-way delay của IP SLA sai bét |
-
-> 💡 ⭐⭐ **Bài tập này mô phỏng đúng công việc thật:** ⭐ **bạn không biết trước lỗi ở đâu,
-> phải chọn đúng giác quan để tìm.** ⭐ Ghi lại **mất bao lâu** để tìm ra mỗi lỗi.
-
-### 14.4 🚀 ⭐ LAB I — DNA Center Assurance trên DevNet Sandbox (30 phút)
-
-| Bước | Làm |
-|:---:|---|
-| 1 | `developer.cisco.com/site/sandbox/` → sandbox **DNA Center** (⭐ Always-On) |
-| 2 | ⚠️ ⭐ Lấy URL + tài khoản **từ chính trang sandbox** |
-
-⭐ **Bảng việc — chỉ XEM:**
-
-| # | Tìm gì | ⭐ Liên hệ |
-|:---:|---|:---:|
-| 1 | ⭐ **Assurance → Health** — điểm health của thiết bị và client | §9.2 |
-| 2 | ⭐⭐ **Client 360** — chọn một client, xem toàn bộ hành trình của nó | §9.2 |
-| 3 | ⭐⭐ **Path Trace** — chạy thử giữa hai IP, xem đường đi hop-by-hop | §9.2 |
-| 4 | ⭐ **Issues** — danh sách vấn đề + gợi ý khắc phục | §9.2 |
-| 5 | ⭐ Tìm thanh **thời gian** (Network Time Travel) — tua về quá khứ | §9.2 |
-
-✅ **Checkpoint I:** ⭐ chạy được **một Path Trace** và trả lời: ⭐ *"gói đi qua mấy hop, có ACL nào
-trên đường không?"* — ⭐ **đây chính là thứ mà `traceroute` KHÔNG cho bạn biết.**
-
----
-
-## 💡 15. THỰC CHIẾN ĐI LÀM
+## 💡 4.6 Thực chiến đi làm
 
 | # | Tình huống thật | 🔴 Điều người mới làm sai | ⭐ Cách làm đúng |
 |:---:|---|---|---|
@@ -1911,6 +1502,20 @@ trên đường không?"* — ⭐ **đây chính là thứ mà `traceroute` KHÔ
 > 2. ⭐ **"`no logging console` + `logging buffered` TRƯỚC KHI debug. Và thuộc `u all`."**
 > 3. ⭐ **"NetFlow để PHÁT HIỆN, SPAN để SOI. Đừng dùng SPAN 24/7."**
 > 4. ⭐ **"Quên `ip sla schedule` = IP SLA không bao giờ chạy."**
+
+---
+
+# 📎 PHỤ LỤC — TRA CỨU
+
+> 🔴 **KHÔNG đọc phần này ở lần học đầu tiên.**
+>
+> | Khi nào | Mở mục nào |
+> |---|---|
+> | Đang lab mà lỗi | **Gỡ lỗi nhanh** (§18) — ⭐ quy trình 6 bước cho "mạng chậm" |
+> | Quên lệnh | **Hộp lệnh** (§18.1) |
+> | Tuần 20, ôn thi | **Bẫy đề** (§17) + **Quiz** (§19) |
+> | Gặp từ lạ | **Thuật ngữ** (§20) |
+> | Tự chấm | **Đúc kết** (§21) |
 
 ---
 
