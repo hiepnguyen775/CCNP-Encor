@@ -180,20 +180,20 @@ thay đổi nguy hiểm (tắt CEF, shutdown link…).
 
 ## 7. Trạng thái biên soạn
 
+✅ **REPO ĐÃ HOÀN CHỌNH** — 18 module lý thuyết + 20 file LAB, phủ **100% blueprint**
+và **toàn bộ Tuần 0 → 20** của ROADMAP.
+
 | Batch | Nội dung | Trạng thái |
 |---|---|---|
 | 1 | README + ROADMAP + Tài liệu tham khảo + Sổ tay lỗi | ✅ Xong |
 | 2 | Module-00 (Setup lab) + Module-P0 (Nền tảng) | ✅ Xong |
-| 3 | **Module-01 → 06B (Infrastructure — 30% đề, phần lớn nhất)** | ✅ **Xong** |
+| 3 | **Module-01 → 06B (Infrastructure — 30% đề)** | ✅ **Xong** |
 | 4 | **Module-07A/07B + 08 + 09 (Wireless / Overlay / Architecture & QoS)** | ✅ **Xong** |
 | 5 | **Module-10 (Security) + Module-11 (Network Assurance)** | ✅ **Xong** |
 | 6 | **Module-12 (Automation & Programmability)** | ✅ **Xong** |
-| 7 | Module-13 (Ôn thi & Chiến thuật phòng thi) | 🔴 **Chưa viết** |
+| 7 | **Module-13 (Ôn thi) + LAB CAPSTONE** | ✅ **Xong** |
 
-**Tiến độ thực tế:** 18 module lý thuyết + 19 file LAB (tổng **41 file, ~45.200 dòng**)
-— đủ để học liền mạch **Tuần 0 → 19** của ROADMAP.
-
-✅ **SÁU DOMAIN ĐÃ XONG TRỌN VẸN — phủ 100% blueprint:**
+### Sáu domain — phủ trọn vẹn
 
 | Domain | % đề | Module phụ trách | |
 |---|:---:|---|:---:|
@@ -203,16 +203,19 @@ thay đổi nguy hiểm (tắt CEF, shutdown link…).
 | **6.0 Automation** | **15%** | Module-12 | ✅ |
 | **2.0 Virtualization** | **10%** | Module-08 | ✅ |
 | **4.0 Network Assurance** | **10%** | Module-11 + **Module-12 §7** *(mục 4.7)* | ✅ |
-| **Tổng** | ⭐ **100%** | | ✅ |
+| **Tổng** | **100%** | | ✅ |
 
-⚠️ **Còn lại — không phải domain, nhưng đừng bỏ qua:**
+### 🎯 LAB CAPSTONE — điểm đến của cả khoá
 
-| | Tình trạng |
-|---|---|
-| **Module-13** | 🔴 **Chưa viết** — LAB tổng hợp · bảng bẫy đề · mock exam · chiến thuật thời gian · checklist trước khi book exam |
+👉 **[LAB Capstone — Dự án "Mạng công ty VLT"](Module-13-LAB-Capstone.md)**
 
-👉 **Nghĩa là:** toàn bộ **kiến thức** của kỳ thi đã có đủ.
-Còn thiếu phần **luyện đề và chiến thuật phòng thi** (Tuần 20).
+Một **dự án hoàn chỉnh** thay vì bài tập theo chương: 6 node · 13 Task viết theo
+**yêu cầu nghiệp vụ** *(đề không nói cho bạn dùng lệnh gì)* · 100 điểm ·
+kết thúc bằng **5 bài diễn tập sự cố** kiểu nghiệm thu thật.
+
+Chạm **cả sáu domain trong MỘT bài**: VLAN/EtherChannel/STP · VRRP + IP SLA tracking ·
+OSPF nhiều vùng + tóm tắt · BGP dual-homed + điều hướng hai chiều · NAT · DHCP ·
+AAA/ACL · CoPP · Syslog · NetFlow/SPAN · EEM.
 
 ---
 

@@ -30,7 +30,7 @@
 | **17** | **Module-11** | Syslog · SNMPv2c/v3 · **Flexible NetFlow** · SPAN/RSPAN/ERSPAN · **IP SLA** · **debug an toàn** · DNAC Assurance | Assurance **10%**<br>⚠️ *(trừ 4.7 → M12)* | ⭐ **Không cần collector**: `show flow monitor cache` xem flow ngay trên router · bẫy "cổng SPAN câm" · IP SLA udp-jitter + Responder | **1.8 GB** | ☐ |
 | **18** | Module-12 | JSON/XML/YAML · REST API · Python netmiko/requests · EEM | Automation 15% | Script Python đọc/đổi config qua RESTCONF trên DevNet Sandbox | 2 GB | ☐ |
 | **19** | Module-12 | NETCONF/RESTCONF/YANG · Ansible network · DNAC & vManage API · CI/CD ý tưởng | Automation 15% | Ansible playbook backup config 4 router + NETCONF get-config | 3 GB | ☐ |
-| **20** | Module-13 | LAB tổng hợp · mock exam · bẫy đề · chiến thuật phòng thi | Toàn bộ | LAB capstone: 6 node, nhiều domain cùng lúc | 6 GB | ☐ |
+| **20** | Module-13 | **LAB CAPSTONE** · luyện đề · bẫy đề · chiến thuật phòng thi | Toàn bộ | [Capstone "Mạng công ty VLT"](Module-13-LAB-Capstone.md): 6 node · 13 Task · 100 điểm · 5 bài diễn tập sự cố | **3,5 GB** | ☐ |
 
 **Tổng: 20 tuần ≈ 200 giờ.** Nếu học 15 h/tuần → ~14 tuần. Nếu 6 h/tuần → ~30 tuần. Đừng ép, đừng bỏ.
 
