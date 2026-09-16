@@ -187,32 +187,32 @@ thay đổi nguy hiểm (tắt CEF, shutdown link…).
 | 3 | **Module-01 → 06B (Infrastructure — 30% đề, phần lớn nhất)** | ✅ **Xong** |
 | 4 | **Module-07A/07B + 08 + 09 (Wireless / Overlay / Architecture & QoS)** | ✅ **Xong** |
 | 5 | **Module-10 (Security) + Module-11 (Network Assurance)** | ✅ **Xong** |
-| 6 | Module-12 (Automation) | 🔴 **Chưa viết** |
-| 7 | Module-13 (Ôn thi) | 🔴 **Chưa viết** |
+| 6 | **Module-12 (Automation & Programmability)** | ✅ **Xong** |
+| 7 | Module-13 (Ôn thi & Chiến thuật phòng thi) | 🔴 **Chưa viết** |
 
-**Tiến độ thực tế:** 17 module lý thuyết + 18 file LAB (tổng **39 file, ~42.300 dòng**)
-— đủ để học liền mạch **Tuần 0 → 17** của ROADMAP.
+**Tiến độ thực tế:** 18 module lý thuyết + 19 file LAB (tổng **41 file, ~45.200 dòng**)
+— đủ để học liền mạch **Tuần 0 → 19** của ROADMAP.
 
-⭐ **Bốn domain ĐÃ XONG TRỌN VẸN — chiếm 75% đề:**
+✅ **SÁU DOMAIN ĐÃ XONG TRỌN VẸN — phủ 100% blueprint:**
 
 | Domain | % đề | Module phụ trách | |
 |---|:---:|---|:---:|
 | **3.0 Infrastructure** | **30%** | Module-02 → 07B | ✅ |
 | **5.0 Security** | **20%** | Module-10 | ✅ |
 | **1.0 Architecture** | **15%** | Module-01 (§1.7) + Module-09 | ✅ |
+| **6.0 Automation** | **15%** | Module-12 | ✅ |
 | **2.0 Virtualization** | **10%** | Module-08 | ✅ |
-| **Tổng đã phủ trọn vẹn** | ⭐ **75%** | | ✅ |
+| **4.0 Network Assurance** | **10%** | Module-11 + **Module-12 §7** *(mục 4.7)* | ✅ |
+| **Tổng** | ⭐ **100%** | | ✅ |
 
-⚠️ **CÒN THIẾU — đọc kỹ chỗ này trước khi book exam:**
+⚠️ **Còn lại — không phải domain, nhưng đừng bỏ qua:**
 
-| Domain | % đề | Tình trạng |
-|---|:---:|---|
-| **4.0 Network Assurance** | 10% | 🟡 **Gần xong.** Module-11 đã phủ Syslog · SNMP · NetFlow · SPAN/RSPAN/ERSPAN · IP SLA · DNAC.<br>⚠️ Riêng **mục 4.7 (NETCONF/RESTCONF)** được xếp vào Module-12 → **chưa có** |
-| **6.0 Automation** | **15%** | 🔴 **Chưa viết dòng nào** — toàn bộ Module-12 |
-| — | — | 🔴 **Module-13** (LAB tổng hợp · mock exam · chiến thuật phòng thi) **chưa viết** |
+| | Tình trạng |
+|---|---|
+| **Module-13** | 🔴 **Chưa viết** — LAB tổng hợp · bảng bẫy đề · mock exam · chiến thuật thời gian · checklist trước khi book exam |
 
-👉 **Nghĩa là:** từ **Tuần 18** trở đi (Automation + ôn thi) **chưa có tài liệu**.
-Chưa nên book exam khi chưa bù được 15% của domain 6.0.
+👉 **Nghĩa là:** toàn bộ **kiến thức** của kỳ thi đã có đủ.
+Còn thiếu phần **luyện đề và chiến thuật phòng thi** (Tuần 20).
 
 ---
 
