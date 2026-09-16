@@ -183,24 +183,36 @@ thay đổi nguy hiểm (tắt CEF, shutdown link…).
 | Batch | Nội dung | Trạng thái |
 |---|---|---|
 | 1 | README + ROADMAP + Tài liệu tham khảo + Sổ tay lỗi | ✅ Xong |
-| 2 | Module-00 (Setup lab) + Module-P0 (Nền tảng) | ✅ Xong — **đủ để bạn học Tuần 0–2 ngay** |
-| 3 | **Module-01 → 06B (Infrastructure — 30% đề, phần lớn nhất)** | ✅ **Xong** — đủ để học Tuần 3–11 |
+| 2 | Module-00 (Setup lab) + Module-P0 (Nền tảng) | ✅ Xong |
+| 3 | **Module-01 → 06B (Infrastructure — 30% đề, phần lớn nhất)** | ✅ **Xong** |
 | 4 | **Module-07A/07B + 08 + 09 (Wireless / Overlay / Architecture & QoS)** | ✅ **Xong** |
-| 5 | Module-10 → 12 (Security / Assurance / Automation) | ⏳ Chờ |
-| 6 | Module-13 (Ôn thi) | ⏳ Chờ |
+| 5 | **Module-10 (Security) + Module-11 (Network Assurance)** | ✅ **Xong** |
+| 6 | Module-12 (Automation) | 🔴 **Chưa viết** |
+| 7 | Module-13 (Ôn thi) | 🔴 **Chưa viết** |
 
-**Tiến độ hiện tại:** 19 file · **~26.200 dòng** · phủ **Tuần 0 → 15** của ROADMAP.
+**Tiến độ thực tế:** 17 module lý thuyết + 18 file LAB (tổng **39 file, ~42.300 dòng**)
+— đủ để học liền mạch **Tuần 0 → 17** của ROADMAP.
 
-⭐ **Ba domain đã XONG TRỌN VẸN:**
+⭐ **Bốn domain ĐÃ XONG TRỌN VẸN — chiếm 75% đề:**
 
 | Domain | % đề | Module phụ trách | |
 |---|:---:|---|:---:|
 | **3.0 Infrastructure** | **30%** | Module-02 → 07B | ✅ |
+| **5.0 Security** | **20%** | Module-10 | ✅ |
 | **1.0 Architecture** | **15%** | Module-01 (§1.7) + Module-09 | ✅ |
 | **2.0 Virtualization** | **10%** | Module-08 | ✅ |
-| **Tổng đã phủ** | ⭐ **55%** | | ✅ |
+| **Tổng đã phủ trọn vẹn** | ⭐ **75%** | | ✅ |
 
-⭐ Còn lại: **5.0 Security (20%)** · **6.0 Automation (15%)** · **4.0 Network Assurance (10%)**.
+⚠️ **CÒN THIẾU — đọc kỹ chỗ này trước khi book exam:**
+
+| Domain | % đề | Tình trạng |
+|---|:---:|---|
+| **4.0 Network Assurance** | 10% | 🟡 **Gần xong.** Module-11 đã phủ Syslog · SNMP · NetFlow · SPAN/RSPAN/ERSPAN · IP SLA · DNAC.<br>⚠️ Riêng **mục 4.7 (NETCONF/RESTCONF)** được xếp vào Module-12 → **chưa có** |
+| **6.0 Automation** | **15%** | 🔴 **Chưa viết dòng nào** — toàn bộ Module-12 |
+| — | — | 🔴 **Module-13** (LAB tổng hợp · mock exam · chiến thuật phòng thi) **chưa viết** |
+
+👉 **Nghĩa là:** từ **Tuần 18** trở đi (Automation + ôn thi) **chưa có tài liệu**.
+Chưa nên book exam khi chưa bù được 15% của domain 6.0.
 
 ---
 
