@@ -896,12 +896,12 @@ Những chỗ đề 350-401 gài liên quan tới nội dung module này:
 | 2 | *"STP priority mặc định là 32768"* | ⚠️ Hiển thị là **32768 + VLAN ID**. VLAN 10 → **32778**. Đề cho output và hỏi "ai đổi priority?" → không ai đổi |
 | 3 | *"Gigabit và 10-Gigabit có OSPF cost khác nhau"* | ❌ Với reference 100 Mbps mặc định, **cả hai đều cost 1** |
 | 4 | *"auto ↔ auto sẽ lên trunk"* | ❌ **dynamic auto ↔ dynamic auto = access.** Cả hai đều chờ được mời |
-| 5 | Neighbor OSPF kẹt ở **EXSTART** | ⭐ Nghĩ ngay tới **MTU mismatch**. Đây là câu hỏi rất hay xuất hiện |
+| 5 | Neighbor OSPF kẹt ở **EXSTART** | Nghĩ ngay tới **MTU mismatch**. Đây là câu hỏi rất hay xuất hiện |
 | 6 | Neighbor OSPF ở **2-WAY** mà không lên Full | ⚠️ Đây có thể **bình thường** — 2 router DROther trên segment broadcast không cần Full với nhau |
 | 7 | *"ACL chỉ có permit thì cho qua hết"* | ❌ Vẫn có **implicit `deny any`** ở cuối |
 | 8 | Standard ACL đặt ở đâu | Gần **destination** (vì chỉ lọc source, đặt gần source sẽ chặn oan) |
 | 9 | Extended ACL đặt ở đâu | Gần **source** (chặn sớm, tiết kiệm băng thông) |
-| 10 | NAT không hoạt động dù config đúng | ⭐ Kiểm tra **có route tới đích chưa** — routing xảy ra trước NAT |
+| 10 | NAT không hoạt động dù config đúng | Kiểm tra **có route tới đích chưa** — routing xảy ra trước NAT |
 | 11 | *"Floating static tự phát hiện đích chết"* | ❌ Static route chỉ theo trạng thái **interface**. Đích chết mà link up thì route vẫn còn |
 | 12 | Direct vs indirect failure STP | Direct = **30s** (2× forward delay) · Indirect = **50s** (max age + 2× forward delay) |
 | 13 | *"RSTP có 5 state như STP"* | ❌ RSTP có **3 state**: Discarding, Learning, Forwarding |
@@ -974,14 +974,14 @@ undebug all                              ! THUỘC LÒNG LỆNH NÀY
 | 10 | `show ip route` không có route mong đợi | Longest prefix khác đang thắng, hoặc AD lớn hơn | `show ip route <ip đích>` xem route nào thắng |
 | 11 | Static route không vào bảng route | Next-hop không reachable | `ping <next-hop>` · dùng cả interface + next-hop |
 | 12 | OSPF neighbor kẹt **INIT** | Hello 1 chiều | Ping 2 chiều · kiểm tra ACL trên interface |
-| 13 | OSPF neighbor kẹt **EXSTART** | ⭐ **MTU lệch** | `show int \| inc MTU` cả 2 đầu → đặt giống nhau |
+| 13 | OSPF neighbor kẹt **EXSTART** | **MTU lệch** | `show int \| inc MTU` cả 2 đầu → đặt giống nhau |
 | 14 | OSPF neighbor **flap** liên tục | Hello/Dead timer lệch, hoặc CPU cao | `show ip ospf int Gi0/0 \| inc Timer` |
 | 15 | OSPF Full nhưng route thiếu | Network chưa quảng bá (sai wildcard) | `show ip ospf int brief` xem interface có trong OSPF không |
 | 16 | Đường OSPF đi "vòng vô lý" | Cost sai, hoặc `reference-bandwidth` lệch giữa các router | `show ip ospf int brief` so cost · thống nhất reference-bw |
-| 17 | NAT config đúng nhưng không ra Internet | ⭐ Thiếu default route | `show ip route 0.0.0.0` |
+| 17 | NAT config đúng nhưng không ra Internet | Thiếu default route | `show ip route 0.0.0.0` |
 | 18 | NAT: `show ip nat translations` trống | Chiều inside/outside sai, hoặc ACL không match | `show run \| inc nat` kiểm tra 2 chiều |
 | 19 | ACL chặn mất dịch vụ không mong muốn | Thiếu dòng permit, hoặc thứ tự sai | `show access-lists` xem counter dòng nào ăn traffic |
-| 20 | Sửa xong reboot mất hết | Chưa `write memory` | ⭐ Tập thói quen gõ `wr` sau mỗi lần sửa |
+| 20 | Sửa xong reboot mất hết | Chưa `write memory` | Tập thói quen gõ `wr` sau mỗi lần sửa |
 
 ### 8.3 Quy trình troubleshoot 5 bước (dùng cả 20 tuần)
 
@@ -1319,7 +1319,7 @@ Mọi thứ trong 18 tuần tới chỉ là hai câu này được làm cho ph�
 | Nguồn | Cụ thể |
 |---|---|
 | **Sách OCG 350-401** | Các chương về Spanning Tree, EtherChannel, IP Routing, OSPF (đọc phần cơ bản, để phần nâng cao cho Module-02/04) |
-| **Video** ⭐ | **Jeremy's IT Lab** (YouTube) — CCNA full course free. Xem các bài về VLAN, Trunk, STP, OSPF. Đúng level bạn cần vá |
+| **Video**  | **Jeremy's IT Lab** (YouTube) — CCNA full course free. Xem các bài về VLAN, Trunk, STP, OSPF. Đúng level bạn cần vá |
 | **Cisco doc** | *IP Routing Configuration Guide* · *Layer 2 Configuration Guide* (chương Spanning Tree) · *IP Routing: OSPF Configuration Guide* |
 | **NetworkLessons** | Bài về STP và OSPF — giải thích rõ nhất trên internet. Có bài free |
 | **Forum** | Kẹt lab → https://community.cisco.com · Kẹt EVE-NG → https://www.eve-ng.net/forum/ |

@@ -865,7 +865,7 @@ xét ở bước 2, trước AS-path ở bước 4** → họ vẫn đi lối đ
 >
 > | Khi nào | Mở mục nào |
 > |---|---|
-> | Đang lab mà lỗi | **Gỡ lỗi nhanh** (§7) — ⭐ có quy trình *"vì sao BGP chọn path này"* theo 13 bước |
+> | Đang lab mà lỗi | **Gỡ lỗi nhanh** (§7) —  có quy trình *"vì sao BGP chọn path này"* theo 13 bước |
 > | Quên lệnh | **Hộp lệnh** (§7.1) |
 > | Tuần 20, ôn thi | **Bẫy đề** (§6) + **Quiz** (§8) |
 > | Gặp từ lạ | **Thuật ngữ** (§9) |
@@ -877,44 +877,44 @@ xét ở bước 2, trước AS-path ở bước 4** → họ vẫn đi lối đ
 
 | # | Bẫy | Sự thật |
 |:---:|---|---|
-| 1 | ⭐ **Thứ tự 13 bước** | ⭐ **W**eight → **L**ocal Pref → **O**riginate → **AS**-path → **O**rigin → **M**ED → e**BGP**>iBGP → IGP metric → oldest → **R**outer ID → cluster → neighbor IP |
-| 2 | ⭐ Bước nào **CAO** thắng | ⭐ **CHỈ Weight (1) và Local Preference (2)**. Từ bước 4 trở đi đều **THẤP thắng** |
-| 3 | ⭐ Weight vs Local Pref — cái nào thắng | ⭐ **Weight** (bước 1 > bước 2) — dù LocPref cao hơn |
-| 4 | ⭐ Weight lan tới đâu | ⭐ **CHỈ local router** — **không** gửi cho peer nào (kể cả iBGP) |
-| 5 | ⭐ Local Pref lan tới đâu | ⭐ **Trong AS** (qua iBGP), **KHÔNG** qua eBGP. Mặc định **100** |
-| 6 | ⭐ **Điều khiển OUTBOUND** dùng gì, chiều nào | ⭐ **Weight / Local Pref**, áp route-map chiều ⭐ **`in`** |
-| 7 | ⭐ **Điều khiển INBOUND** dùng gì, chiều nào | ⭐ **AS-path prepend / MED**, áp route-map chiều ⭐ **`out`** |
-| 8 | ⭐ Inbound có đảm bảo không | ❌ **Chỉ là GỢI Ý** — AS bên kia ghi đè được bằng Weight/LocPref (bước 1–2 > bước 4/6) |
-| 9 | ⭐ MED mặc định so sánh thế nào | ⭐ **CHỈ giữa path từ CÙNG một AS kề**. Muốn so mọi AS → `bgp always-compare-med` |
-| 10 | ⭐ MED **không được đặt** = bao nhiêu | ⭐ **0** (tốt nhất!). Muốn coi là tệ nhất → `bgp bestpath med missing-as-worst` |
-| 11 | `bgp deterministic-med` làm gì | ⭐ Nhóm path theo AS **trước** khi so → kết quả **nhất quán**, không phụ thuộc thứ tự học route |
-| 12 | ⭐ 3 Origin code + thứ tự | ⭐ **`i` (IGP/`network`) < `e` (EGP) < `?` (incomplete/`redistribute`)** |
-| 13 | ⭐ Nên dùng `network` hay `redistribute` | ⭐ **`network`** — origin `i` **tốt hơn** `?` ở bước 5 |
-| 14 | Bước 8 "IGP metric tới next-hop" nghĩa là gì | ⭐ **Hot potato routing** — chọn đường **ra khỏi AS sớm nhất** |
-| 15 | Bước 10 "oldest eBGP path" | ⭐ Ưu tiên **ổn định** hơn tối ưu — path tồn tại lâu hơn thắng |
-| 16 | Bước 11 Router ID của ai | ⭐ Của **neighbor quảng bá route**, **THẤP** thắng |
-| 17 | ⭐ 4 well-known community | ⭐ **`no-export`** · **`no-advertise`** · **`local-AS`** · `internet` |
-| 18 | ⭐ `no-export` vs `no-advertise` | ⭐ `no-export` = **không cho eBGP peer** (iBGP **vẫn được**) · `no-advertise` = ⭐ **không cho BẤT KỲ peer nào** |
-| 19 | 🔴 `set community` không có tác dụng | ⭐ Thiếu **`neighbor x send-community`** — Cisco **không gửi community mặc định** |
-| 20 | ⭐ `set community` không có `additive` | ⭐ **GHI ĐÈ** toàn bộ community cũ |
+| 1 | **Thứ tự 13 bước** | **W**eight → **L**ocal Pref → **O**riginate → **AS**-path → **O**rigin → **M**ED → e**BGP**>iBGP → IGP metric → oldest → **R**outer ID → cluster → neighbor IP |
+| 2 | Bước nào **CAO** thắng | **CHỈ Weight (1) và Local Preference (2)**. Từ bước 4 trở đi đều **THẤP thắng** |
+| 3 | Weight vs Local Pref — cái nào thắng | **Weight** (bước 1 > bước 2) — dù LocPref cao hơn |
+| 4 | Weight lan tới đâu | **CHỈ local router** — **không** gửi cho peer nào (kể cả iBGP) |
+| 5 | Local Pref lan tới đâu | **Trong AS** (qua iBGP), **KHÔNG** qua eBGP. Mặc định **100** |
+| 6 | **Điều khiển OUTBOUND** dùng gì, chiều nào | **Weight / Local Pref**, áp route-map chiều  **`in`** |
+| 7 | **Điều khiển INBOUND** dùng gì, chiều nào | **AS-path prepend / MED**, áp route-map chiều  **`out`** |
+| 8 | Inbound có đảm bảo không | ❌ **Chỉ là GỢI Ý** — AS bên kia ghi đè được bằng Weight/LocPref (bước 1–2 > bước 4/6) |
+| 9 | MED mặc định so sánh thế nào | **CHỈ giữa path từ CÙNG một AS kề**. Muốn so mọi AS → `bgp always-compare-med` |
+| 10 | MED **không được đặt** = bao nhiêu | **0** (tốt nhất!). Muốn coi là tệ nhất → `bgp bestpath med missing-as-worst` |
+| 11 | `bgp deterministic-med` làm gì | Nhóm path theo AS **trước** khi so → kết quả **nhất quán**, không phụ thuộc thứ tự học route |
+| 12 | 3 Origin code + thứ tự | **`i` (IGP/`network`) < `e` (EGP) < `?` (incomplete/`redistribute`)** |
+| 13 | Nên dùng `network` hay `redistribute` | **`network`** — origin `i` **tốt hơn** `?` ở bước 5 |
+| 14 | Bước 8 "IGP metric tới next-hop" nghĩa là gì | **Hot potato routing** — chọn đường **ra khỏi AS sớm nhất** |
+| 15 | Bước 10 "oldest eBGP path" | Ưu tiên **ổn định** hơn tối ưu — path tồn tại lâu hơn thắng |
+| 16 | Bước 11 Router ID của ai | Của **neighbor quảng bá route**, **THẤP** thắng |
+| 17 | 4 well-known community | **`no-export`** · **`no-advertise`** · **`local-AS`** · `internet` |
+| 18 | `no-export` vs `no-advertise` | `no-export` = **không cho eBGP peer** (iBGP **vẫn được**) · `no-advertise` =  **không cho BẤT KỲ peer nào** |
+| 19 | 🔴 `set community` không có tác dụng | Thiếu **`neighbor x send-community`** — Cisco **không gửi community mặc định** |
+| 20 | `set community` không có `additive` | **GHI ĐÈ** toàn bộ community cũ |
 | 21 | Community-list standard vs expanded | Standard **1–99** (khớp giá trị) · Expanded **100–500** (regex) |
-| 22 | 🔴 ⭐ Catch-all của **prefix-list** | ⭐ **`permit 0.0.0.0/0 le 32`** — ⚠️ **`permit 0.0.0.0/0` CHỈ khớp default route!** |
-| 23 | 🔴 Catch-all của **AS-path ACL** | ⭐ **`permit .*`** |
-| 24 | 🔴 Catch-all của **route-map** | ⭐ Statement `permit` **không có `match`** |
-| 25 | ⭐ Regex `^$` | ⭐ AS-path **rỗng** = route sinh **trong AS mình** |
-| 26 | ⭐ Regex `^65002$` | ⭐ **Chỉ** AS 65002 = route sinh tại AS kề đó |
-| 27 | ⭐ Regex `^65002_` | ⭐ Route **từ AS kề** 65002 (bắt đầu bằng) |
-| 28 | ⭐ Regex `_65003_` | ⭐ Route **đi qua** AS 65003 |
-| 29 | ⭐ Regex `_65003$` | ⭐ Route **sinh tại** AS 65003 (kết thúc bằng) |
-| 30 | ⭐ Ký tự `_` trong regex nghĩa gì | ⭐ **Dấu phân cách**: space, dấu phẩy, đầu chuỗi, cuối chuỗi |
-| 31 | ⭐ `aggregate-address` không có option | ⭐ Quảng bá **CẢ** aggregate **VÀ** prefix con (không giảm route) |
-| 32 | ⭐ `summary-only` làm gì | ⭐ **Suppress** prefix con → hiện ⭐ **`s`** trong `show ip bgp` |
-| 33 | ⭐ `as-set` làm gì, vì sao cần | ⭐ Đưa AS-path của prefix con vào **AS_SET** `{65002,65003}` → ⭐ **giữ chống loop**. Thiếu = route có thể quay lại AS gốc |
-| 34 | `atomic-aggregate` nghĩa là gì | ⭐ Cảnh báo route **đã bị gộp**, **mất chi tiết AS-path** |
-| 35 | ⭐ Điều kiện để aggregate được sinh | ⭐ Phải có **ít nhất 1 prefix con** trong BGP table |
-| 36 | ⭐ `s` trong `show ip bgp` | ⭐ **Suppressed** — bị `summary-only` đè, **không quảng bá** |
-| 37 | ⭐ Đổi filter/route-map xong cần làm gì | ⭐ `clear ip bgp <ip> soft in` (inbound) / `soft out` (outbound) |
-| 38 | Verify filter có hoạt động | ⭐ `show ip prefix-list detail <NAME>` → **hit count** · `show route-map <NAME>` → counter |
+| 22 | 🔴  Catch-all của **prefix-list** | **`permit 0.0.0.0/0 le 32`** — ⚠️ **`permit 0.0.0.0/0` CHỈ khớp default route!** |
+| 23 | 🔴 Catch-all của **AS-path ACL** | **`permit .*`** |
+| 24 | 🔴 Catch-all của **route-map** | Statement `permit` **không có `match`** |
+| 25 | Regex `^$` | AS-path **rỗng** = route sinh **trong AS mình** |
+| 26 | Regex `^65002$` | **Chỉ** AS 65002 = route sinh tại AS kề đó |
+| 27 | Regex `^65002_` | Route **từ AS kề** 65002 (bắt đầu bằng) |
+| 28 | Regex `_65003_` | Route **đi qua** AS 65003 |
+| 29 | Regex `_65003$` | Route **sinh tại** AS 65003 (kết thúc bằng) |
+| 30 | Ký tự `_` trong regex nghĩa gì | **Dấu phân cách**: space, dấu phẩy, đầu chuỗi, cuối chuỗi |
+| 31 | `aggregate-address` không có option | Quảng bá **CẢ** aggregate **VÀ** prefix con (không giảm route) |
+| 32 | `summary-only` làm gì | **Suppress** prefix con → hiện  **`s`** trong `show ip bgp` |
+| 33 | `as-set` làm gì, vì sao cần | Đưa AS-path của prefix con vào **AS_SET** `{65002,65003}` →  **giữ chống loop**. Thiếu = route có thể quay lại AS gốc |
+| 34 | `atomic-aggregate` nghĩa là gì | Cảnh báo route **đã bị gộp**, **mất chi tiết AS-path** |
+| 35 | Điều kiện để aggregate được sinh | Phải có **ít nhất 1 prefix con** trong BGP table |
+| 36 | `s` trong `show ip bgp` | **Suppressed** — bị `summary-only` đè, **không quảng bá** |
+| 37 | Đổi filter/route-map xong cần làm gì | `clear ip bgp <ip> soft in` (inbound) / `soft out` (outbound) |
+| 38 | Verify filter có hoạt động | `show ip prefix-list detail <NAME>` → **hit count** · `show route-map <NAME>` → counter |
 
 ---
 
@@ -978,28 +978,28 @@ undebug all
 
 | # | Triệu chứng | Nguyên nhân | Lệnh chẩn đoán | Cách sửa |
 |:---:|---|---|---|---|
-| 1 | ⭐ **BGP chọn path "sai"** | Không hiểu đúng thứ tự 13 bước | ⭐⭐ `show ip bgp <prefix>` → so **từng attribute** theo thứ tự | Đọc theo đúng W-L-O-AS-O-M-P-R |
-| 2 | ⭐ Đặt LocPref mà **path không đổi** | ⭐ **Weight** đang thắng (bước 1 > bước 2) | `show ip bgp <prefix>` → xem cột `weight` | Bỏ Weight, hoặc dùng Weight thay LocPref |
-| 3 | ⭐ Đổi policy mà **không có tác dụng** | ⭐ **Chưa reset phiên** | — | ⭐ `clear ip bgp <ip> soft in` / `soft out` |
-| 4 | Đặt LocPref cho 1 router mà **router khác không thấy** | ⭐ Local Pref lan qua **iBGP**, cần iBGP peering | `show ip bgp <prefix>` trên router kia | Cấu hình iBGP · hoặc dùng Weight trên từng router |
-| 5 | ⭐ Đặt Weight mà **router khác không thấy** | ⭐ **Weight CHỈ local** — không bao giờ gửi đi | — | ✅ Đúng thiết kế. Dùng **Local Preference** nếu cần cả AS |
-| 6 | AS-path prepend mà peer **vẫn chọn đường cũ** | ⭐ Peer ghi đè bằng **Weight/LocPref** của họ (bước 1–2 > bước 4) | `show ip bgp <prefix>` **trên peer** → xem weight/localpref | ⭐ Dùng **community** (nhờ peer áp policy) · hoặc thương lượng với ISP |
-| 7 | ⭐ MED không có tác dụng | ⭐ Path đến từ **2 AS khác nhau** → mặc định **không so MED** | `show ip bgp <prefix>` → xem AS-path đầu tiên | ⭐ Peer bật `bgp always-compare-med` · hoặc dùng **AS-path prepend** thay |
-| 8 | ⭐ Path **không có MED** lại thắng path có MED | ⭐ MED thiếu = **0** = tốt nhất | `show ip bgp <prefix>` → cột Metric trống | `bgp bestpath med missing-as-worst` |
-| 9 | Path selection **đổi sau khi reboot** | ⭐ Thiếu **`bgp deterministic-med`** — kết quả phụ thuộc thứ tự học route | `show run \| inc deterministic` | ⭐ `bgp deterministic-med` trên mọi router |
-| 10 | 🔴 `set community` **không có tác dụng** | 🔴 ⭐ Thiếu **`neighbor x send-community`** | ⭐ `show ip bgp <prefix>` **trên peer** → không có dòng `Community` | ⭐ `neighbor x send-community both` + `soft out` |
-| 11 | Community cũ **bị mất** sau khi set community mới | ⭐ Thiếu từ khóa **`additive`** | `show run \| sec route-map` | `set community <new> additive` |
-| 12 | 🔴 Sau khi áp prefix-list, **mất HẾT route** | 🔴 ⭐ Dùng `permit 0.0.0.0/0` (chỉ default route) thay vì **`permit 0.0.0.0/0 le 32`** | ⭐ `show ip prefix-list detail <NAME>` → xem hit count dòng deny | ⭐ Thêm `le 32` |
+| 1 | **BGP chọn path "sai"** | Không hiểu đúng thứ tự 13 bước | `show ip bgp <prefix>` → so **từng attribute** theo thứ tự | Đọc theo đúng W-L-O-AS-O-M-P-R |
+| 2 | Đặt LocPref mà **path không đổi** | **Weight** đang thắng (bước 1 > bước 2) | `show ip bgp <prefix>` → xem cột `weight` | Bỏ Weight, hoặc dùng Weight thay LocPref |
+| 3 | Đổi policy mà **không có tác dụng** | **Chưa reset phiên** | — | `clear ip bgp <ip> soft in` / `soft out` |
+| 4 | Đặt LocPref cho 1 router mà **router khác không thấy** | Local Pref lan qua **iBGP**, cần iBGP peering | `show ip bgp <prefix>` trên router kia | Cấu hình iBGP · hoặc dùng Weight trên từng router |
+| 5 | Đặt Weight mà **router khác không thấy** | **Weight CHỈ local** — không bao giờ gửi đi | — | ✅ Đúng thiết kế. Dùng **Local Preference** nếu cần cả AS |
+| 6 | AS-path prepend mà peer **vẫn chọn đường cũ** | Peer ghi đè bằng **Weight/LocPref** của họ (bước 1–2 > bước 4) | `show ip bgp <prefix>` **trên peer** → xem weight/localpref | Dùng **community** (nhờ peer áp policy) · hoặc thương lượng với ISP |
+| 7 | MED không có tác dụng | Path đến từ **2 AS khác nhau** → mặc định **không so MED** | `show ip bgp <prefix>` → xem AS-path đầu tiên | Peer bật `bgp always-compare-med` · hoặc dùng **AS-path prepend** thay |
+| 8 | Path **không có MED** lại thắng path có MED | MED thiếu = **0** = tốt nhất | `show ip bgp <prefix>` → cột Metric trống | `bgp bestpath med missing-as-worst` |
+| 9 | Path selection **đổi sau khi reboot** | Thiếu **`bgp deterministic-med`** — kết quả phụ thuộc thứ tự học route | `show run \| inc deterministic` | `bgp deterministic-med` trên mọi router |
+| 10 | 🔴 `set community` **không có tác dụng** | 🔴  Thiếu **`neighbor x send-community`** | `show ip bgp <prefix>` **trên peer** → không có dòng `Community` | `neighbor x send-community both` + `soft out` |
+| 11 | Community cũ **bị mất** sau khi set community mới | Thiếu từ khóa **`additive`** | `show run \| sec route-map` | `set community <new> additive` |
+| 12 | 🔴 Sau khi áp prefix-list, **mất HẾT route** | 🔴  Dùng `permit 0.0.0.0/0` (chỉ default route) thay vì **`permit 0.0.0.0/0 le 32`** | `show ip prefix-list detail <NAME>` → xem hit count dòng deny | Thêm `le 32` |
 | 13 | 🔴 Sau khi áp AS-path ACL, mất hết route | 🔴 Thiếu catch-all **`permit .*`** | `show ip as-path-access-list` | Thêm `permit .*` ở cuối |
-| 14 | 🔴 Sau khi áp route-map, mất hết route | 🔴 Thiếu catch-all `permit <seq>` không có `match` | ⭐ `show route-map <NAME>` → xem có dòng nào không có Match | Thêm statement catch-all |
-| 15 | ⭐ Filter "không hoạt động" | Chưa được gọi, hoặc match không khớp | ⭐ `show ip prefix-list detail` (hit count) · `show route-map` (counter) — **counter = 0** | Kiểm tra tên · kiểm tra đã áp `neighbor x ... in/out` · `soft` reset |
-| 16 | ⭐ `aggregate-address` **không xuất hiện** | ⭐ Không có prefix con nào trong BGP table | `show ip bgp \| inc <component>` | Thêm `network` cho prefix con · hoặc `ip route ... Null0` |
+| 14 | 🔴 Sau khi áp route-map, mất hết route | 🔴 Thiếu catch-all `permit <seq>` không có `match` | `show route-map <NAME>` → xem có dòng nào không có Match | Thêm statement catch-all |
+| 15 | Filter "không hoạt động" | Chưa được gọi, hoặc match không khớp | `show ip prefix-list detail` (hit count) · `show route-map` (counter) — **counter = 0** | Kiểm tra tên · kiểm tra đã áp `neighbor x ... in/out` · `soft` reset |
+| 16 | `aggregate-address` **không xuất hiện** | Không có prefix con nào trong BGP table | `show ip bgp \| inc <component>` | Thêm `network` cho prefix con · hoặc `ip route ... Null0` |
 | 17 | Aggregate có mà prefix con **vẫn được quảng bá** | Thiếu **`summary-only`** | `show ip bgp \| inc ^ s` (không có `s` nào) | Thêm `summary-only` |
-| 18 | ⭐ Route quay lại AS gốc sau khi aggregate | ⭐ Thiếu **`as-set`** → AS-path mất chi tiết → mất chống loop | ⭐ `show ip bgp <agg>` → thấy `atomic-aggregate`, AS-path chỉ có ASN mình | ⭐ Thêm **`as-set`** |
-| 19 | 🔴 Quảng bá quá nhiều prefix cho ISP (route leak) | 🔴 Thiếu **filter outbound** | ⭐ `show ip bgp neighbors <ISP> advertised-routes \| count` · so với `show ip bgp regexp ^$` | ⭐ prefix-list outbound chỉ cho prefix của mình |
+| 18 | Route quay lại AS gốc sau khi aggregate | Thiếu **`as-set`** → AS-path mất chi tiết → mất chống loop | `show ip bgp <agg>` → thấy `atomic-aggregate`, AS-path chỉ có ASN mình | Thêm **`as-set`** |
+| 19 | 🔴 Quảng bá quá nhiều prefix cho ISP (route leak) | 🔴 Thiếu **filter outbound** | `show ip bgp neighbors <ISP> advertised-routes \| count` · so với `show ip bgp regexp ^$` | prefix-list outbound chỉ cho prefix của mình |
 | 20 | Nhận prefix bogon / prefix quá nhỏ từ ISP | Thiếu filter inbound | `show ip bgp \| inc 10\.\|192.168\|127\.` | prefix-list inbound chặn bogon + `ge 25` |
 
-### 7.3 ⭐⭐ Quy trình "vì sao BGP chọn path này" — 13 bước có hệ thống
+### 7.3  Quy trình "vì sao BGP chọn path này" — 13 bước có hệ thống
 
 ```
 show ip bgp <prefix>
@@ -1039,7 +1039,7 @@ BƯỚC 11: Router ID trong ngoặc `(x.x.x.x)` — THẤP hơn thắng
 BƯỚC 13: `from <IP>` — neighbor IP THẤP hơn thắng
 ```
 
-> ⭐ **Cách dùng thực tế:** copy output `show ip bgp <prefix>` ra notepad, kẻ bảng 13 dòng,
+> **Cách dùng thực tế:** copy output `show ip bgp <prefix>` ra notepad, kẻ bảng 13 dòng,
 > điền giá trị từng path vào từng bước. Bước đầu tiên có giá trị **khác nhau** chính là **lý do**.
 > Làm 3 lần là bạn nhớ thứ tự mà không cần bảng.
 
@@ -1051,42 +1051,42 @@ BƯỚC 13: `from <IP>` — neighbor IP THẤP hơn thắng
 
 <details><summary>Xem đáp án</summary>
 
-⭐ **Mnemonic: "We Love Oranges AS Oranges Mean Pure Refreshment"**
+ **Mnemonic: "We Love Oranges AS Oranges Mean Pure Refreshment"**
 
 | # | Bước | So sánh |
 |:---:|---|---|
 | 0 | Next-hop reachable | Bắt buộc — không thì loại |
-| **1** | ⭐ **W**eight | ⭐ **CAO** thắng |
-| **2** | ⭐ **L**ocal Preference | ⭐ **CAO** thắng |
+| **1** | **W**eight | **CAO** thắng |
+| **2** | **L**ocal Preference | **CAO** thắng |
 | **3** | **O**riginated locally | Route của chính router |
-| **4** | ⭐ **AS**-path | ⭐ **NGẮN** (thấp) thắng |
-| **5** | ⭐ **O**rigin | ⭐ **THẤP** thắng (`i` < `e` < `?`) |
-| **6** | ⭐ **M**ED | ⭐ **THẤP** thắng |
+| **4** | **AS**-path | **NGẮN** (thấp) thắng |
+| **5** | **O**rigin | **THẤP** thắng (`i` < `e` < `?`) |
+| **6** | **M**ED | **THẤP** thắng |
 | **7** | **P**aths — eBGP > iBGP | eBGP thắng |
 | **8** | IGP metric tới next-hop | **THẤP** thắng (hot potato) |
 | 9 | *(multipath nếu bật `maximum-paths`)* | — |
 | **10** | Oldest eBGP path | Cũ hơn thắng (ổn định) |
-| **11** | ⭐ **R**outer ID của neighbor | ⭐ **THẤP** thắng |
+| **11** | **R**outer ID của neighbor | **THẤP** thắng |
 | 12 | Cluster-list length | Ngắn thắng (chỉ có RR) |
-| **13** | Neighbor IP | ⭐ **THẤP** thắng |
+| **13** | Neighbor IP | **THẤP** thắng |
 
-⭐⭐ **CHỈ 2 bước đầu (Weight, Local Preference) là "CAO thắng".**
+ **CHỈ 2 bước đầu (Weight, Local Preference) là "CAO thắng".**
 Từ bước 4 trở đi **tất cả đều "THẤP thắng"**.
 
-⭐ **Quy tắc:** bước nào phân định được thì **DỪNG NGAY**, không xét bước sau.
+ **Quy tắc:** bước nào phân định được thì **DỪNG NGAY**, không xét bước sau.
 </details>
 
 ---
 
-**Câu 2.** ⭐ Bạn muốn traffic **RA KHỎI** AS của mình đi qua ISP1. Dùng attribute nào,
+**Câu 2.**  Bạn muốn traffic **RA KHỎI** AS của mình đi qua ISP1. Dùng attribute nào,
 áp route-map chiều nào? Còn muốn traffic **VÀO** AS mình qua ISP1 thì sao?
 
 <details><summary>Xem đáp án</summary>
 
 | Muốn | Attribute | Chiều | Ai quyết định |
 |---|---|:---:|---|
-| ⭐ **OUTBOUND** (ra khỏi AS) | ⭐ **Local Preference** (cả AS) hoặc **Weight** (1 router) | ⭐ **`in`** | ⭐ **TÔI** — chắc chắn |
-| ⭐ **INBOUND** (vào AS) | ⭐ **AS-path prepend** hoặc **MED** | ⭐ **`out`** | ⚠️ **AS bên kia** — chỉ gợi ý |
+| **OUTBOUND** (ra khỏi AS) | **Local Preference** (cả AS) hoặc **Weight** (1 router) | **`in`** | **TÔI** — chắc chắn |
+| **INBOUND** (vào AS) | **AS-path prepend** hoặc **MED** | **`out`** | ⚠️ **AS bên kia** — chỉ gợi ý |
 
 **Cấu hình OUTBOUND (ưu tiên ISP1):**
 ```
@@ -1107,7 +1107,7 @@ router bgp 65001
  neighbor <ISP2-IP> route-map RM-PREPEND-ISP2 out    ! chiều OUT
 ```
 
-🧠 **Câu thần chú:** ⭐ ***"Nhận route VÀO → quyết định đi RA. Gửi route RA → gợi ý người ta đi VÀO."***
+🧠 **Câu thần chú:**  ***"Nhận route VÀO → quyết định đi RA. Gửi route RA → gợi ý người ta đi VÀO."***
 
 ⚠️ **Vì sao inbound chỉ là gợi ý:** AS bên kia ghi đè được bằng **Weight (bước 1)** hoặc
 **Local Preference (bước 2)** — cả hai **đứng TRƯỚC** AS-path (bước 4) và MED (bước 6).
@@ -1120,10 +1120,10 @@ path B (Weight 500, LocPref 100, AS-path 4 hop). Path nào thắng? Vì sao?
 
 <details><summary>Xem đáp án</summary>
 
-⭐ **Path B thắng** (Weight 500).
+ **Path B thắng** (Weight 500).
 
 **Vì sao:** **Weight là BƯỚC 1**, Local Preference là **BƯỚC 2**.
-BGP xét Weight **trước** → path B có Weight 500 > path A có Weight 0 → ⭐ **DỪNG NGAY**,
+BGP xét Weight **trước** → path B có Weight 500 > path A có Weight 0 →  **DỪNG NGAY**,
 **không xét** LocPref (bước 2) hay AS-path (bước 4).
 
 ```
@@ -1134,11 +1134,11 @@ show ip bgp 10.3.3.0
 !     10.0.12.2 ... localpref 200, valid, external          ← LocPref cao hơn nhưng vô ích
 ```
 
-⭐ **Bài học:** Weight là **"quyền phủ quyết"** của router local — nó thắng mọi thứ khác.
+ **Bài học:** Weight là **"quyền phủ quyết"** của router local — nó thắng mọi thứ khác.
 
 ⚠️ **Hệ quả thực tế nguy hiểm:** ai đó đặt `neighbor x weight` để "sửa tạm" một vấn đề,
 rồi quên → sau này bạn đặt Local Preference mà **không có tác dụng**, mất hàng giờ debug.
-⭐ Khi gặp "đặt LocPref mà path không đổi" → ⭐ **kiểm tra Weight trước**:
+ Khi gặp "đặt LocPref mà path không đổi" →  **kiểm tra Weight trước**:
 ```
 show ip bgp <prefix>            ! xem cột weight
 show run | include weight
@@ -1151,25 +1151,25 @@ show run | include weight
 
 <details><summary>Xem đáp án</summary>
 
-| | ⭐ **Weight** | ⭐ **Local Preference** |
+| | **Weight** | **Local Preference** |
 |---|---|---|
-| Bản chất | ⭐ **Cisco-only, KHÔNG phải attribute BGP** | Well-known Discretionary |
-| Phạm vi | ⭐ **CHỈ router đó** — **không bao giờ** gửi cho peer (kể cả iBGP) | ⭐ **Cả AS** (lan qua iBGP), **không** qua eBGP |
+| Bản chất | **Cisco-only, KHÔNG phải attribute BGP** | Well-known Discretionary |
+| Phạm vi | **CHỈ router đó** — **không bao giờ** gửi cho peer (kể cả iBGP) | **Cả AS** (lan qua iBGP), **không** qua eBGP |
 | Mặc định | 32768 (của mình) / 0 (học được) | **100** |
 | Tốt nhất | **CAO** | **CAO** |
-| Bước | ⭐ **1** | **2** |
+| Bước | **1** | **2** |
 
 **Khi nào dùng cái nào:**
 
 | Tình huống | Dùng |
 |---|---|
-| AS chỉ có **1 router biên** | ⭐ Weight (đơn giản, đủ) |
-| AS có **nhiều router biên**, muốn **cả AS** đi cùng hướng | ⭐ **Local Preference bắt buộc** — Weight không lan qua iBGP |
+| AS chỉ có **1 router biên** | Weight (đơn giản, đủ) |
+| AS có **nhiều router biên**, muốn **cả AS** đi cùng hướng | **Local Preference bắt buộc** — Weight không lan qua iBGP |
 | Muốn **chỉ 1 router** đi khác cả AS | Weight |
 | Muốn ghi đè mọi thứ (kể cả LocPref của người khác) | Weight |
 
 ⚠️ **Lỗi phổ biến:** đặt Weight trên router biên rồi mong các router khác trong AS cũng
-đi theo hướng đó → ⭐ **không xảy ra**. Weight không đi đâu cả.
+đi theo hướng đó →  **không xảy ra**. Weight không đi đâu cả.
 </details>
 
 ---
@@ -1179,41 +1179,41 @@ vẫn vào qua ISP2. Nêu 2 nguyên nhân.
 
 <details><summary>Xem đáp án</summary>
 
-**Nguyên nhân 1 — ⭐ MED mặc định CHỈ so giữa path từ CÙNG một AS kề.**
+**Nguyên nhân 1 —  MED mặc định CHỈ so giữa path từ CÙNG một AS kề.**
 
 Nếu ISP1 và ISP2 là **2 AS khác nhau** → ISP nhận route từ 2 AS khác nhau
-→ ⭐ **MED KHÔNG được so sánh** → hoàn toàn vô tác dụng.
+→  **MED KHÔNG được so sánh** → hoàn toàn vô tác dụng.
 
 *Sửa:*
 - Nhờ ISP bật `bgp always-compare-med` (⚠️ họ thường **không** làm)
-- ⭐ **Dùng AS-path prepend thay** (bước 4, luôn được so)
-- ⭐ **Dùng community** mà ISP cung cấp (VD `AS:80` = LocPref 80)
+-  **Dùng AS-path prepend thay** (bước 4, luôn được so)
+-  **Dùng community** mà ISP cung cấp (VD `AS:80` = LocPref 80)
 
-⭐ **MED chỉ hữu ích khi có 2 link tới CÙNG một ISP** — lúc đó cùng AS kề nên MED được so.
+ **MED chỉ hữu ích khi có 2 link tới CÙNG một ISP** — lúc đó cùng AS kề nên MED được so.
 
-**Nguyên nhân 2 — ⭐ ISP ghi đè bằng Weight/Local Preference của họ.**
+**Nguyên nhân 2 —  ISP ghi đè bằng Weight/Local Preference của họ.**
 
 MED là **bước 6**. Weight (**bước 1**) và Local Preference (**bước 2**) đứng **trước** →
 nếu ISP đặt LocPref cao cho link ISP2 (VD vì lý do thương mại) thì MED của bạn **không được xét tới**.
 
 *Kiểm tra:* nhờ ISP chạy `show ip bgp <your-prefix>` và xem `weight`/`localpref`.
 
-⭐ **Bài học thực chiến:** điều khiển inbound là **thương lượng**, không phải cấu hình.
-Thứ tự hiệu quả: ⭐ **community của ISP > AS-path prepend > MED**.
+ **Bài học thực chiến:** điều khiển inbound là **thương lượng**, không phải cấu hình.
+Thứ tự hiệu quả:  **community của ISP > AS-path prepend > MED**.
 </details>
 
 ---
 
-**Câu 6.** ⭐ Phân biệt `no-export` và `no-advertise`. Và tại sao `set community` của bạn
+**Câu 6.**  Phân biệt `no-export` và `no-advertise`. Và tại sao `set community` của bạn
 có thể "không có tác dụng"?
 
 <details><summary>Xem đáp án</summary>
 
-| | ⭐ **`no-export`** | ⭐ **`no-advertise`** |
+| | **`no-export`** | **`no-advertise`** |
 |---|:---:|:---:|
 | Quảng bá cho **eBGP peer** | ❌ **Không** | ❌ **Không** |
-| Quảng bá cho **iBGP peer** | ⭐ ✅ **CÓ** | ❌ **Không** |
-| Mức chặn | Vừa — "không ra khỏi AS" | ⭐ **Hoàn toàn** — "không nói với ai" |
+| Quảng bá cho **iBGP peer** | ✅ **CÓ** | ❌ **Không** |
+| Mức chặn | Vừa — "không ra khỏi AS" | **Hoàn toàn** — "không nói với ai" |
 | Ví von | *"Nội bộ công ty"* | *"Chỉ mắt anh"* |
 
 **Dùng thực tế của `no-export`:** ISP cấp prefix cho bạn dùng nội bộ →
@@ -1221,7 +1221,7 @@ gắn `no-export` → bạn dùng được trong AS mình nhưng **không thể*
 
 🔴 **Vì sao `set community` "không có tác dụng":**
 
-⭐ **Cisco KHÔNG gửi community mặc định.** Phải bật:
+ **Cisco KHÔNG gửi community mặc định.** Phải bật:
 ```
 router bgp 65001
  neighbor 10.0.12.2 send-community              ! standard
@@ -1229,7 +1229,7 @@ router bgp 65001
 ```
 
 ⚠️ Thiếu lệnh này → bạn `set community` thành công trên router mình,
-nhưng peer ⭐ **không nhận được gì**, và ⭐ **không có thông báo lỗi nào**.
+nhưng peer  **không nhận được gì**, và  **không có thông báo lỗi nào**.
 
 **Verify (trên PEER):**
 ```
@@ -1243,7 +1243,7 @@ set community 65001:200                     ! ⚠️ GHI ĐÈ community cũ
 set community 65001:200 additive            ! THÊM vào community cũ
 ```
 
-⭐ **Quy trình chuẩn:** `set community` → `neighbor x send-community both` →
+ **Quy trình chuẩn:** `set community` → `neighbor x send-community both` →
 `clear ip bgp x soft out` → verify **trên peer**.
 </details>
 
@@ -1257,12 +1257,12 @@ ip prefix-list PL-IN seq 10 permit 0.0.0.0/0
 
 <details><summary>Xem đáp án</summary>
 
-🔴 ⭐ **`permit 0.0.0.0/0` CHỈ khớp ĐÚNG default route `0.0.0.0/0`** — không phải "cho phép mọi thứ"!
+🔴  **`permit 0.0.0.0/0` CHỈ khớp ĐÚNG default route `0.0.0.0/0`** — không phải "cho phép mọi thứ"!
 
 Nên:
 - `10.99.0.0/16` → khớp `deny 10.99.0.0/16` → bị chặn (đúng ý)
-- ⭐ **Mọi prefix khác** (VD `10.3.3.0/24`) → **không khớp dòng nào** →
-  ⭐ **implicit deny** ở cuối prefix-list → **bị chặn hết**
+-  **Mọi prefix khác** (VD `10.3.3.0/24`) → **không khớp dòng nào** →
+   **implicit deny** ở cuối prefix-list → **bị chặn hết**
 
 **Sửa — thêm `le 32`:**
 ```
@@ -1285,41 +1285,41 @@ show ip bgp neighbors <ip> routes
 ! Total number of prefixes 5
 ```
 
-⭐⭐ **BA loại catch-all — thuộc lòng cả ba:**
+ **BA loại catch-all — thuộc lòng cả ba:**
 
 | Công cụ | Catch-all |
 |---|---|
-| ⭐ **Prefix-list** | ⭐ **`permit 0.0.0.0/0 le 32`** |
-| ⭐ **AS-path ACL** | ⭐ **`permit .*`** |
-| ⭐ **Route-map** | ⭐ `route-map X permit <seq>` **không có `match`** |
+| **Prefix-list** | **`permit 0.0.0.0/0 le 32`** |
+| **AS-path ACL** | **`permit .*`** |
+| **Route-map** | `route-map X permit <seq>` **không có `match`** |
 
 🔴 Cả ba đều có **implicit deny** — thiếu catch-all = **mất hết route** = **sự cố production**.
 </details>
 
 ---
 
-**Câu 8.** ⭐ Điền bảng regex AS-path: `^$` · `^65002$` · `^65002_` · `_65003_` · `_65003$` · `.*`
+**Câu 8.**  Điền bảng regex AS-path: `^$` · `^65002$` · `^65002_` · `_65003_` · `_65003$` · `.*`
 
 <details><summary>Xem đáp án</summary>
 
 | Regex | Nghĩa | Ví dụ AS-path khớp |
 |---|---|---|
-| ⭐ **`^$`** | ⭐ AS-path **RỖNG** = route sinh **trong AS của mình** | *(trống)* |
-| ⭐ **`^65002$`** | ⭐ **CHỈ** AS 65002 = route sinh tại AS kề 65002 | `65002` |
-| ⭐ **`^65002_`** | ⭐ **BẮT ĐẦU** bằng 65002 = route **từ AS kề** 65002 | `65002` · `65002 65010` · `65002 65010 65020` |
-| ⭐ **`_65003_`** | ⭐ **ĐI QUA** AS 65003 (bất kỳ vị trí) | `65002 65003` · `65003 65010` · `65002 65003 65010` |
-| ⭐ **`_65003$`** | ⭐ **KẾT THÚC** bằng 65003 = route **SINH TẠI** AS 65003 | `65002 65003` · `65004 65003` |
-| ⭐ **`.*`** | ⭐ **MỌI THỨ** — catch-all | tất cả |
+| **`^$`** | AS-path **RỖNG** = route sinh **trong AS của mình** | *(trống)* |
+| **`^65002$`** | **CHỈ** AS 65002 = route sinh tại AS kề 65002 | `65002` |
+| **`^65002_`** | **BẮT ĐẦU** bằng 65002 = route **từ AS kề** 65002 | `65002` · `65002 65010` · `65002 65010 65020` |
+| **`_65003_`** | **ĐI QUA** AS 65003 (bất kỳ vị trí) | `65002 65003` · `65003 65010` · `65002 65003 65010` |
+| **`_65003$`** | **KẾT THÚC** bằng 65003 = route **SINH TẠI** AS 65003 | `65002 65003` · `65004 65003` |
+| **`.*`** | **MỌI THỨ** — catch-all | tất cả |
 
-⭐ **Ký tự `_` = dấu phân cách:** khoảng trắng, dấu phẩy, **đầu chuỗi**, **cuối chuỗi**.
+ **Ký tự `_` = dấu phân cách:** khoảng trắng, dấu phẩy, **đầu chuỗi**, **cuối chuỗi**.
 Nên `_65003_` khớp cả khi 65003 ở đầu hoặc cuối.
 
-⭐ **Ứng dụng thực tế quan trọng nhất:**
+ **Ứng dụng thực tế quan trọng nhất:**
 ```
 show ip bgp regexp ^$
 ```
 → Liệt kê **đúng những prefix sinh trong AS của bạn** = đúng những gì bạn **NÊN** quảng bá cho ISP.
-⭐ Đây là **lệnh vàng để verify outbound filter** và phát hiện route leak.
+ Đây là **lệnh vàng để verify outbound filter** và phát hiện route leak.
 
 **Test regex nhanh:**
 ```
@@ -1329,12 +1329,12 @@ show ip bgp regexp <regex>
 
 ---
 
-**Câu 9.** ⭐ Bạn cấu hình `aggregate-address 10.1.0.0 255.255.252.0` nhưng peer vẫn thấy
+**Câu 9.**  Bạn cấu hình `aggregate-address 10.1.0.0 255.255.252.0` nhưng peer vẫn thấy
 cả 4 prefix `/24`. Vì sao? Và `as-set` để làm gì?
 
 <details><summary>Xem đáp án</summary>
 
-**Vì sao:** ⭐ `aggregate-address` **không có option** thì quảng bá **CẢ aggregate VÀ tất cả
+**Vì sao:**  `aggregate-address` **không có option** thì quảng bá **CẢ aggregate VÀ tất cả
 prefix con** → peer thấy 5 route (1 aggregate + 4 con) → **không giảm được gì**.
 
 **Sửa — thêm `summary-only`:**
@@ -1350,18 +1350,18 @@ show ip bgp | include 10.1
 ! s>  10.1.1.0/24   0.0.0.0    0   32768 i         ← s = SUPPRESSED
 ! s>  10.1.2.0/24   0.0.0.0    0   32768 i
 ```
-⭐ **`s`** = suppressed — vẫn trong BGP table nhưng **không quảng bá cho peer**.
+ **`s`** = suppressed — vẫn trong BGP table nhưng **không quảng bá cho peer**.
 
-⭐⭐ **`as-set` để làm gì — GIỮ CHỐNG LOOP:**
+ **`as-set` để làm gì — GIỮ CHỐNG LOOP:**
 
 Khi bạn gộp các prefix **học từ AS khác**, aggregate mặc định có AS-path **chỉ chứa ASN của bạn**
-→ ⭐ **mất thông tin AS đã đi qua** → ⭐ **mất chống loop** → route có thể **quay lại AS gốc**.
+→  **mất thông tin AS đã đi qua** →  **mất chống loop** → route có thể **quay lại AS gốc**.
 
-| | Không `as-set` | ⭐ Có `as-set` |
+| | Không `as-set` | Có `as-set` |
 |---|---|---|
-| AS-path của aggregate | `65001` (chỉ ASN mình) | ⭐ `65001 {65002,65003}` (**AS_SET**) |
-| Attribute cảnh báo | ⭐ **`atomic-aggregate`** | Không cần |
-| Chống loop | 🔴 **MẤT** | ⭐ ✅ **Hoạt động** |
+| AS-path của aggregate | `65001` (chỉ ASN mình) | `65001 {65002,65003}` (**AS_SET**) |
+| Attribute cảnh báo | **`atomic-aggregate`** | Không cần |
+| Chống loop | 🔴 **MẤT** | ✅ **Hoạt động** |
 
 ```
 router bgp 65001
@@ -1372,10 +1372,10 @@ show ip bgp 10.3.0.0
 !   65001 {65002,65003}, (aggregated by 65001 1.1.1.1)     ← AS_SET
 ```
 
-⭐ **Quy tắc thực chiến:** gộp prefix **của chính mình** → `summary-only` là đủ.
-Gộp prefix **học từ AS khác** → ⭐ **BẮT BUỘC `as-set`**, nếu không là một nguyên nhân của route leak.
+ **Quy tắc thực chiến:** gộp prefix **của chính mình** → `summary-only` là đủ.
+Gộp prefix **học từ AS khác** →  **BẮT BUỘC `as-set`**, nếu không là một nguyên nhân của route leak.
 
-⭐ **Điều kiện:** aggregate chỉ được sinh nếu có ⭐ **ít nhất 1 prefix con** trong BGP table.
+ **Điều kiện:** aggregate chỉ được sinh nếu có  **ít nhất 1 prefix con** trong BGP table.
 </details>
 
 ---
@@ -1396,20 +1396,20 @@ Paths: (3 available, best #?, table default)
 
 <details><summary>Xem đáp án</summary>
 
-⭐ **Path 3 (qua `10.0.16.2`, AS-path `65006 65020 65010`) thắng.**
+ **Path 3 (qua `10.0.16.2`, AS-path `65006 65020 65010`) thắng.**
 
 **Phân tích theo 13 bước:**
 
 | Bước | Path 1 | Path 2 | Path 3 | Kết quả |
 |:---:|---|---|---|---|
 | 0. valid | ✅ | ✅ | ✅ | Tie |
-| ⭐ **1. Weight** | **0** | **0** | ⭐ **300** | ⭐ **PATH 3 THẮNG — DỪNG** |
+| **1. Weight** | **0** | **0** | **300** | **PATH 3 THẮNG — DỪNG** |
 | 2. Local Pref | 100 | 150 | 150 | *(không xét)* |
 | 4. AS-path | 2 | 2 | **3** | *(không xét)* |
 | 5. Origin | `i` | `?` | `i` | *(không xét)* |
 | 6. MED | 100 | (0) | 50 | *(không xét)* |
 
-⭐ **Weight = bước 1** → path 3 có Weight 300 > 0 → thắng ngay, ⭐ **không xét bước nào nữa**.
+ **Weight = bước 1** → path 3 có Weight 300 > 0 → thắng ngay,  **không xét bước nào nữa**.
 
 ⚠️ **Điểm gây bẫy:** path 3 có **AS-path DÀI NHẤT (3 hop)** — trực giác nói nó phải kém nhất.
 Nhưng Weight (bước 1) đứng **trước** AS-path (bước 4) rất nhiều bước.
@@ -1419,34 +1419,34 @@ Nhưng Weight (bước 1) đứng **trước** AS-path (bước 4) rất nhiều
 | Bước | Path 1 | Path 2 | Path 3 | Kết quả |
 |:---:|---|---|---|---|
 | 1. Weight | 0 | 0 | 0 | Tie |
-| ⭐ **2. LocPref** | **100** | ⭐ **150** | ⭐ **150** | ⭐ **Path 1 BỊ LOẠI** |
+| **2. LocPref** | **100** | **150** | **150** | **Path 1 BỊ LOẠI** |
 | 3. Local originated | — | — | — | Tie |
-| ⭐ **4. AS-path** | — | ⭐ **2** | **3** | ⭐ **PATH 2 THẮNG — DỪNG** |
+| **4. AS-path** | — | **2** | **3** | **PATH 2 THẮNG — DỪNG** |
 
-→ ⭐ **Path 2 thắng** (LocPref 150 + AS-path ngắn hơn) — dù nó có `Origin incomplete` (`?`, kém nhất).
+→  **Path 2 thắng** (LocPref 150 + AS-path ngắn hơn) — dù nó có `Origin incomplete` (`?`, kém nhất).
 Vì Origin là **bước 5**, đứng **sau** AS-path (bước 4).
 
-⭐ **Bài học:** luôn đọc theo **đúng thứ tự**, và **dừng ngay** ở bước đầu tiên có giá trị khác nhau.
+ **Bài học:** luôn đọc theo **đúng thứ tự**, và **dừng ngay** ở bước đầu tiên có giá trị khác nhau.
 Đừng để trực giác ("AS-path ngắn phải thắng", "origin `i` phải thắng") dẫn dắt.
 </details>
 
 ---
 
-**Câu 11.** ⭐ Bạn đổi route-map inbound nhưng path selection không thay đổi. Nguyên nhân?
+**Câu 11.**  Bạn đổi route-map inbound nhưng path selection không thay đổi. Nguyên nhân?
 Và lệnh nào verify filter có thật sự hoạt động?
 
 <details><summary>Xem đáp án</summary>
 
-**Nguyên nhân 1 (phổ biến nhất) — ⭐ chưa reset phiên:**
+**Nguyên nhân 1 (phổ biến nhất) —  chưa reset phiên:**
 
 Policy mới **không tự động áp** cho route đã nhận trước đó.
 ```
 clear ip bgp <ip> soft in            ! đổi INBOUND policy
 clear ip bgp <ip> soft out           ! đổi OUTBOUND policy
 ```
-⭐ `soft` dùng **route-refresh** → **không đóng phiên TCP** → không downtime.
+ `soft` dùng **route-refresh** → **không đóng phiên TCP** → không downtime.
 
-**Nguyên nhân 2 — ⭐ Weight đang thắng:**
+**Nguyên nhân 2 —  Weight đang thắng:**
 ```
 show ip bgp <prefix>                 ! xem cột weight
 show run | include weight
@@ -1459,7 +1459,7 @@ show run | section router bgp
 show ip bgp neighbors <ip> | include route-map|prefix-list|filter-list
 ```
 
-**⭐ Lệnh verify filter có thật sự hoạt động — dùng COUNTER:**
+** Lệnh verify filter có thật sự hoạt động — dùng COUNTER:**
 
 ```
 show route-map <NAME>
@@ -1477,11 +1477,11 @@ show ip prefix-list detail <NAME>
 ! seq 10 deny 0.0.0.0/0 le 32 (hit count: 2, refcount: 1)
 ```
 
-⭐ **Đọc counter:**
+ **Đọc counter:**
 
 | Counter | Nghĩa |
 |---|---|
-| ⭐ **`hit count = 0`** trên mọi dòng | ⭐ Filter **không được gọi** — chưa áp vào neighbor, hoặc sai tên |
+| **`hit count = 0`** trên mọi dòng | Filter **không được gọi** — chưa áp vào neighbor, hoặc sai tên |
 | `hit count > 0` ở dòng deny/catch-all, `0` ở dòng permit cụ thể | Filter được gọi nhưng **prefix không khớp** như bạn nghĩ |
 | `hit count > 0` đúng chỗ | ✅ Filter hoạt động |
 
@@ -1492,17 +1492,17 @@ show ip bgp filter-list <N>          ! route khớp AS-path ACL
 show ip bgp route-map <NAME>         ! route khớp route-map
 ```
 
-⭐ **Quy trình chuẩn khi đổi policy BGP:**
+ **Quy trình chuẩn khi đổi policy BGP:**
 1. Cấu hình policy
 2. Áp vào neighbor (`neighbor x route-map Y in/out`)
-3. ⭐ `clear ip bgp <ip> soft in/out`
-4. ⭐ Verify **counter** (`show ip prefix-list detail` / `show route-map`)
+3.  `clear ip bgp <ip> soft in/out`
+4.  Verify **counter** (`show ip prefix-list detail` / `show route-map`)
 5. Verify **kết quả** (`show ip bgp <prefix>` / `show ip bgp neighbors <ip> routes`)
 </details>
 
 ---
 
-**Câu 12.** ⭐ Kịch bản production: doanh nghiệp có 2 ISP. ISP1 = 1 Gbps (chính),
+**Câu 12.**  Kịch bản production: doanh nghiệp có 2 ISP. ISP1 = 1 Gbps (chính),
 ISP2 = 200 Mbps (backup). Viết cấu hình đầy đủ cho router biên (1 router, AS 65001,
 prefix của bạn là `203.0.113.0/24`).
 
@@ -1575,19 +1575,19 @@ router bgp 65001
  network 203.0.113.0 mask 255.255.255.0
 ```
 
-⭐ **Giải thích logic:**
+ **Giải thích logic:**
 
 | Mục tiêu | Cách làm | Chiều |
 |---|---|:---:|
-| ⭐ **Outbound qua ISP1** | Local Pref **200** cho ISP1, **100** cho ISP2 | `in` |
-| ⭐ **Inbound qua ISP1** | AS-path **prepend 3 lần** khi quảng bá cho ISP2 | `out` |
+| **Outbound qua ISP1** | Local Pref **200** cho ISP1, **100** cho ISP2 | `in` |
+| **Inbound qua ISP1** | AS-path **prepend 3 lần** khi quảng bá cho ISP2 | `out` |
 | 🔴 **Chống route leak** | Prefix-list outbound **chỉ** `203.0.113.0/24` (implicit deny phần còn lại) | `out` |
 | 🔴 **Chống nhận rác** | Prefix-list inbound chặn **bogon** + prefix `/25` trở xuống | `in` |
 | 🔴 **Chống hết RAM** | `maximum-prefix 200000 90` | — |
 | **Bảo mật phiên** | `password` + `ttl-security hops 1` | — |
 | **Failover nhanh** | `fall-over` (không chờ hold 180 s) | — |
 
-⭐ **Verify sau khi cấu hình:**
+ **Verify sau khi cấu hình:**
 ```
 show ip bgp summary                                          ! cả 2 Established?
 show ip bgp neighbors 198.51.100.1 advertised-routes         ! CHỈ 1 prefix của mình?
@@ -1598,9 +1598,9 @@ show ip route 0.0.0.0                                        ! đi qua ISP1?
 show ip prefix-list detail PL-MY-PREFIX-OUT                  ! hit count > 0?
 ```
 
-⭐ **Test failover:** shutdown interface ISP1 → traffic phải chuyển sang ISP2 trong vài giây.
+ **Test failover:** shutdown interface ISP1 → traffic phải chuyển sang ISP2 trong vài giây.
 
-> ⭐ **Điểm quan trọng nhất của cấu hình này:** **prefix-list outbound**.
+> **Điểm quan trọng nhất của cấu hình này:** **prefix-list outbound**.
 > Thiếu nó = bạn có thể quảng bá **toàn bộ route học từ ISP1 sang ISP2** →
 > trở thành **transit AS ngoài ý muốn** → traffic Internet chảy qua đường 200 Mbps của bạn →
 > sập. Đây là loại sự cố đã xảy ra nhiều lần ở quy mô toàn cầu.
@@ -1612,45 +1612,45 @@ show ip prefix-list detail PL-MY-PREFIX-OUT                  ! hit count > 0?
 
 | Tiếng Anh | Tiếng Việt | Ghi chú |
 |---|---|---|
-| ⭐ **Best path selection** | Chọn đường tốt nhất | ⭐ 13 bước, dừng ở bước đầu tiên phân định |
-| ⭐ **Weight** | Trọng số | ⭐ **Bước 1**, Cisco-only, **chỉ local**, **CAO** thắng |
-| ⭐ **Local Preference** | Ưu tiên cục bộ | ⭐ **Bước 2**, lan **trong AS**, mặc định **100**, **CAO** thắng |
-| ⭐ **Locally originated** | Sinh tại chỗ | ⭐ **Bước 3** — `network` > `aggregate` > `redistribute` |
-| ⭐ **AS-path length** | Độ dài đường AS | ⭐ **Bước 4**, **NGẮN** thắng |
-| ⭐ **Origin** | Nguồn gốc | ⭐ **Bước 5** — `i` < `e` < `?`, **THẤP** thắng |
-| ⭐ **MED** | Phân biệt đa lối ra | ⭐ **Bước 6**, **THẤP** thắng, ⚠️ mặc định **chỉ so cùng AS kề** |
-| ⭐ **Hot potato routing** | Định tuyến "khoai nóng" | ⭐ **Bước 8** — ra khỏi AS càng sớm càng tốt |
+| **Best path selection** | Chọn đường tốt nhất | 13 bước, dừng ở bước đầu tiên phân định |
+| **Weight** | Trọng số | **Bước 1**, Cisco-only, **chỉ local**, **CAO** thắng |
+| **Local Preference** | Ưu tiên cục bộ | **Bước 2**, lan **trong AS**, mặc định **100**, **CAO** thắng |
+| **Locally originated** | Sinh tại chỗ | **Bước 3** — `network` > `aggregate` > `redistribute` |
+| **AS-path length** | Độ dài đường AS | **Bước 4**, **NGẮN** thắng |
+| **Origin** | Nguồn gốc | **Bước 5** — `i` < `e` < `?`, **THẤP** thắng |
+| **MED** | Phân biệt đa lối ra | **Bước 6**, **THẤP** thắng, ⚠️ mặc định **chỉ so cùng AS kề** |
+| **Hot potato routing** | Định tuyến "khoai nóng" | **Bước 8** — ra khỏi AS càng sớm càng tốt |
 | **Oldest path** | Đường cũ nhất | **Bước 10** — ưu tiên ổn định |
-| ⭐ **`always-compare-med`** | Luôn so MED | ⭐ So MED giữa **mọi** AS (⚠️ có thể bất ổn) |
-| ⭐ **`deterministic-med`** | MED xác định | ⭐ Nhóm path theo AS trước khi so → **kết quả nhất quán**. Nên bật |
+| **`always-compare-med`** | Luôn so MED | So MED giữa **mọi** AS (⚠️ có thể bất ổn) |
+| **`deterministic-med`** | MED xác định | Nhóm path theo AS trước khi so → **kết quả nhất quán**. Nên bật |
 | **`missing-as-worst`** | MED thiếu = tệ nhất | MED không đặt → 4294967295 thay vì 0 |
-| ⭐ **AS-path prepend** | Thêm ASN vào đầu | ⭐ Làm AS-path **dài hơn** → điều khiển **INBOUND**, áp chiều **`out`** |
-| ⭐ **Outbound traffic** | Traffic đi ra | ⭐ Điều khiển bằng **Weight/LocPref**, chiều **`in`** — **TÔI quyết** |
-| ⭐ **Inbound traffic** | Traffic đi vào | ⭐ Điều khiển bằng **prepend/MED**, chiều **`out`** — chỉ **GỢI Ý** |
-| ⭐ **Community** | Cộng đồng | ⭐ Nhãn gắn lên route → AS kề đọc và áp policy. **Optional Transitive** |
-| ⭐ **`no-export`** | Không xuất khẩu | ⭐ Không quảng bá cho **eBGP** peer (iBGP **vẫn được**) |
-| ⭐ **`no-advertise`** | Không quảng bá | ⭐ Không quảng bá cho **BẤT KỲ** peer nào |
+| **AS-path prepend** | Thêm ASN vào đầu | Làm AS-path **dài hơn** → điều khiển **INBOUND**, áp chiều **`out`** |
+| **Outbound traffic** | Traffic đi ra | Điều khiển bằng **Weight/LocPref**, chiều **`in`** — **TÔI quyết** |
+| **Inbound traffic** | Traffic đi vào | Điều khiển bằng **prepend/MED**, chiều **`out`** — chỉ **GỢI Ý** |
+| **Community** | Cộng đồng | Nhãn gắn lên route → AS kề đọc và áp policy. **Optional Transitive** |
+| **`no-export`** | Không xuất khẩu | Không quảng bá cho **eBGP** peer (iBGP **vẫn được**) |
+| **`no-advertise`** | Không quảng bá | Không quảng bá cho **BẤT KỲ** peer nào |
 | **`local-AS`** | AS cục bộ | Không ra khỏi sub-AS (confederation) |
 | **`internet`** | Internet | Quảng bá cho mọi peer (mặc định) |
-| 🔴 ⭐ **`send-community`** | Gửi community | 🔴 **BẮT BUỘC** — Cisco không gửi community mặc định |
-| ⭐ **`additive`** | Cộng thêm | ⭐ **THÊM** community (thiếu = **GHI ĐÈ**) |
+| 🔴  **`send-community`** | Gửi community | 🔴 **BẮT BUỘC** — Cisco không gửi community mặc định |
+| **`additive`** | Cộng thêm | **THÊM** community (thiếu = **GHI ĐÈ**) |
 | **Community-list** | Danh sách community | Standard 1–99 (giá trị) · Expanded 100–500 (regex) |
-| ⭐ **Prefix-list** | Danh sách tiền tố | ⭐ Catch-all = **`permit 0.0.0.0/0 le 32`** |
-| ⭐ **`le` / `ge`** | ≤ / ≥ | Giới hạn độ dài mask |
-| ⭐ **AS-path ACL / filter-list** | ACL đường AS | ⭐ Lọc theo **regex AS-path**. Catch-all = **`permit .*`** |
-| ⭐ **`^$`** | AS-path rỗng | ⭐ Route sinh **trong AS mình** |
-| ⭐ **`_` (regex)** | Dấu phân cách | ⭐ Space, dấu phẩy, đầu/cuối chuỗi |
-| ⭐ **Route-map** | Bản đồ route | ⭐ Lọc **+ sửa attribute**. Catch-all = `permit <seq>` không có `match` |
-| ⭐ **Implicit deny** | Chặn ngầm | ⭐ Có ở **cả 3**: prefix-list, AS-path ACL, route-map |
-| ⭐ **Hit count** | Số lần khớp | ⭐ `show ip prefix-list detail` — verify filter có hoạt động |
-| ⭐ **`aggregate-address`** | Địa chỉ gộp | ⭐ Summarization của BGP |
-| ⭐ **`summary-only`** | Chỉ tóm tắt | ⭐ **Suppress** prefix con → hiện **`s`** |
-| ⭐ **`as-set`** | Tập AS | ⭐ Đưa AS-path prefix con vào `{65002,65003}` → ⭐ **giữ chống loop** |
-| ⭐ **`s` suppressed** | Bị đè | ⭐ Prefix con bị `summary-only` — không quảng bá |
-| ⭐ **`atomic-aggregate`** | Gộp nguyên tử | ⭐ Cảnh báo route đã gộp, **mất chi tiết AS-path** |
+| **Prefix-list** | Danh sách tiền tố | Catch-all = **`permit 0.0.0.0/0 le 32`** |
+| **`le` / `ge`** | ≤ / ≥ | Giới hạn độ dài mask |
+| **AS-path ACL / filter-list** | ACL đường AS | Lọc theo **regex AS-path**. Catch-all = **`permit .*`** |
+| **`^$`** | AS-path rỗng | Route sinh **trong AS mình** |
+| **`_` (regex)** | Dấu phân cách | Space, dấu phẩy, đầu/cuối chuỗi |
+| **Route-map** | Bản đồ route | Lọc **+ sửa attribute**. Catch-all = `permit <seq>` không có `match` |
+| **Implicit deny** | Chặn ngầm | Có ở **cả 3**: prefix-list, AS-path ACL, route-map |
+| **Hit count** | Số lần khớp | `show ip prefix-list detail` — verify filter có hoạt động |
+| **`aggregate-address`** | Địa chỉ gộp | Summarization của BGP |
+| **`summary-only`** | Chỉ tóm tắt | **Suppress** prefix con → hiện **`s`** |
+| **`as-set`** | Tập AS | Đưa AS-path prefix con vào `{65002,65003}` →  **giữ chống loop** |
+| **`s` suppressed** | Bị đè | Prefix con bị `summary-only` — không quảng bá |
+| **`atomic-aggregate`** | Gộp nguyên tử | Cảnh báo route đã gộp, **mất chi tiết AS-path** |
 | **Aggregator** | Bộ gộp | ASN + Router ID của router đã gộp |
-| 🔴 ⭐ **Route leak** | Rò rỉ route | 🔴 Quảng bá route không phải của mình → sự cố diện rộng. Chống bằng **prefix-list outbound** |
-| ⭐ **Bogon** | Prefix "rác" | ⭐ Dải không được route trên Internet (private, loopback, multicast…) |
+| 🔴  **Route leak** | Rò rỉ route | 🔴 Quảng bá route không phải của mình → sự cố diện rộng. Chống bằng **prefix-list outbound** |
+| **Bogon** | Prefix "rác" | Dải không được route trên Internet (private, loopback, multicast…) |
 | **Transit AS** | AS trung chuyển | AS cho traffic đi xuyên qua. ⚠️ Trở thành transit **ngoài ý muốn** = sự cố |
 | **RPKI / ROA** | Xác thực nguồn gốc route | Xu hướng mới — chữ ký số cho prefix. Không có trong ENCOR |
 
@@ -1660,19 +1660,19 @@ show ip prefix-list detail PL-MY-PREFIX-OUT                  ! hit count > 0?
 
 **3 điều rút ra:**
 
-1. ⭐⭐ **13 bước, và CHỈ 2 bước đầu là "CAO thắng".** Weight (bước 1) và Local Preference (bước 2)
-   — CAO thắng. Từ AS-path (bước 4) trở đi, **tất cả THẤP thắng**. Và ⭐ **Weight thắng mọi thứ khác**
-   — nên khi "đặt LocPref mà path không đổi", ⭐ **kiểm tra Weight trước tiên**.
+1.  **13 bước, và CHỈ 2 bước đầu là "CAO thắng".** Weight (bước 1) và Local Preference (bước 2)
+   — CAO thắng. Từ AS-path (bước 4) trở đi, **tất cả THẤP thắng**. Và  **Weight thắng mọi thứ khác**
+   — nên khi "đặt LocPref mà path không đổi",  **kiểm tra Weight trước tiên**.
 
-2. ⭐⭐ **"Nhận route VÀO → quyết định đi RA. Gửi route RA → gợi ý người ta đi VÀO."**
-   Outbound (Weight/LocPref, chiều `in`) là ⭐ **quyết định của tôi**.
-   Inbound (prepend/MED, chiều `out`) chỉ là ⭐ **gợi ý** — AS bên kia ghi đè được bằng
+2.  **"Nhận route VÀO → quyết định đi RA. Gửi route RA → gợi ý người ta đi VÀO."**
+   Outbound (Weight/LocPref, chiều `in`) là  **quyết định của tôi**.
+   Inbound (prepend/MED, chiều `out`) chỉ là  **gợi ý** — AS bên kia ghi đè được bằng
    Weight/LocPref của họ, vì hai bước đó đứng trước.
 
 3. 🔴 **Ba loại catch-all khác nhau, và thiếu cái nào cũng mất hết route:**
-   prefix-list = ⭐ **`permit 0.0.0.0/0 le 32`** (⚠️ **không phải** `permit 0.0.0.0/0`) ·
-   AS-path ACL = ⭐ **`permit .*`** · route-map = ⭐ `permit <seq>` **không có `match`**.
-   Và ⭐ **đổi policy xong phải `clear ip bgp <ip> soft in/out`**.
+   prefix-list =  **`permit 0.0.0.0/0 le 32`** (⚠️ **không phải** `permit 0.0.0.0/0`) ·
+   AS-path ACL =  **`permit .*`** · route-map =  `permit <seq>` **không có `match`**.
+   Và  **đổi policy xong phải `clear ip bgp <ip> soft in/out`**.
 
 🧠 **Một câu để nhớ:** *BGP không tìm đường **ngắn nhất** — nó thực thi **chính sách**.
 13 bước là 13 tầng chính sách, xếp từ **"ý chí của tôi"** (Weight, LocPref)
@@ -1687,65 +1687,65 @@ show ip prefix-list detail PL-MY-PREFIX-OUT                  ! hit count > 0?
 
 | # | Câu | ✅ |
 |:---:|---|:---:|
-| 1 | ⭐ Kể 13 bước theo thứ tự + mnemonic | ☐ |
-| 2 | ⭐ Bước nào "CAO thắng", bước nào "THẤP thắng"? | ☐ |
+| 1 | Kể 13 bước theo thứ tự + mnemonic | ☐ |
+| 2 | Bước nào "CAO thắng", bước nào "THẤP thắng"? | ☐ |
 | 3 | Weight vs Local Pref: lan tới đâu, khi nào dùng cái nào, cái nào thắng? | ☐ |
-| 4 | ⭐ Điều khiển OUTBOUND: attribute nào, chiều nào? | ☐ |
-| 5 | ⭐ Điều khiển INBOUND: attribute nào, chiều nào, vì sao chỉ là gợi ý? | ☐ |
-| 6 | ⭐ MED mặc định so sánh thế nào? 3 lệnh đổi hành vi MED? | ☐ |
-| 7 | ⭐ MED không đặt = bao nhiêu? Hệ quả? | ☐ |
+| 4 | Điều khiển OUTBOUND: attribute nào, chiều nào? | ☐ |
+| 5 | Điều khiển INBOUND: attribute nào, chiều nào, vì sao chỉ là gợi ý? | ☐ |
+| 6 | MED mặc định so sánh thế nào? 3 lệnh đổi hành vi MED? | ☐ |
+| 7 | MED không đặt = bao nhiêu? Hệ quả? | ☐ |
 | 8 | 3 Origin code + thứ tự. Nên dùng `network` hay `redistribute`? | ☐ |
 | 9 | Bước 8 "hot potato routing" nghĩa là gì? | ☐ |
-| 10 | ⭐ `no-export` vs `no-advertise` | ☐ |
+| 10 | `no-export` vs `no-advertise` | ☐ |
 | 11 | 🔴 Vì sao `set community` có thể "không có tác dụng"? | ☐ |
 | 12 | `set community` không có `additive` thì sao? | ☐ |
-| 13 | 🔴 ⭐ Catch-all của prefix-list / AS-path ACL / route-map — cả 3 | ☐ |
+| 13 | 🔴  Catch-all của prefix-list / AS-path ACL / route-map — cả 3 | ☐ |
 | 14 | 🔴 `permit 0.0.0.0/0` khớp gì? | ☐ |
-| 15 | ⭐ Regex: `^$` · `^65002$` · `^65002_` · `_65003_` · `_65003$` · `.*` | ☐ |
-| 16 | ⭐ Ký tự `_` trong regex AS-path nghĩa gì? | ☐ |
-| 17 | ⭐ `aggregate-address` không option / `summary-only` / `as-set` — mỗi cái làm gì? | ☐ |
-| 18 | ⭐ Vì sao cần `as-set`? `atomic-aggregate` nghĩa là gì? | ☐ |
+| 15 | Regex: `^$` · `^65002$` · `^65002_` · `_65003_` · `_65003$` · `.*` | ☐ |
+| 16 | Ký tự `_` trong regex AS-path nghĩa gì? | ☐ |
+| 17 | `aggregate-address` không option / `summary-only` / `as-set` — mỗi cái làm gì? | ☐ |
+| 18 | Vì sao cần `as-set`? `atomic-aggregate` nghĩa là gì? | ☐ |
 | 19 | `s` trong `show ip bgp` nghĩa là gì? | ☐ |
-| 20 | ⭐ Đổi policy xong cần làm gì? Lệnh verify filter hoạt động? | ☐ |
+| 20 | Đổi policy xong cần làm gì? Lệnh verify filter hoạt động? | ☐ |
 
 **Phần B — Lab:**
 
 | # | Yêu cầu | ✅ |
 |:---:|---|:---:|
 | 1 | Thêm link R4↔R3 → R1 có **2 path** tới `10.3.3.0/24`, AS-path đều dài 2 | ☐ |
-| 2 | ⭐⭐ Dùng `show ip bgp <prefix>` **phân tích 13 bước** và xác định **bước nào** quyết định | ☐ |
-| 3 | ⭐ Chứng minh **bước 11 (Router ID)**: đổi Router ID R4 → path đổi | ☐ |
-| 4 | ⭐⭐ **AS-path prepend** (chiều `out`) → R3 đổi đường vào AS 65001 | ☐ |
-| 5 | ⭐⭐ Chứng minh **"inbound chỉ là gợi ý"**: R3 dùng Weight ghi đè prepend | ☐ |
-| 6 | ⭐⭐ **Local Preference** (chiều `in`) → R1 đổi đường ra, verify cột `LocPrf` | ☐ |
-| 7 | ⭐⭐ Chứng minh **Weight thắng Local Preference** (bước 1 > bước 2) | ☐ |
-| 8 | ⭐ Chứng minh **MED không được so** giữa 2 AS khác nhau | ☐ |
+| 2 | Dùng `show ip bgp <prefix>` **phân tích 13 bước** và xác định **bước nào** quyết định | ☐ |
+| 3 | Chứng minh **bước 11 (Router ID)**: đổi Router ID R4 → path đổi | ☐ |
+| 4 | **AS-path prepend** (chiều `out`) → R3 đổi đường vào AS 65001 | ☐ |
+| 5 | Chứng minh **"inbound chỉ là gợi ý"**: R3 dùng Weight ghi đè prepend | ☐ |
+| 6 | **Local Preference** (chiều `in`) → R1 đổi đường ra, verify cột `LocPrf` | ☐ |
+| 7 | Chứng minh **Weight thắng Local Preference** (bước 1 > bước 2) | ☐ |
+| 8 | Chứng minh **MED không được so** giữa 2 AS khác nhau | ☐ |
 | 9 | Bật `always-compare-med` → MED có tác dụng | ☐ |
-| 10 | ⭐ Chuyển `network` → `redistribute` → thấy **Origin đổi `i` → `?`** | ☐ |
-| 11 | ⭐⭐ **`no-export`** + `send-community` → R2 thấy `Not advertised to any peer`, R1 **không** nhận prefix | ☐ |
-| 12 | 🔴⭐ **Tái hiện lỗi quên `send-community`** → community mất → prefix **lọt ra** | ☐ |
+| 10 | Chuyển `network` → `redistribute` → thấy **Origin đổi `i` → `?`** | ☐ |
+| 11 | **`no-export`** + `send-community` → R2 thấy `Not advertised to any peer`, R1 **không** nhận prefix | ☐ |
+| 12 | 🔴 **Tái hiện lỗi quên `send-community`** → community mất → prefix **lọt ra** | ☐ |
 | 13 | `no-advertise` chặn mạnh hơn `no-export` | ☐ |
-| 14 | ⭐ Community tự định nghĩa (`65003:100`) + `match community` → áp LocPref 300 | ☐ |
-| 15 | ⭐ Prefix-list inbound + verify bằng **hit count** | ☐ |
-| 16 | 🔴⭐⭐ **Tái hiện `permit 0.0.0.0/0` thiếu `le 32`** → **mất hết route** → sửa | ☐ |
-| 17 | ⭐ Test đủ 5 regex: `^$`, `^65002$`, `^65002_`, `_65003_`, `_65003$` | ☐ |
-| 18 | ⭐ AS-path ACL (`filter-list`) chỉ nhận route sinh tại AS kề (`^65002$`) | ☐ |
+| 14 | Community tự định nghĩa (`65003:100`) + `match community` → áp LocPref 300 | ☐ |
+| 15 | Prefix-list inbound + verify bằng **hit count** | ☐ |
+| 16 | 🔴 **Tái hiện `permit 0.0.0.0/0` thiếu `le 32`** → **mất hết route** → sửa | ☐ |
+| 17 | Test đủ 5 regex: `^$`, `^65002$`, `^65002_`, `_65003_`, `_65003$` | ☐ |
+| 18 | AS-path ACL (`filter-list`) chỉ nhận route sinh tại AS kề (`^65002$`) | ☐ |
 | 19 | 🔴 Tái hiện AS-path ACL **thiếu `permit .*`** → mất hết route | ☐ |
 | 20 | Route-map kết hợp `deny` + `match as-path` + `set` + **catch-all**, verify counter | ☐ |
-| 21 | ⭐ `aggregate-address` **không** `summary-only` → peer thấy **cả** aggregate + con | ☐ |
-| 22 | ⭐⭐ Thêm `summary-only` → prefix con hiện **`s`**, peer chỉ thấy **1 route** | ☐ |
-| 23 | ⭐ Chỉ ra **discard route Null0** của aggregate | ☐ |
-| 24 | ⭐⭐ Gộp route học từ AS khác **không có `as-set`** → thấy `atomic-aggregate`, AS-path mất chi tiết | ☐ |
-| 25 | ⭐⭐ Thêm **`as-set`** → thấy **`{65002,65003}`**, chống loop hoạt động lại | ☐ |
-| 26 | ⭐ Dùng `show ip bgp regexp ^$` verify đúng prefix mình **nên** quảng bá | ☐ |
-| 27 | ⭐⭐ Viết & áp cấu hình **dual-ISP hoàn chỉnh** (quiz câu 12): LocPref in + prepend out + prefix-list 2 chiều + `maximum-prefix` + `password` | ☐ |
+| 21 | `aggregate-address` **không** `summary-only` → peer thấy **cả** aggregate + con | ☐ |
+| 22 | Thêm `summary-only` → prefix con hiện **`s`**, peer chỉ thấy **1 route** | ☐ |
+| 23 | Chỉ ra **discard route Null0** của aggregate | ☐ |
+| 24 | Gộp route học từ AS khác **không có `as-set`** → thấy `atomic-aggregate`, AS-path mất chi tiết | ☐ |
+| 25 | Thêm **`as-set`** → thấy **`{65002,65003}`**, chống loop hoạt động lại | ☐ |
+| 26 | Dùng `show ip bgp regexp ^$` verify đúng prefix mình **nên** quảng bá | ☐ |
+| 27 | Viết & áp cấu hình **dual-ISP hoàn chỉnh** (quiz câu 12): LocPref in + prepend out + prefix-list 2 chiều + `maximum-prefix` + `password` | ☐ |
 | 28 | Cố ý phá 1 thứ, tự tìm ra bằng **quy trình 13 bước §7.3** trong 10 phút | ☐ |
 
 > ⚠️⚠️ **Đây là milestone quan trọng nhất nửa đầu khóa (theo ROADMAP §4, "Routing vững — tuần 11").**
 > Tick được hết Phần B nghĩa là bạn đã nắm **toàn bộ khối Routing** của ENCOR:
 > OSPF (Module-04A/B) + BGP (Module-05A/B) = phần lớn nhất của domain Infrastructure (30% đề).
 >
-> ⭐ **Nếu chỉ có thời gian làm một nửa:** ưu tiên **mục 2** (phân tích 13 bước),
+> **Nếu chỉ có thời gian làm một nửa:** ưu tiên **mục 2** (phân tích 13 bước),
 > **mục 4–7** (điều khiển hướng traffic), **mục 12** (`send-community`),
 > **mục 16** (`le 32`), **mục 24–25** (`as-set`), và **mục 27** (dual-ISP hoàn chỉnh).
 > Sáu mục đó phủ gần hết những gì đề hỏi **và** những gì bạn cần khi đi làm.
@@ -1756,19 +1756,19 @@ show ip prefix-list detail PL-MY-PREFIX-OUT                  ! hit count > 0?
 
 | Nguồn | Cụ thể |
 |---|---|
-| **Sách OCG 350-401** | Chương **BGP** thứ hai (*"Advanced BGP"* / *"BGP Path Selection"*) — ⭐ đọc kỹ bảng 13 bước và bảng attribute |
-| **Cisco doc** ⭐⭐ | ***BGP Best Path Selection Algorithm*** — ⭐ **tài liệu GỐC của 13 bước**. Search: `bgp best path selection algorithm cisco`. **Đọc bản này, không đọc bản tóm tắt của người khác** |
-| **Cisco doc** ⭐ | *BGP Case Studies* — phần *Route Filtering*, *Community*, *Aggregation* với ví dụ thực tế |
-| **Cisco doc** ⭐ | *Using Regular Expressions in BGP* — bảng regex AS-path đầy đủ |
-| **Cisco doc** ⭐ | *BGP Communities* · *Understanding BGP Community* |
+| **Sách OCG 350-401** | Chương **BGP** thứ hai (*"Advanced BGP"* / *"BGP Path Selection"*) —  đọc kỹ bảng 13 bước và bảng attribute |
+| **Cisco doc**  | ***BGP Best Path Selection Algorithm*** —  **tài liệu GỐC của 13 bước**. Search: `bgp best path selection algorithm cisco`. **Đọc bản này, không đọc bản tóm tắt của người khác** |
+| **Cisco doc**  | *BGP Case Studies* — phần *Route Filtering*, *Community*, *Aggregation* với ví dụ thực tế |
+| **Cisco doc**  | *Using Regular Expressions in BGP* — bảng regex AS-path đầy đủ |
+| **Cisco doc**  | *BGP Communities* · *Understanding BGP Community* |
 | **Cisco doc** | *Understanding Route Aggregation in BGP* — giải thích `as-set` và `atomic-aggregate` |
 | **Cisco doc** | *How the `bgp deterministic-med` Command Differs from `bgp always-compare-med`* |
-| **Cisco doc** ⭐ | *BGP Best Practices* / *Security Considerations for BGP* — bogon filter, maximum-prefix, route leak |
+| **Cisco doc**  | *BGP Best Practices* / *Security Considerations for BGP* — bogon filter, maximum-prefix, route leak |
 | **RFC 4271** | BGP-4 — **Section 9.1 (Decision Process)** |
 | **RFC 1997** | BGP Communities Attribute — nguồn gốc `no-export`/`no-advertise` |
-| **RFC 7454** | ⭐ **BGP Operations and Security** — tài liệu chuẩn về filter, bogon, route leak. **Rất đáng đọc cho công việc thật** |
-| **Cisco Live** ⭐ | Search `Cisco Live BGP best practices enterprise` · `Cisco Live BGP path selection` · `Cisco Live BGP security` |
-| **NetworkLessons** ⭐ | Loạt bài *BGP Attributes*, *BGP Weight/Local Preference/MED/AS-path*, *BGP Communities*, *BGP Aggregation* |
+| **RFC 7454** | **BGP Operations and Security** — tài liệu chuẩn về filter, bogon, route leak. **Rất đáng đọc cho công việc thật** |
+| **Cisco Live**  | Search `Cisco Live BGP best practices enterprise` · `Cisco Live BGP path selection` · `Cisco Live BGP security` |
+| **NetworkLessons**  | Loạt bài *BGP Attributes*, *BGP Weight/Local Preference/MED/AS-path*, *BGP Communities*, *BGP Aggregation* |
 | **Video** | CBT Nuggets ENCOR — module BGP path selection · Keith Barker: search `Keith Barker BGP path selection`, `Keith Barker BGP communities` |
 | **Công cụ** | **bgp.he.net** (Hurricane Electric BGP Toolkit) — xem AS-path thật trên Internet · **RIPEstat** — xem prefix của một AS |
 | **Forum** | https://community.cisco.com — search `bgp weight vs local preference`, `bgp med not working different as`, `bgp aggregate as-set`, `prefix-list le 32` |

@@ -688,7 +688,7 @@ end
 | 2 | *"FIB giống RIB"* | ❌ FIB **không có** AD/metric/protocol/uptime, nhưng **có** `receive`/`drop`/`attached` |
 | 3 | *"MAC table dùng TCAM"* | ❌ MAC table dùng **CAM** (exact match). TCAM cho ACL/QoS/FIB |
 | 4 | *"TCAM có 2 trạng thái"* | ❌ **3 trạng thái**: 0, 1, **X (don't care)**. "Ternary" = tam phân |
-| 5 | ⭐ *"`debug ip packet` xem được traffic user"* | ❌ Chỉ thấy gói **process-switched**. Traffic transit qua CEF thì **không thấy** |
+| 5 | *"`debug ip packet` xem được traffic user"* | ❌ Chỉ thấy gói **process-switched**. Traffic transit qua CEF thì **không thấy** |
 | 6 | *"Gói đầu tiên trong CEF bị chậm"* | ❌ Đó là **fast switching**. CEF dựng bảng trước nên gói đầu cũng nhanh |
 | 7 | *"Đổi SDM template có tác dụng ngay"* | ❌ **Phải `reload`** |
 | 8 | Adjacency `glean` nghĩa là gì | Subnet connected nhưng **chưa có MAC** → cần ARP. Giải thích `.!!!!` |
@@ -1008,7 +1008,7 @@ OSPF neighbor Full), nhưng **data plane không biết forward đi đâu** → g
 | **Punt** | Đẩy gói lên CPU | Gói hardware không xử lý nổi → nhờ CPU. Punt nhiều = CPU cao |
 | Process switching | Chuyển mạch bằng tiến trình | CPU xử lý từng gói. Chậm nhất |
 | Fast switching | Chuyển mạch nhanh (route cache) | **Traffic-driven**. Đã bị loại bỏ |
-| **CEF** (Cisco Express Forwarding) | Chuyển tiếp nhanh của Cisco | ⭐ **Topology-driven**. Mặc định |
+| **CEF** (Cisco Express Forwarding) | Chuyển tiếp nhanh của Cisco | **Topology-driven**. Mặc định |
 | dCEF (Distributed CEF) | CEF phân tán | FIB copy xuống từng line card |
 | **RIB** (Routing Information Base) | Cơ sở dữ liệu định tuyến | `show ip route`. Có AD, metric |
 | **FIB** (Forwarding Information Base) | Cơ sở dữ liệu chuyển tiếp | `show ip cef`. Chỉ đường tốt nhất |
@@ -1017,7 +1017,7 @@ OSPF neighbor Full), nhưng **data plane không biết forward đi đâu** → g
 | L2 rewrite | Ghi lại header lớp 2 | Dán MAC nguồn/đích + EtherType vào gói |
 | Encapsulation length | Độ dài đóng gói | Ethernet = 14 byte (6+6+2) |
 | **CAM** (Content Addressable Memory) | Bộ nhớ định địa chỉ theo nội dung | 2 trạng thái. Dùng cho MAC table |
-| **TCAM** (Ternary CAM) | CAM tam phân | ⭐ **3 trạng thái (0/1/X)**. Dùng cho ACL/QoS/FIB |
+| **TCAM** (Ternary CAM) | CAM tam phân | **3 trạng thái (0/1/X)**. Dùng cho ACL/QoS/FIB |
 | VMR (Value–Mask–Result) | Giá trị–Mặt nạ–Kết quả | Cấu trúc 1 entry TCAM |
 | Don't care bit | Bit không quan tâm | Trạng thái `X` của TCAM |
 | **SDM** (Switching Database Manager) | Bộ quản lý cơ sở dữ liệu chuyển mạch | Chia phần TCAM. Đổi template phải reload |
@@ -1036,7 +1036,7 @@ OSPF neighbor Full), nhưng **data plane không biết forward đi đâu** → g
 | **SVI** (Switch Virtual Interface) | Interface ảo của VLAN | `interface Vlan10`. Gateway của VLAN |
 | Routed port | Cổng định tuyến | `no switchport` → port L3 thuần, không thuộc VLAN |
 | CEF inconsistency | RIB/FIB không đồng bộ | Lỗi nghiêm trọng: gói drop âm thầm |
-| EPC (Embedded Packet Capture) | Bắt gói nhúng trong IOS | ⭐ Công cụ an toàn thay `debug ip packet` |
+| EPC (Embedded Packet Capture) | Bắt gói nhúng trong IOS | Công cụ an toàn thay `debug ip packet` |
 
 ---
 
@@ -1092,7 +1092,7 @@ vẽ bản đồ trong lúc đi (traffic-driven). Đó là toàn bộ khác bi�
 | 1 | Chạy được `show ip cef` và **chỉ ra** entry `receive`, `attached`, `drop`, và giải thích từng loại | ☐ |
 | 2 | Chạy `show adjacency detail` và **giải mã** chuỗi hex thành MAC đích / MAC nguồn / EtherType | ☐ |
 | 3 | Tái hiện glean: `clear arp-cache` → ping → giải thích `.!!!!` | ☐ |
-| 4 | ⭐ Chứng minh `debug ip packet` không thấy traffic CEF, rồi tắt CEF cho nó hiện ra, rồi **bật lại CEF** | ☐ |
+| 4 | Chứng minh `debug ip packet` không thấy traffic CEF, rồi tắt CEF cho nó hiện ra, rồi **bật lại CEF** | ☐ |
 | 5 | Dùng `show ip cef exact-route` xác định 4 cặp src/dst đi đường nào, và giải thích tính deterministic | ☐ |
 | 6 | Đổi `load-sharing algorithm universal <ID>` và chứng minh đường đi của cùng 1 flow thay đổi | ☐ |
 | 7 | Đọc `show processes cpu` và phân biệt được vấn đề control plane vs data plane | ☐ |
@@ -1105,10 +1105,10 @@ vẽ bản đồ trong lúc đi (traffic-driven). Đó là toàn bộ khác bi�
 | Nguồn | Cụ thể |
 |---|---|
 | **Sách OCG 350-401** | Chương về *Packet Forwarding* (thường là chương 1 hoặc 2) — đọc kỹ phần CEF, FIB/RIB, TCAM |
-| **Cisco doc** ⭐ | *IP Switching Cisco Express Forwarding Configuration Guide* — search: `IOS-XE CEF configuration guide` |
+| **Cisco doc**  | *IP Switching Cisco Express Forwarding Configuration Guide* — search: `IOS-XE CEF configuration guide` |
 | **Cisco doc** | *Cisco Nonstop Forwarding* (hiểu vì sao tách control/data plane có giá trị) |
 | **Cisco doc** | Trang *"How to Choose a Cisco IOS Switching Path"* — bảng so sánh process/fast/CEF gốc từ Cisco |
-| **Cisco Live** ⭐ | Search `Cisco Live campus switching architecture ASIC` — session giải thích ASIC/TCAM rất trực quan |
+| **Cisco Live**  | Search `Cisco Live campus switching architecture ASIC` — session giải thích ASIC/TCAM rất trực quan |
 | **Cisco doc** | *Embedded Packet Capture Configuration Guide* — công cụ bạn sẽ dùng cả đời |
 | **Video** | CBT Nuggets ENCOR — bài về Packet Forwarding · Keith Barker: search `Keith Barker CEF` |
 | **DevNet Sandbox** | Catalyst 9000 always-on — nơi duy nhất bạn xem được TCAM/SDM thật (vIOS không có) |

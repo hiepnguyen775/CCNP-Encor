@@ -1514,8 +1514,8 @@ for tb in r2.json()["response"]:
 
 # 📎 PHỤ LỤC — TRA CỨU
 
-> ⛔ ⭐ **KHÔNG đọc phần này ở lần đọc đầu tiên.**
-> ⭐ Đây là chỗ để **tra khi ôn thi** và **tra khi lab hỏng**.
+> ⛔  **KHÔNG đọc phần này ở lần đọc đầu tiên.**
+> Đây là chỗ để **tra khi ôn thi** và **tra khi lab hỏng**.
 
 ---
 
@@ -1534,11 +1534,11 @@ for tb in r2.json()["response"]:
 | 9 | 🔴  **Đảo cổng 830 và 443** | **NETCONF = SSH 830 · RESTCONF = HTTPS 443** |
 | 10 | 🔴  **Tưởng Ansible cần agent** | 🔴  **Ansible AGENTLESS.** Puppet/Chef mới cần agent |
 | 11 | 🔴  **Tưởng YANG là giao thức** | **YANG là KHUÔN DỮ LIỆU.** NETCONF/RESTCONF mới là giao thức |
-| 12 | ⭐ **Dùng `ios_command` để đổi config** | **Sai công cụ — `ios_command` chỉ CHẠY lệnh. Sửa thì dùng `ios_config`** |
-| 13 | ⭐ **Nhầm `Content-Type` với `Accept`** | **`Content-Type` = thứ TÔI GỬI · `Accept` = thứ tôi MUỐN NHẬN** |
-| 14 | ⭐ **Nhầm `container` với `list` trong YANG** | **`container` xuất hiện 1 lần · `list` nhiều lần và CÓ KHOÁ** |
-| 15 | ⭐ **Tưởng Northbound đi xuống thiết bị** | **Northbound = LÊN ứng dụng · Southbound = XUỐNG thiết bị** |
-| 16 | ⭐ **Nhầm PUT với PATCH** | **PUT thay TOÀN BỘ *(trường thiếu có thể bị xoá)* · PATCH sửa MỘT PHẦN** |
+| 12 | **Dùng `ios_command` để đổi config** | **Sai công cụ — `ios_command` chỉ CHẠY lệnh. Sửa thì dùng `ios_config`** |
+| 13 | **Nhầm `Content-Type` với `Accept`** | **`Content-Type` = thứ TÔI GỬI · `Accept` = thứ tôi MUỐN NHẬN** |
+| 14 | **Nhầm `container` với `list` trong YANG** | **`container` xuất hiện 1 lần · `list` nhiều lần và CÓ KHOÁ** |
+| 15 | **Tưởng Northbound đi xuống thiết bị** | **Northbound = LÊN ứng dụng · Southbound = XUỐNG thiết bị** |
+| 16 | **Nhầm PUT với PATCH** | **PUT thay TOÀN BỘ *(trường thiếu có thể bị xoá)* · PATCH sửa MỘT PHẦN** |
 
 ---
 
@@ -1550,11 +1550,11 @@ for tb in r2.json()["response"]:
 |:---:|---|---|---|
 | **Gõ `netconf-yang` báo lệnh không tồn tại** | 🔴  **Đang dùng vIOS, không phải IOS-XE** | `show version` | **Dùng DevNet Sandbox** *(§1.2)* |
 | 🔴  **Kết nối 830 bị từ chối xác thực** | 🔴  **Thiếu `aaa authorization exec default local`** | `show run \| include aaa` | **Thêm dòng đó** *(§7.4)* |
-| ⭐ **Vừa bật xong, kết nối không được** | **Tiến trình nền chưa lên hết** | `show platform software yang-management process` | **Chờ 1–2 phút** |
-| ⭐ **RESTCONF trả `404`** | **Sai đường dẫn YANG** | Đối chiếu tên module | **Kiểm tra `module:container`** |
+| **Vừa bật xong, kết nối không được** | **Tiến trình nền chưa lên hết** | `show platform software yang-management process` | **Chờ 1–2 phút** |
+| **RESTCONF trả `404`** | **Sai đường dẫn YANG** | Đối chiếu tên module | **Kiểm tra `module:container`** |
 | 🔴 **RESTCONF trả `415`** | 🔴  **Quên `yang-data+json`** | Xem header đã gửi | **Đặt `Content-Type: application/yang-data+json`** |
-| ⭐ **RESTCONF không kết nối được** | **Thiếu `ip http secure-server`** | `show run \| include http` | **Bật HTTPS** |
-| ⭐ **`401` dù mật khẩu đúng** | **Token hết hạn** *(với DNAC)* | Xin token mới | **Xin lại token** |
+| **RESTCONF không kết nối được** | **Thiếu `ip http secure-server`** | `show run \| include http` | **Bật HTTPS** |
+| **`401` dù mật khẩu đúng** | **Token hết hạn** *(với DNAC)* | Xin token mới | **Xin lại token** |
 
 ### 14.2 🔴 EEM không chạy
 
@@ -1583,27 +1583,27 @@ for tb in r2.json()["response"]:
    └─ 🔴 Chạy quá 20 giây       → Bẫy 3: thêm "maxrun"
 ```
 
-### 14.3 ⭐ Script Python lỗi
+### 14.3  Script Python lỗi
 
 | Triệu chứng | Nguyên nhân | Sửa |
 |---|---|---|
-| ⭐ **`KeyError`** | **Sai tên key, hoặc key không tồn tại** | **In cả dict ra xem có gì: `print(data)`** |
+| **`KeyError`** | **Sai tên key, hoặc key không tồn tại** | **In cả dict ra xem có gì: `print(data)`** |
 | **`IndexError`** | 🔴  **Lấy `[3]` trong mảng chỉ có 3 phần tử** | **Chỉ số hợp lệ là 0,1,2** |
-| ⭐ **`IndentationError`** | **Thụt lề lệch** | **Dùng 4 dấu cách đều nhau, không trộn Tab** |
+| **`IndentationError`** | **Thụt lề lệch** | **Dùng 4 dấu cách đều nhau, không trộn Tab** |
 | **`.json()` báo lỗi** | 🔴  **Phản hồi không phải JSON** *(thường vì đã lỗi `401`)* | **In `r.status_code` và `r.text` ra trước** |
-| ⭐ **Cảnh báo chứng chỉ SSL** | Chứng chỉ tự ký | **`verify=False`** *(chỉ trong lab)* |
+| **Cảnh báo chứng chỉ SSL** | Chứng chỉ tự ký | **`verify=False`** *(chỉ trong lab)* |
 
 ---
 
 ## 📝 15. QUIZ TỰ KIỂM TRA
 
-> ⭐ **Tự trả lời TRƯỚC khi mở đáp án.**  Sai câu nào → quay lại đúng mục đó.
+> **Tự trả lời TRƯỚC khi mở đáp án.**  Sai câu nào → quay lại đúng mục đó.
 
 **1.** NETCONF và RESTCONF dùng cổng nào? Thuộc domain nào trong blueprint?
 
 <details><summary>Đáp án</summary>
 
-⭐ **NETCONF = SSH cổng 830** ·  **RESTCONF = HTTPS cổng 443**.
+ **NETCONF = SSH cổng 830** ·  **RESTCONF = HTTPS cổng 443**.
 
 🔴  **Cả hai thuộc mục 4.7 — Domain 4.0 Network Assurance**, KHÔNG phải 6.0.
 *(§7.1 · §0.2)*
@@ -1617,7 +1617,7 @@ for tb in r2.json()["response"]:
 
 <details><summary>Đáp án</summary>
 
-⭐ **1500.**
+ **1500.**
 
 🔴  **`[0]` là phần tử ĐẦU TIÊN** — tức `Gi0/0`. Rất nhiều người trả lời 9000 vì tưởng đếm từ 1. *(§3.3 · §9.2)*
 </details>
@@ -1633,7 +1633,7 @@ for tb in r2.json()["response"]:
 
 <details><summary>Đáp án</summary>
 
-⭐ **Ba lỗi:**
+ **Ba lỗi:**
 1. 🔴 **`'device'` dùng nháy đơn** — JSON chỉ chấp nhận nháy kép.
 2. 🔴 **`// ten thiet bi`** — JSON **không có comment**.
 3. 🔴 **Dấu phẩy sau `1500`** — phần tử cuối không được có dấu phẩy.
@@ -1644,10 +1644,10 @@ for tb in r2.json()["response"]:
 
 <details><summary>Đáp án</summary>
 
-⭐ **Kiểm tra QUYỀN (role) của tài khoản** — không phải kiểm tra token.
+ **Kiểm tra QUYỀN (role) của tài khoản** — không phải kiểm tra token.
 
-⭐ **`403` nghĩa là danh tính đã được chấp nhận nhưng không đủ quyền** *(ví von: vé thật, nhưng không được vào phòng VIP)*.
-⭐ Nếu là **`401`** thì mới đi kiểm tra token/mật khẩu. *(§5.2)*
+ **`403` nghĩa là danh tính đã được chấp nhận nhưng không đủ quyền** *(ví von: vé thật, nhưng không được vào phòng VIP)*.
+ Nếu là **`401`** thì mới đi kiểm tra token/mật khẩu. *(§5.2)*
 </details>
 
 **5.** Applet sau có gì sai? Nó sẽ chạy theo thứ tự nào?
@@ -1664,19 +1664,19 @@ event manager applet TEST
 
 🔴  **Chạy theo thứ tự: 1 → 10 → 2.**
 
-⭐ **IOS sắp xếp nhãn action như CHUỖI KÝ TỰ**, không phải như số: `"1" < "10" < "2"`.
+ **IOS sắp xếp nhãn action như CHUỖI KÝ TỰ**, không phải như số: `"1" < "10" < "2"`.
 
-⭐ **Sửa:** dùng `1.0`, `2.0`, `10.0`. *(§8.5 Bẫy 1)*
+ **Sửa:** dùng `1.0`, `2.0`, `10.0`. *(§8.5 Bẫy 1)*
 </details>
 
 **6.** Vì sao chỉ NETCONF mới `rollback` được mà RESTCONF thì không?
 
 <details><summary>Đáp án</summary>
 
-⭐ **Vì NETCONF có `candidate` datastore — một bản nháp tách rời khỏi `running`.**
+ **Vì NETCONF có `candidate` datastore — một bản nháp tách rời khỏi `running`.**
 
-⭐ Bạn sửa vào `candidate`, thiết bị **chưa áp dụng gì cả**, tới khi `commit` mới chuyển sang `running`.
-⭐ Chưa commit thì `discard-changes` là xong.  **Và nếu commit lỗi thì TOÀN BỘ thay đổi bị huỷ, không có nửa vời.**
+ Bạn sửa vào `candidate`, thiết bị **chưa áp dụng gì cả**, tới khi `commit` mới chuyển sang `running`.
+ Chưa commit thì `discard-changes` là xong.  **Và nếu commit lỗi thì TOÀN BỘ thay đổi bị huỷ, không có nửa vời.**
 
 🔴  **RESTCONF ghi thẳng vào `running`** — không có bản nháp nên không có gì để quay lại. *(§7.3 · §2.5)*
 </details>
@@ -1688,7 +1688,7 @@ event manager applet TEST
  **Ansible = agentless** ·  **SaltStack = cả hai** *(minion hoặc salt-ssh)* · 🔴 **Puppet và Chef = agent.**
 
 🔴  **Quan trọng vì bạn KHÔNG cài được phần mềm lạ lên switch/router Cisco** — nó là hệ đóng.
-⭐ **Nên trong mạng, agentless gần như luôn thắng.** *(§11.1 · §2.7)*
+ **Nên trong mạng, agentless gần như luôn thắng.** *(§11.1 · §2.7)*
 </details>
 
 **8.** Bật `netconf-yang` xong, kết nối cổng 830 báo lỗi xác thực dù user/mật khẩu đúng. Nguyên nhân?
@@ -1697,7 +1697,7 @@ event manager applet TEST
 
 🔴  **Thiếu `aaa authorization exec default local`.**
 
-⭐ NETCONF/RESTCONF xác thực **qua AAA**.  **Thiếu dòng đó thì SSH thường vẫn vào được,
+ NETCONF/RESTCONF xác thực **qua AAA**.  **Thiếu dòng đó thì SSH thường vẫn vào được,
 nhưng NETCONF bị từ chối** — và thông báo lỗi **không hề nhắc tới AAA**. *(§7.4)*
 </details>
 
@@ -1705,8 +1705,8 @@ nhưng NETCONF bị từ chối** — và thông báo lỗi **không hề nhắc
 
 <details><summary>Đáp án</summary>
 
-⭐ **`PUT` thay TOÀN BỘ đối tượng** — phải gửi đủ mọi trường.
-⭐ **`PATCH` chỉ sửa PHẦN bạn gửi lên.**
+ **`PUT` thay TOÀN BỘ đối tượng** — phải gửi đủ mọi trường.
+ **`PATCH` chỉ sửa PHẦN bạn gửi lên.**
 
 🔴  **`PUT` rủi ro hơn: trường nào bạn không gửi có thể bị xoá hoặc về mặc định.** *(§5.1)*
 </details>
@@ -1716,9 +1716,9 @@ nhưng NETCONF bị từ chối** — và thông báo lỗi **không hề nhắc
 <details><summary>Đáp án</summary>
 
 🔴  **YANG KHÔNG phải giao thức — nó là NGÔN NGỮ MÔ TẢ KHUÔN dữ liệu** *(ví von: tờ khai)*.
-⭐ **NETCONF/RESTCONF mới là giao thức vận chuyển.**
+ **NETCONF/RESTCONF mới là giao thức vận chuyển.**
 
-⭐ **Bốn node:** `leaf` *(một ô, một giá trị)* · `leaf-list` *(một ô, nhiều giá trị)* ·
+ **Bốn node:** `leaf` *(một ô, một giá trị)* · `leaf-list` *(một ô, nhiều giá trị)* ·
 `container` *(nhóm ô, xuất hiện 1 lần)* · `list` *(nhiều bản ghi, CÓ KHOÁ)*. *(§6.1 · §2.4)*
 </details>
 
@@ -1735,92 +1735,92 @@ event manager applet BACKUP-KHI-LUU
  action 4.0 syslog msg "EEM: da sao luu xong"
 ```
 
-⭐ **Ba điểm chấm:**  **nhãn dạng `1.0`** *(Bẫy 1)* ·  **có `enable` trước lệnh privileged** *(Bẫy 2)* ·
-⭐ **`skip no` để lệnh gốc vẫn chạy.** *(§8.4 ví dụ 3)*
+ **Ba điểm chấm:**  **nhãn dạng `1.0`** *(Bẫy 1)* ·  **có `enable` trước lệnh privileged** *(Bẫy 2)* ·
+ **`skip no` để lệnh gốc vẫn chạy.** *(§8.4 ví dụ 3)*
 </details>
 
 **12.** DNA Center và vManage xác thực khác nhau ra sao?
 
 <details><summary>Đáp án</summary>
 
-⭐ **DNAC:** `POST /dna/system/api/v1/auth/token` → nhận **Token** → gửi kèm header  **`X-Auth-Token`**.
+ **DNAC:** `POST /dna/system/api/v1/auth/token` → nhận **Token** → gửi kèm header  **`X-Auth-Token`**.
 
-⭐ **vManage:** `POST /j_security_check` → nhận **cookie phiên `JSESSIONID`**.
+ **vManage:** `POST /j_security_check` → nhận **cookie phiên `JSESSIONID`**.
 
-⭐ **Một câu:**  **DNAC dùng TOKEN, vManage dùng COOKIE.** *(§10.2 · §10.3)*
+ **Một câu:**  **DNAC dùng TOKEN, vManage dùng COOKIE.** *(§10.2 · §10.3)*
 </details>
 
 ---
 
 ## 📚 16. THUẬT NGỮ ANH–VIỆT
 
-| Tiếng Anh | Tiếng Việt | ⭐ Giải thích ngắn |
+| Tiếng Anh | Tiếng Việt | Giải thích ngắn |
 |---|---|---|
-| **API** | Giao diện lập trình ứng dụng | ⭐ **"Người bồi bàn"** — cách gọi món mà không cần vào bếp |
+| **API** | Giao diện lập trình ứng dụng | **"Người bồi bàn"** — cách gọi món mà không cần vào bếp |
 | **REST** | Kiểu thiết kế API dựa trên HTTP | Dùng verb GET/POST/PUT/PATCH/DELETE |
 | **Endpoint** | Điểm cuối / đường dẫn API | Địa chỉ URL của một thứ cụ thể |
 | **Payload** | Nội dung gửi/nhận | Phần dữ liệu thật, không tính header |
 | **Header** | Tiêu đề gói tin | Thông tin đi kèm: định dạng, token… |
-| **Status code** | Mã trạng thái | ⭐ **200/401/403/404/500…** |
+| **Status code** | Mã trạng thái | **200/401/403/404/500…** |
 | 🔴 **Idempotent** | Lặp lại không đổi kết quả | **Chạy 1 lần hay 100 lần đều như nhau** |
 | **Token** | Thẻ truy cập | Chứng minh danh tính sau khi đăng nhập |
-| **YANG** | Ngôn ngữ mô hình dữ liệu | ⭐ **"Tờ khai"** — khuôn của dữ liệu |
+| **YANG** | Ngôn ngữ mô hình dữ liệu | **"Tờ khai"** — khuôn của dữ liệu |
 | **Datastore** | Kho cấu hình | `running` · `candidate` · `startup` |
 | 🔴 **Candidate** | Bản nháp | **Sửa ở đây chưa ảnh hưởng gì tới thiết bị** |
 | **Commit** | Chốt thay đổi | Đưa bản nháp thành hiệu lực |
 | **Rollback** | Quay lui | Trả về trạng thái trước |
 | **RPC** | Lệnh gọi thủ tục từ xa | Cách NETCONF ra lệnh |
 | **Capability** | Khả năng thiết bị công bố | Có trong bản tin `<hello>` |
-| **EEM** | Trình quản lý sự kiện nhúng | ⭐ **"Bác bảo vệ trực đêm"** |
+| **EEM** | Trình quản lý sự kiện nhúng | **"Bác bảo vệ trực đêm"** |
 | **Applet** | Một kịch bản EEM nhỏ | `event` + `action` |
 | **Event detector** | Bộ phát hiện sự kiện | Thứ theo dõi "khi nào" |
-| **Agent / Agentless** | Có / không cần cài phần mềm | ⭐ **Ansible agentless · Puppet-Chef agent** |
-| **Push / Pull** | Đẩy / Kéo | ⭐ **Ai chủ động: máy chủ hay máy con** |
+| **Agent / Agentless** | Có / không cần cài phần mềm | **Ansible agentless · Puppet-Chef agent** |
+| **Push / Pull** | Đẩy / Kéo | **Ai chủ động: máy chủ hay máy con** |
 | **Playbook** | Kịch bản Ansible | File YAML mô tả việc cần làm |
 | **Inventory** | Danh sách thiết bị | Ansible quản những máy nào |
 | **Module** *(Ansible)* | Đơn vị việc | `ios_config`, `ios_command` |
-| **Northbound** | Hướng lên | ⭐ **Controller ↔ ứng dụng/script** |
-| **Southbound** | Hướng xuống | ⭐ **Controller ↔ thiết bị** |
-| **Screen scraping** | Bóc chữ từ màn hình | ⭐ **Cách CŨ — đọc output `show` bằng cắt chuỗi** |
+| **Northbound** | Hướng lên | **Controller ↔ ứng dụng/script** |
+| **Southbound** | Hướng xuống | **Controller ↔ thiết bị** |
+| **Screen scraping** | Bóc chữ từ màn hình | **Cách CŨ — đọc output `show` bằng cắt chuỗi** |
 | **Sandbox** | Môi trường thử nghiệm | DevNet — thiết bị thật, miễn phí |
 
 ---
 
 ## 🎯 17. ĐÚC KẾT MODULE-12
 
-### 17.1 ⭐ Nếu chỉ nhớ được MỘT bảng — nhớ bảng này
+### 17.1  Nếu chỉ nhớ được MỘT bảng — nhớ bảng này
 
-| Thứ | ⭐ Con số / sự thật |
+| Thứ | Con số / sự thật |
 |---|---|
 | 🔴  **NETCONF** | **SSH · cổng 830 · chỉ XML · CÓ candidate/commit/rollback/lock** |
 | 🔴  **RESTCONF** | **HTTPS · cổng 443 · JSON hoặc XML · KHÔNG rollback** |
-| ⭐ **Cả hai** | **Đều dùng YANG** |
+| **Cả hai** | **Đều dùng YANG** |
 | 🔴  **401 vs 403** | **401 = danh tính · 403 = quyền hạn** |
-| ⭐ **Idempotent** | **GET · PUT · DELETE** *(POST và PATCH thì không)* |
+| **Idempotent** | **GET · PUT · DELETE** *(POST và PATCH thì không)* |
 | 🔴  **EEM** | **`event` + `action` · nhãn `1.0`/`2.0` · phải `enable` trước** |
-| ⭐ **Agentless** | **Ansible** *(và SaltStack qua SSH)* |
-| ⭐ **Agent** | **Puppet · Chef** |
-| ⭐ **DNAC vs vManage** | **Token (`X-Auth-Token`) vs Cookie (`JSESSIONID`)** |
-| ⭐ **JSON** | **Không comment · không phẩy thừa · nháy kép · `true/false/null` thường** |
+| **Agentless** | **Ansible** *(và SaltStack qua SSH)* |
+| **Agent** | **Puppet · Chef** |
+| **DNAC vs vManage** | **Token (`X-Auth-Token`) vs Cookie (`JSESSIONID`)** |
+| **JSON** | **Không comment · không phẩy thừa · nháy kép · `true/false/null` thường** |
 
-### 17.2 ⭐ Bảy ví von — nói lại được là đã hiểu
+### 17.2  Bảy ví von — nói lại được là đã hiểu
 
 | Khái niệm | Ví von |
 |---|---|
-| **Automation** | ⭐ **Công thức làm bánh** — ai làm cũng ra cùng một cái |
-| **API** | ⭐ **Người bồi bàn** — gọi món, không cần vào bếp |
-| **JSON/XML/YAML** | ⭐ **Ba cách ghi địa chỉ lên phong bì** |
-| **YANG** | ⭐ **Tờ khai có sẵn ô trống** |
-| **NETCONF vs RESTCONF** | ⭐ **Thư bảo đảm vs bưu thiếp** |
-| **EEM** | ⭐ **Bác bảo vệ trực đêm** |
-| **Agent vs agentless** | ⭐ **Nhân viên thường trú vs thợ gọi đến** |
-| **401 vs 403** | ⭐ **Không có vé vs có vé nhưng không được vào phòng VIP** |
-| **Idempotent** | ⭐ **Gạt công tắc vs bấm chuông** |
+| **Automation** | **Công thức làm bánh** — ai làm cũng ra cùng một cái |
+| **API** | **Người bồi bàn** — gọi món, không cần vào bếp |
+| **JSON/XML/YAML** | **Ba cách ghi địa chỉ lên phong bì** |
+| **YANG** | **Tờ khai có sẵn ô trống** |
+| **NETCONF vs RESTCONF** | **Thư bảo đảm vs bưu thiếp** |
+| **EEM** | **Bác bảo vệ trực đêm** |
+| **Agent vs agentless** | **Nhân viên thường trú vs thợ gọi đến** |
+| **401 vs 403** | **Không có vé vs có vé nhưng không được vào phòng VIP** |
+| **Idempotent** | **Gạt công tắc vs bấm chuông** |
 
 ### 17.3 🔴  Module này khép lại điều gì
 
 > 🔴  **Học xong §7 là Domain 4.0 mới TRỌN VẸN** *(mục 4.7)*.
-> ⭐ Trước đó, dù đã xong Module-11, bạn vẫn đang thiếu một mục.
+> Trước đó, dù đã xong Module-11, bạn vẫn đang thiếu một mục.
 
 | Domain | % đề | Xong sau module nào |
 |---|:---:|---|
@@ -1831,15 +1831,15 @@ event manager applet BACKUP-KHI-LUU
 | **2.0 Virtualization** | 10% | Module-08 |
 | 🔴  **4.0 Assurance** | **10%** | 🔴  **Module-11 + §7 module này** |
 
-> ✅ ⭐ **Hết Module-12 = đã phủ 100% blueprint.**  Còn lại là **ôn tập và luyện đề — Module-13.**
+> ✅  **Hết Module-12 = đã phủ 100% blueprint.**  Còn lại là **ôn tập và luyện đề — Module-13.**
 
-### 17.4 ⭐ Ba việc làm ngay sau khi đọc xong
+### 17.4  Ba việc làm ngay sau khi đọc xong
 
 | # | Việc | Vì sao |
 |:---:|---|---|
-| 1 | ⭐ **Làm [LAB 12](Module-12-LAB.md)** | **Đặc biệt bài EEM** — blueprint bắt CONSTRUCT |
-| 2 | ⭐ **Viết một applet EEM cho lab của chính bạn** | **Tự nghĩ ra bài toán mới là lúc thật sự thuộc** |
-| 3 | ⭐ **Đọc lại §17.1 mỗi ngày 2 phút tới khi thi** | **Bảng đó là phần dễ mất điểm vì quên, không phải vì không hiểu** |
+| 1 | **Làm [LAB 12](Module-12-LAB.md)** | **Đặc biệt bài EEM** — blueprint bắt CONSTRUCT |
+| 2 | **Viết một applet EEM cho lab của chính bạn** | **Tự nghĩ ra bài toán mới là lúc thật sự thuộc** |
+| 3 | **Đọc lại §17.1 mỗi ngày 2 phút tới khi thi** | **Bảng đó là phần dễ mất điểm vì quên, không phải vì không hiểu** |
 
 ---
 
@@ -1847,19 +1847,19 @@ event manager applet BACKUP-KHI-LUU
 
 | Nguồn | Dùng để |
 |---|---|
-| ⭐ **[Cisco DevNet Sandbox](https://developer.cisco.com/site/sandbox/)** | **Thiết bị thật, miễn phí — bắt buộc cho §7 và §10** |
-| ⭐ **[Cisco DevNet Learning Labs](https://developer.cisco.com/learning/)** | Bài học từng bước về REST/NETCONF/RESTCONF |
-| ⭐ **[Cisco YANG models trên GitHub](https://github.com/YangModels/yang)** | Xem model thật của từng phiên bản IOS-XE |
+| **[Cisco DevNet Sandbox](https://developer.cisco.com/site/sandbox/)** | **Thiết bị thật, miễn phí — bắt buộc cho §7 và §10** |
+| **[Cisco DevNet Learning Labs](https://developer.cisco.com/learning/)** | Bài học từng bước về REST/NETCONF/RESTCONF |
+| **[Cisco YANG models trên GitHub](https://github.com/YangModels/yang)** | Xem model thật của từng phiên bản IOS-XE |
 | **RFC 6241** | Chuẩn NETCONF |
 | **RFC 8040** | Chuẩn RESTCONF |
 | **RFC 7950** | Chuẩn YANG 1.1 |
-| ⭐ **Cisco IOS EEM Configuration Guide** | **Tra đầy đủ event detector và action** |
-| ⭐ **[Ansible cisco.ios collection](https://docs.ansible.com/)** | Tra module `ios_config`, `ios_command` |
-| ⭐ **[OpenConfig](https://openconfig.net/)** | Model trung lập hãng |
-| ⭐ **Repo `network-automation-mastery` của bạn** | **Phủ sâu hơn phần Python/Ansible — học chéo, đừng học lại** |
+| **Cisco IOS EEM Configuration Guide** | **Tra đầy đủ event detector và action** |
+| **[Ansible cisco.ios collection](https://docs.ansible.com/)** | Tra module `ios_config`, `ios_command` |
+| **[OpenConfig](https://openconfig.net/)** | Model trung lập hãng |
+| **Repo `network-automation-mastery` của bạn** | **Phủ sâu hơn phần Python/Ansible — học chéo, đừng học lại** |
 
 ---
 
 > 🧭 **Tiếp theo:** Module-13 — Ôn thi & Chiến thuật phòng thi
 >
-> ⭐ **Trước khi sang, tự chấm §12.4** *(vẽ lại)* và  **làm hết [LAB 12](Module-12-LAB.md)**.
+> **Trước khi sang, tự chấm §12.4** *(vẽ lại)* và  **làm hết [LAB 12](Module-12-LAB.md)**.

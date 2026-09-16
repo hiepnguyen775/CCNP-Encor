@@ -1009,38 +1009,38 @@ không làm Area 1 phải tính lại SPF** — nó chỉ thấy cost thay đổ
 
 | # | Bẫy | Sự thật |
 |:---:|---|---|
-| 1 | 🔴 Neighbor kẹt **`EXSTART`** / `EXCHANGE` | ⭐ **MTU mismatch** — nghĩ tới điều này TRƯỚC mọi thứ khác |
-| 2 | 🔴 Neighbor ở **`2WAY/DROTHER`** | ⭐ **BÌNH THƯỜNG** — 2 DROther trên segment broadcast không cần Full |
+| 1 | 🔴 Neighbor kẹt **`EXSTART`** / `EXCHANGE` | **MTU mismatch** — nghĩ tới điều này TRƯỚC mọi thứ khác |
+| 2 | 🔴 Neighbor ở **`2WAY/DROTHER`** | **BÌNH THƯỜNG** — 2 DROther trên segment broadcast không cần Full |
 | 3 | Neighbor kẹt **`INIT`** | Hello **một chiều** — ACL chặn, lỗi L2 một chiều, multicast bị block |
 | 4 | Neighbor ở **`ATTEMPT`** | Chỉ xảy ra trên **NBMA** — đã gửi Hello unicast tới `neighbor` khai tay, chưa có phản hồi |
-| 5 | 🔴 **DR/BDR có preemption?** | ⭐ **KHÔNG.** Router priority cao bật lên sau **không** chiếm quyền DR. Phải `clear ip ospf process` hoặc chờ DR chết |
-| 6 | Bầu DR: cao hay thấp thắng? | ⭐ **Priority CAO NHẤT** thắng (ngược với STP!). Tie → **Router ID CAO NHẤT** |
-| 7 | Priority 0 nghĩa là gì | ⭐ **Không bao giờ** làm DR/BDR — luôn DROther |
+| 5 | 🔴 **DR/BDR có preemption?** | **KHÔNG.** Router priority cao bật lên sau **không** chiếm quyền DR. Phải `clear ip ospf process` hoặc chờ DR chết |
+| 6 | Bầu DR: cao hay thấp thắng? | **Priority CAO NHẤT** thắng (ngược với STP!). Tie → **Router ID CAO NHẤT** |
+| 7 | Priority 0 nghĩa là gì | **Không bao giờ** làm DR/BDR — luôn DROther |
 | 8 | Đổi `router-id` có tác dụng ngay? | ❌ **Không.** Phải `clear ip ospf process` |
 | 9 | Thứ tự chọn Router ID | `router-id` gõ tay → **IP cao nhất trên loopback up** → IP cao nhất trên interface up |
-| 10 | Network type nào **bầu DR/BDR** | ⭐ **Broadcast** và **Non-Broadcast (NBMA)**. P2P và P2MP thì **không** |
+| 10 | Network type nào **bầu DR/BDR** | **Broadcast** và **Non-Broadcast (NBMA)**. P2P và P2MP thì **không** |
 | 11 | Timer của Broadcast / P2P | **10 / 40** |
 | 12 | Timer của NBMA / P2MP | **30 / 120** |
-| 13 | Network type nào cần khai `neighbor` tay | ⭐ **Non-Broadcast (NBMA)** và **P2MP Non-Broadcast** |
-| 14 | Dead interval mặc định | ⭐ **4 × Hello**. Đổi hello thì IOS tự tính lại dead trên router đó |
-| 15 | ⭐ Lợi ích đổi Ethernet sang `point-to-point` | Không bầu DR/BDR → hội tụ nhanh hơn · ⭐ **không sinh LSA type 2** → LSDB nhỏ hơn |
-| 16 | LSA **type 1** — ai sinh, flood đâu, LS ID | ⭐ **Mọi router** · **trong area** · LS ID = **Router ID** |
-| 17 | LSA **type 2** — ai sinh, flood đâu, LS ID | ⭐ **DR** · **trong area** · LS ID = ⭐ **IP interface của DR** (không phải Router ID!) |
-| 18 | LSA **type 3** — ai sinh, flood đâu, LS ID | ⭐ **ABR** · **sang area khác** · LS ID = **địa chỉ mạng** |
+| 13 | Network type nào cần khai `neighbor` tay | **Non-Broadcast (NBMA)** và **P2MP Non-Broadcast** |
+| 14 | Dead interval mặc định | **4 × Hello**. Đổi hello thì IOS tự tính lại dead trên router đó |
+| 15 | Lợi ích đổi Ethernet sang `point-to-point` | Không bầu DR/BDR → hội tụ nhanh hơn ·  **không sinh LSA type 2** → LSDB nhỏ hơn |
+| 16 | LSA **type 1** — ai sinh, flood đâu, LS ID | **Mọi router** · **trong area** · LS ID = **Router ID** |
+| 17 | LSA **type 2** — ai sinh, flood đâu, LS ID | **DR** · **trong area** · LS ID =  **IP interface của DR** (không phải Router ID!) |
+| 18 | LSA **type 3** — ai sinh, flood đâu, LS ID | **ABR** · **sang area khác** · LS ID = **địa chỉ mạng** |
 | 19 | LSA type 2 có trên link P2P? | ❌ **Không** — không có DR thì không có Network LSA |
 | 20 | "Summary LSA" (type 3) đã được gộp chưa? | ❌ **Chưa.** Mặc định 1 LSA type 3 cho **mỗi** subnet. Muốn gộp phải cấu hình `area range` (04B) |
-| 21 | ⭐ Router area B có biết topology area A? | ❌ **KHÔNG.** Type 1/2 **không ra khỏi area**. Chỉ nhận Type 3 = địa chỉ + metric ⭐ **OSPF là link-state TRONG area, distance-vector GIỮA các area** |
+| 21 | Router area B có biết topology area A? | ❌ **KHÔNG.** Type 1/2 **không ra khỏi area**. Chỉ nhận Type 3 = địa chỉ + metric  **OSPF là link-state TRONG area, distance-vector GIỮA các area** |
 | 22 | Metric của route `O IA` tính thế nào | **Metric trong LSA 3** (cost từ ABR tới mạng) **+ cost từ router hiện tại tới ABR** |
-| 23 | Thứ tự ưu tiên route OSPF | ⭐ **Intra (O) → Inter (O IA) → E1 → E2** — áp dụng **TRƯỚC** khi so metric |
-| 24 | `O IA` metric 5000 vs `O E1` metric 5 | ⭐ **`O IA` thắng** — thứ tự loại route đứng trước metric |
+| 23 | Thứ tự ưu tiên route OSPF | **Intra (O) → Inter (O IA) → E1 → E2** — áp dụng **TRƯỚC** khi so metric |
+| 24 | `O IA` metric 5000 vs `O E1` metric 5 | **`O IA` thắng** — thứ tự loại route đứng trước metric |
 | 25 | Multicast: mọi router / DR | **224.0.0.5** (AllSPFRouters) / **224.0.0.6** (AllDRouters). DROther gửi LSU tới `.6`, DR phát lại ra `.5` |
 | 26 | IP protocol number của OSPF | **89** |
 | 27 | LSA Age tối đa / chu kỳ refresh | **3600 s** / refresh mỗi **1800 s** (30 phút) |
-| 28 | `Seq#` tăng rất nhanh nghĩa là gì | ⭐ **LSA flapping** (link nhấp nháy) hoặc **duplicate Router ID** |
-| 29 | ABR là gì (định nghĩa chính xác) | Interface ở **≥ 2 area**, trong đó ⭐ **phải có area 0** |
+| 28 | `Seq#` tăng rất nhanh nghĩa là gì | **LSA flapping** (link nhấp nháy) hoặc **duplicate Router ID** |
+| 29 | ABR là gì (định nghĩa chính xác) | Interface ở **≥ 2 area**, trong đó  **phải có area 0** |
 | 30 | `passive-interface` có ngừng quảng bá subnet? | ❌ **Không** — subnet **vẫn được quảng bá**, chỉ **không gửi Hello** |
 | 31 | `auto-cost reference-bandwidth` đặt lệch 1 router | ⚠️ Neighbor **vẫn Full** nhưng cost lệch → **đường đi sai**, có thể loop. Rất khó phát hiện |
-| 32 | Cost của Gi / 10G / 100G với reference mặc định | ⭐ **Đều = 1** |
+| 32 | Cost của Gi / 10G / 100G với reference mặc định | **Đều = 1** |
 
 ---
 
@@ -1098,11 +1098,11 @@ clear ip ospf counters
 
 | # | Triệu chứng | Nguyên nhân | Lệnh chẩn đoán | Cách sửa |
 |:---:|---|---|---|---|
-| 1 | ⭐ Kẹt **`EXSTART`** / `EXCHANGE` | 🔴 **MTU mismatch** | `show interfaces Gi0/0 \| inc MTU` **cả 2 đầu** | Đặt MTU giống nhau |
+| 1 | Kẹt **`EXSTART`** / `EXCHANGE` | 🔴 **MTU mismatch** | `show interfaces Gi0/0 \| inc MTU` **cả 2 đầu** | Đặt MTU giống nhau |
 | 2 | Kẹt **`INIT`** | Hello **một chiều** | `show access-lists` · `debug ip ospf hello` · ping 2 chiều | Bỏ ACL chặn · sửa lỗi L2 · kiểm tra multicast qua switch |
 | 3 | Kẹt **`ATTEMPT`** | NBMA: sai IP trong lệnh `neighbor` | `show run \| sec router ospf` | Sửa IP `neighbor` |
-| 4 | ⭐ Ở **`2WAY/DROTHER`** | ✅ **BÌNH THƯỜNG** — 2 DROther | `show ip ospf int Gi0/1 \| inc State` | **Không cần sửa** |
-| 5 | **Không có neighbor nào** | Interface không trong OSPF (sai wildcard) | ⭐ `show ip ospf interface brief` | Sửa `network <ip> <wildcard> area X` hoặc dùng `ip ospf 1 area X` |
+| 4 | Ở **`2WAY/DROTHER`** | ✅ **BÌNH THƯỜNG** — 2 DROther | `show ip ospf int Gi0/1 \| inc State` | **Không cần sửa** |
+| 5 | **Không có neighbor nào** | Interface không trong OSPF (sai wildcard) | `show ip ospf interface brief` | Sửa `network <ip> <wildcard> area X` hoặc dùng `ip ospf 1 area X` |
 | 6 | **Không có neighbor nào** | `passive-interface` | `show ip protocols \| inc Passive` | `no passive-interface <if>` |
 | 7 | Neighbor không lên, Area lệch | **Area ID mismatch** | `show ip ospf int Gi0/0 \| inc Area` cả 2 đầu · `debug ip ospf adj` | Sửa area cho khớp |
 | 8 | Neighbor không lên / **flapping** | **Hello/Dead timer lệch** | `show ip ospf int Gi0/0 \| inc Timer` cả 2 đầu | Đặt giống nhau **cả 2 đầu** |
@@ -1110,18 +1110,18 @@ clear ip ospf counters
 | 10 | Neighbor không lên | **Subnet/mask lệch** | `show ip int brief` cả 2 đầu | Sửa IP/mask |
 | 11 | Neighbor không lên | **Network type lệch** (P2P ↔ Broadcast) | `show ip ospf int Gi0/0 \| inc Network Type` | Đặt giống nhau |
 | 12 | Neighbor không lên | **Stub flag (E-bit) lệch** (04B) | `show ip ospf \| inc stub\|Area` | Khớp area type |
-| 13 | ⭐ Neighbor **lên rồi tụt liên tục** | **Duplicate Router ID** | `show logging \| inc DUP_RTRID` · `show ip ospf db router` → `Seq#` tăng nhanh | Đặt Router ID unique + `clear ip ospf process` |
-| 14 | Neighbor `FULL` nhưng **thiếu route** | Subnet chưa được quảng bá | ⭐ `show ip ospf interface brief` trên router **có** subnet đó | Thêm vào OSPF |
+| 13 | Neighbor **lên rồi tụt liên tục** | **Duplicate Router ID** | `show logging \| inc DUP_RTRID` · `show ip ospf db router` → `Seq#` tăng nhanh | Đặt Router ID unique + `clear ip ospf process` |
+| 14 | Neighbor `FULL` nhưng **thiếu route** | Subnet chưa được quảng bá | `show ip ospf interface brief` trên router **có** subnet đó | Thêm vào OSPF |
 | 15 | Neighbor `FULL` nhưng thiếu route | Area type filter (stub/NSSA — 04B) | `show ip ospf \| inc Area` | Xem 04B |
-| 16 | ⭐ Đường đi **"kỳ dị"** dù neighbor đều Full | ⭐ **`reference-bandwidth` lệch giữa các router** | ⭐ `show ip ospf \| inc Reference bandwidth` trên **MỌI** router | Đặt đồng loạt |
+| 16 | Đường đi **"kỳ dị"** dù neighbor đều Full | **`reference-bandwidth` lệch giữa các router** | `show ip ospf \| inc Reference bandwidth` trên **MỌI** router | Đặt đồng loạt |
 | 17 | Đường đi kỳ dị | `ip ospf cost` đặt tay ở đâu đó | `show ip ospf interface brief` — so cột Cost | Rà soát `show run \| inc ospf cost` |
 | 18 | Route `O IA` metric bất thường cao | Cost tới ABR cao, hoặc reference-bw lệch | `show ip ospf db summary <prefix>` → so metric trong LSA vs trong route | Tính lại cost |
 | 19 | **DR không đúng router mong muốn** | Non-preemptive | `show ip ospf int Gi0/1 \| inc Priority\|Designated` | `ip ospf priority` + `clear ip ospf process` trên **mọi** router của segment |
-| 20 | ⭐ **CPU cao**, `show ip ospf statistics` SPF chạy liên tục | **Link flapping** → LSA flooding liên tục | ⭐ `show ip ospf statistics` · `show ip ospf db router` → `Seq#` · `show interfaces \| inc flapped` | Tìm & sửa link nhấp nháy · cân nhắc `ip ospf dead-interval` dài hơn hoặc SPF throttle |
+| 20 | **CPU cao**, `show ip ospf statistics` SPF chạy liên tục | **Link flapping** → LSA flooding liên tục | `show ip ospf statistics` · `show ip ospf db router` → `Seq#` · `show interfaces \| inc flapped` | Tìm & sửa link nhấp nháy · cân nhắc `ip ospf dead-interval` dài hơn hoặc SPF throttle |
 | 21 | LSDB **lệch giữa 2 router cùng area** | Lỗi nghiêm trọng: MTU, bug IOS, LSA corrupt | `show ip ospf db database-summary` cả 2 · so `Checksum` | Sửa MTU · `clear ip ospf process` · kiểm tra bug IOS version |
 | 22 | Route OSPF có nhưng ping fail | Vấn đề ở FIB/CEF hoặc ACL/NAT | `show ip cef <prefix>` (M01) · `show access-lists` | Xem Module-01 §7.3 |
 
-### 7.3 ⭐ Quy trình troubleshoot OSPF — 5 bước
+### 7.3  Quy trình troubleshoot OSPF — 5 bước
 
 ```
 0. NỀN TẢNG TRƯỚC (đừng bỏ qua)
@@ -1163,7 +1163,7 @@ clear ip ospf counters
    show access-lists                   → ACL chặn?
 ```
 
-> ⭐ **Nguyên tắc vàng:** ***`show ip ospf interface <if>` trên CẢ HAI router, rồi so từng dòng.***
+> **Nguyên tắc vàng:** ***`show ip ospf interface <if>` trên CẢ HAI router, rồi so từng dòng.***
 > Một lệnh này phủ 7 trong 9 điều kiện adjacency. Đừng đoán — hãy so.
 
 ---
@@ -1217,7 +1217,7 @@ show ip ospf interface Gi0/1 | include State
 Nếu thấy `State DROTHER` → mọi neighbor DROther khác ở `2WAY` là bình thường.
 Chỉ cần neighbor với **DR và BDR** ở `FULL` là mạng hoạt động đúng.
 
-⭐ Đây là một trong những "sự cố giả" mà người mới báo nhiều nhất.
+ Đây là một trong những "sự cố giả" mà người mới báo nhiều nhất.
 </details>
 
 ---
@@ -1229,7 +1229,7 @@ Sau đó R3 (pri 255, RID 3.3.3.3) bật lên. Ai là DR? Muốn R3 làm DR thì
 
 **DR = R2** (RID 2.2.2.2), **BDR = R1**. **R3 là DROther** dù priority 255.
 
-**Vì sao:** DR/BDR election của OSPF là ⭐ **NON-PREEMPTIVE**. Sau khi DR đã được bầu,
+**Vì sao:** DR/BDR election của OSPF là  **NON-PREEMPTIVE**. Sau khi DR đã được bầu,
 router mới có priority cao hơn **KHÔNG chiếm quyền** — phải chờ DR hiện tại chết.
 
 Ban đầu chỉ có R1 và R2: priority bằng nhau (1) → **Router ID CAO NHẤT** thắng → R2 = DR, R1 = BDR.
@@ -1249,7 +1249,7 @@ R1(config-if)# shutdown / no shutdown       ← BDR
 
 ⚠️ **Cả 2 cách đều gây downtime** → phải có cửa sổ bảo trì.
 
-⭐ **Bài học thực chiến:** ép DR/BDR **ngay từ khi triển khai** (priority 255 và 200 cho
+ **Bài học thực chiến:** ép DR/BDR **ngay từ khi triển khai** (priority 255 và 200 cho
 2 switch core, priority 0 cho router access). Không để mạng tự bầu rồi phải sửa sau.
 
 🧠 **Vì sao Cisco chọn non-preemptive:** nếu DR bị chiếm quyền bất cứ lúc nào, mỗi router mới
@@ -1284,9 +1284,9 @@ bật lên sẽ làm cả segment đồng bộ lại LSDB → bất ổn. Chọn
 
 <details><summary>Xem đáp án</summary>
 
-1. ⭐ **Không bầu DR/BDR** → bỏ được **Wait timer** (= dead interval, 40 s) khi interface lên
+1.  **Không bầu DR/BDR** → bỏ được **Wait timer** (= dead interval, 40 s) khi interface lên
    → **hội tụ nhanh hơn**
-2. ⭐ **Không sinh LSA type 2 (Network LSA)** → **LSDB nhỏ hơn**, ít LSA phải flood và lưu
+2.  **Không sinh LSA type 2 (Network LSA)** → **LSDB nhỏ hơn**, ít LSA phải flood và lưu
    → tiết kiệm CPU/RAM, SPF chạy nhanh hơn
 3. **Linh hoạt hơn về subnet mask** — P2P không yêu cầu mask khớp nghiêm ngặt như broadcast
 4. *(bonus)* Cấu hình đơn giản hơn — không cần lo priority, DR/BDR, non-preemptive
@@ -1307,7 +1307,7 @@ show ip ospf neighbor
 !   State: FULL/  -                   ← không có vai trò DR/BDR
 ```
 
-⭐ Đây là **best practice chuẩn công nghiệp** cho mọi link Ethernet chỉ có 2 router
+ Đây là **best practice chuẩn công nghiệp** cho mọi link Ethernet chỉ có 2 router
 (rất phổ biến ở campus core và data center).
 </details>
 
@@ -1319,9 +1319,9 @@ show ip ospf neighbor
 
 | Type | Tên | Ai sinh ra | Flood tới đâu | LS ID |
 |:---:|---|---|---|---|
-| **1** | **Router LSA** | ⭐ **MỌI router** | **Trong area** | **Router ID** |
-| **2** | **Network LSA** | ⭐ **DR** | **Trong area** | ⭐ **IP interface của DR** |
-| **3** | **Summary LSA** | ⭐ **ABR** | **Sang area khác** | **Địa chỉ mạng** |
+| **1** | **Router LSA** | **MỌI router** | **Trong area** | **Router ID** |
+| **2** | **Network LSA** | **DR** | **Trong area** | **IP interface của DR** |
+| **3** | **Summary LSA** | **ABR** | **Sang area khác** | **Địa chỉ mạng** |
 
 **Bẫy hay gặp:**
 - ⚠️ LS ID của **Type 2** là **IP interface của DR**, **KHÔNG** phải Router ID
@@ -1350,14 +1350,14 @@ câu này liên quan tới nhận định nổi tiếng nào về OSPF.
 
 **Vì sao:**
 - **LSA type 1** (Router LSA) và **type 2** (Network LSA) — hai loại chứa **thông tin topology thật**
-  ("router X nối với router Y qua segment Z") — ⭐ **KHÔNG BAO GIỜ ra khỏi area**
+  ("router X nối với router Y qua segment Z") —  **KHÔNG BAO GIỜ ra khỏi area**
 - R1 chỉ nhận **LSA type 3 (Summary)** từ ABR, chứa: **địa chỉ mạng + mask + metric**
   → R1 chỉ biết *"có mạng `172.16.3.0/24`, đi qua ABR này, cost X"*
 - R1 **không biết**: area 2 có bao nhiêu router, nối với nhau thế nào, có bao nhiêu đường
 
 **Nhận định nổi tiếng:**
 
-⭐ ***"OSPF là link-state TRONG area, và distance-vector GIỮA các area."***
+ ***"OSPF là link-state TRONG area, và distance-vector GIỮA các area."***
 
 Vì với area khác, OSPF hành xử đúng như distance vector: chỉ biết **"hướng nào (next-hop là ABR),
 xa bao nhiêu (metric)"** — không có bản đồ, phải **tin lời ABR**.
@@ -1365,7 +1365,7 @@ xa bao nhiêu (metric)"** — không có bản đồ, phải **tin lời ABR**.
 **Hệ quả thực tế:**
 - ✅ **Ưu điểm:** giới hạn phạm vi chạy SPF → link nhấp nháy trong area 2 **không** làm R1 chạy lại SPF
 - ⚠️ **Nhược điểm:** mất tầm nhìn topology → không thể tối ưu đường đi liên area như trong area,
-  và ⭐ **có thể xảy ra suboptimal routing** giữa các area
+  và  **có thể xảy ra suboptimal routing** giữa các area
 
 **Cách chứng minh trong lab:**
 ```
@@ -1403,7 +1403,7 @@ R1# show ip route ospf | include 172.16.3.0
 !   O IA     172.16.3.0/24 [110/201] via 10.1.12.2, ...
 ```
 
-⭐ **Nguyên lý:** LSA type 3 mang **cost từ ABR tới mạng đích**.
+ **Nguyên lý:** LSA type 3 mang **cost từ ABR tới mạng đích**.
 Mỗi router nhận sẽ **cộng thêm cost của chính nó tới ABR**.
 Đây chính là hành vi **distance-vector** — mỗi hop cộng thêm khoảng cách của mình.
 </details>
@@ -1432,7 +1432,7 @@ Router chọn cái nào? Vì sao?
 `O IA` (inter-area, từ LSA type 3) **luôn thắng** `O E1`/`O E2` (external, từ LSA type 5)
 **bất kể metric**.
 
-⭐ **Logic đằng sau:** route inter-area là mạng **bên trong** domain OSPF của bạn
+ **Logic đằng sau:** route inter-area là mạng **bên trong** domain OSPF của bạn
 (đáng tin, bạn kiểm soát được). Route external đến từ **ngoài** domain
 (redistribute từ BGP/static/protocol khác) → OSPF ưu tiên "người trong nhà".
 
@@ -1451,7 +1451,7 @@ qua link 100 Mbps thay vì link 10 Gbps. Nguyên nhân khả năng cao nhất v�
 
 **Hai nguyên nhân, kiểm tra theo thứ tự:**
 
-**1. ⭐ `auto-cost reference-bandwidth` lệch giữa các router** (khả năng cao nhất)
+**1.  `auto-cost reference-bandwidth` lệch giữa các router** (khả năng cao nhất)
 
 ```
 show ip ospf | include Reference bandwidth        ← chạy trên MỌI router
@@ -1490,7 +1490,7 @@ show ip route <prefix>                        ← metric hợp lý
 traceroute <ip>                               ← đi đúng đường
 ```
 
-⭐ **Bài học thực chiến:** khi **nhận bàn giao** một mạng OSPF, việc đầu tiên là chạy
+ **Bài học thực chiến:** khi **nhận bàn giao** một mạng OSPF, việc đầu tiên là chạy
 `show ip ospf | include Reference bandwidth` trên mọi router. Đây là lỗi cấu hình phổ biến nhất
 mà không ai để ý vì "mạng vẫn chạy".
 </details>
@@ -1504,7 +1504,7 @@ mà không ai để ý vì "mạng vẫn chạy".
 
 **Hai khả năng:**
 
-**1. ⭐ Duplicate Router ID** (khả năng cao nhất khi Seq# tăng rất nhanh)
+**1.  Duplicate Router ID** (khả năng cao nhất khi Seq# tăng rất nhanh)
 
 Hai router **cùng dùng Router ID `4.4.4.4`** → cả hai đều sinh LSA type 1 với cùng LS ID
 → **tranh nhau ghi đè**, mỗi lần ghi đè lại tăng Seq#.
@@ -1530,7 +1530,7 @@ show logging | include LINK-3|LINEPROTO
 
 **Hậu quả (cả 2 trường hợp):**
 - LSA flood liên tục ra toàn area
-- **Mọi router trong area chạy lại SPF liên tục** → ⭐ **CPU cao toàn mạng**
+- **Mọi router trong area chạy lại SPF liên tục** →  **CPU cao toàn mạng**
 - Route nhấp nháy → CEF dựng lại FIB liên tục (Module-01)
 
 **Cách phân biệt nhanh:**
@@ -1540,7 +1540,7 @@ show logging | include LINK-3|LINEPROTO
 | Neighbor | Lên rồi tụt liên tục | Có thể ổn định |
 | `show ip ospf \| inc Router ID` | Tìm thấy 2 router trùng | Không trùng |
 
-⭐ **Bình thường:** `Age` tăng tới 3600 rồi reset (refresh mỗi 1800 s), `Seq#` chỉ tăng
+ **Bình thường:** `Age` tăng tới 3600 rồi reset (refresh mỗi 1800 s), `Seq#` chỉ tăng
 **khi có thay đổi thật**. Seq# tăng nhanh = có vấn đề.
 </details>
 
@@ -1560,10 +1560,10 @@ show ip ospf interface GigabitEthernet0/0
 | Điều kiện adjacency | Dòng trong output |
 |---|---|
 | ✅ **Interface trong OSPF** | Nếu lệnh trả về output = interface đã trong OSPF (`Attached via ...`) |
-| ✅ ⭐ **Area ID khớp** | `Internet Address 10.0.0.2/24, Area 0` |
-| ✅ ⭐ **Subnet + mask khớp** | `Internet Address 10.0.0.2/24` |
-| ✅ ⭐ **Hello/Dead interval khớp** | `Timer intervals configured, Hello 10, Dead 40, ...` |
-| ✅ ⭐ **Authentication khớp** | Dòng auth (nếu bật) |
+| ✅  **Area ID khớp** | `Internet Address 10.0.0.2/24, Area 0` |
+| ✅  **Subnet + mask khớp** | `Internet Address 10.0.0.2/24` |
+| ✅  **Hello/Dead interval khớp** | `Timer intervals configured, Hello 10, Dead 40, ...` |
+| ✅  **Authentication khớp** | Dòng auth (nếu bật) |
 | ✅ **Network type tương thích** | `Network Type BROADCAST` |
 | ✅ **Router ID** | `Process ID 1, Router ID 2.2.2.2` (so 2 router có trùng không) |
 | ✅ *(bonus)* Cost | `Cost: 100` — không phải điều kiện, nhưng phát hiện reference-bw lệch |
@@ -1577,7 +1577,7 @@ show interfaces GigabitEthernet0/0 | include MTU      ! cho EXSTART/EXCHANGE
 show ip protocols | include Passive                    ! cho trạng thái Down
 ```
 
-⭐ **Đây là quy trình chuẩn:** thay vì đoán từng khả năng, **chạy 1 lệnh trên 2 router và so từng dòng**.
+ **Đây là quy trình chuẩn:** thay vì đoán từng khả năng, **chạy 1 lệnh trên 2 router và so từng dòng**.
 Cái nào lệch thì đó là nguyên nhân. Nhanh hơn debug rất nhiều.
 </details>
 
@@ -1589,60 +1589,60 @@ Cái nào lệch thì đó là nguyên nhân. Nhanh hơn debug rất nhiều.
 |---|---|---|
 | **Link-State** | Trạng thái liên kết | Mỗi router có bản đồ toàn area |
 | **Dijkstra SPF** | Thuật toán đường ngắn nhất | Chạy trên LSDB → ra routing table |
-| **LSDB** (Link-State Database) | Cơ sở dữ liệu trạng thái liên kết | ⭐ "Bản đồ". Mọi router **cùng area** phải giống nhau |
+| **LSDB** (Link-State Database) | Cơ sở dữ liệu trạng thái liên kết | "Bản đồ". Mọi router **cùng area** phải giống nhau |
 | **LSA** (Link-State Advertisement) | Bản tin quảng bá trạng thái liên kết | 1 mảnh của LSDB |
 | **Adjacency** | Quan hệ kề | Neighbor đã đồng bộ LSDB (state **Full**) |
 | **Neighbor table** | Bảng láng giềng | `show ip ospf neighbor` |
 | **Hello packet** | Gói chào | Tìm & duy trì neighbor, mỗi 10 s |
-| **DBD** (Database Description) | Mô tả cơ sở dữ liệu | ⭐ "Mục lục" LSA — gói này lớn → **MTU quan trọng** |
+| **DBD** (Database Description) | Mô tả cơ sở dữ liệu | "Mục lục" LSA — gói này lớn → **MTU quan trọng** |
 | **LSR** (Link State Request) | Yêu cầu trạng thái liên kết | "Cho tôi xin LSA X" |
-| **LSU** (Link State Update) | Cập nhật trạng thái liên kết | ⭐ Chứa **nội dung LSA thật** |
+| **LSU** (Link State Update) | Cập nhật trạng thái liên kết | Chứa **nội dung LSA thật** |
 | **LSAck** (LS Acknowledgment) | Xác nhận | "Đã nhận" |
 | **Down** | Xuống | Chưa nhận Hello nào |
 | **Attempt** | Thử | Chỉ NBMA — đã gửi Hello unicast, chưa có phản hồi |
-| **Init** | Khởi tạo | ⭐ Nhận Hello nhưng Hello **không chứa** Router ID của mình → **một chiều** |
-| **2-Way** | Hai chiều | ⭐ Thấy nhau. **Bình thường** giữa 2 DROther |
-| **ExStart** | Bắt đầu trao đổi | ⭐ Đàm phán Master/Slave. 🔴 **Kẹt đây = MTU mismatch** |
+| **Init** | Khởi tạo | Nhận Hello nhưng Hello **không chứa** Router ID của mình → **một chiều** |
+| **2-Way** | Hai chiều | Thấy nhau. **Bình thường** giữa 2 DROther |
+| **ExStart** | Bắt đầu trao đổi | Đàm phán Master/Slave. 🔴 **Kẹt đây = MTU mismatch** |
 | **Exchange** | Trao đổi | Gửi DBD |
 | **Loading** | Đang tải | Gửi LSR, nhận LSU |
 | **Full** | Đầy đủ | ✅ LSDB đã đồng bộ |
-| **Router ID** | Danh tính router | 32 bit dạng IP. ⭐ Nên gõ tay |
+| **Router ID** | Danh tính router | 32 bit dạng IP.  Nên gõ tay |
 | **Cost** | Chi phí | `reference-bw / interface-bw` |
-| **Reference bandwidth** | Băng thông tham chiếu | ⭐ Mặc định 100 Mbps. **Phải đồng nhất mọi router** |
+| **Reference bandwidth** | Băng thông tham chiếu | Mặc định 100 Mbps. **Phải đồng nhất mọi router** |
 | **Area** | Vùng | Nhóm router chia sẻ cùng LSDB |
-| **Backbone (Area 0)** | Vùng xương sống | ⭐ Mọi area khác phải nối tới đây |
+| **Backbone (Area 0)** | Vùng xương sống | Mọi area khác phải nối tới đây |
 | **Internal Router** | Router nội vùng | Mọi interface cùng 1 area |
 | **Backbone Router** | Router xương sống | Có interface trong area 0 |
-| **ABR** (Area Border Router) | Router biên vùng | ⭐ Interface ở ≥2 area, **phải có area 0**. Sinh **LSA 3** |
+| **ABR** (Area Border Router) | Router biên vùng | Interface ở ≥2 area, **phải có area 0**. Sinh **LSA 3** |
 | **ASBR** (AS Boundary Router) | Router biên hệ tự trị | Redistribute route ngoài vào OSPF. Sinh **LSA 5/7** (04B) |
-| **Router LSA (Type 1)** | LSA router | ⭐ Mọi router sinh · trong area · LS ID = Router ID |
-| **Network LSA (Type 2)** | LSA mạng | ⭐ **DR** sinh · trong area · LS ID = **IP của DR** |
-| **Summary LSA (Type 3)** | LSA tóm tắt | ⭐ **ABR** sinh · sang area khác · LS ID = địa chỉ mạng |
+| **Router LSA (Type 1)** | LSA router | Mọi router sinh · trong area · LS ID = Router ID |
+| **Network LSA (Type 2)** | LSA mạng | **DR** sinh · trong area · LS ID = **IP của DR** |
+| **Summary LSA (Type 3)** | LSA tóm tắt | **ABR** sinh · sang area khác · LS ID = địa chỉ mạng |
 | **Transit network** | Mạng chuyển tiếp | Segment có ≥2 router (có DR) → Link Type 2 trong LSA 1 |
 | **Stub network** | Mạng cụt | Subnet không có router khác (loopback, LAN) → Link Type 3 |
 | **Intra-area route** | Route nội vùng | `O` — trong cùng area |
 | **Inter-area route** | Route liên vùng | `O IA` — từ LSA type 3 |
-| **DR** (Designated Router) | Router chỉ định | ⭐ "Chủ trì" — sinh LSA 2, phát lại LSU |
+| **DR** (Designated Router) | Router chỉ định | "Chủ trì" — sinh LSA 2, phát lại LSU |
 | **BDR** (Backup DR) | DR dự phòng | "Phó chủ trì" — sẵn sàng thay DR |
 | **DROther** | Router khác | Không phải DR/BDR. Full với DR+BDR, 2-Way với DROther |
-| **Non-preemptive** | Không chiếm quyền | ⭐ Priority cao bật sau **không** chiếm DR |
-| **Router Priority** | Ưu tiên router | 0–255, mặc định 1. ⭐ **0 = không bao giờ làm DR/BDR** |
+| **Non-preemptive** | Không chiếm quyền | Priority cao bật sau **không** chiếm DR |
+| **Router Priority** | Ưu tiên router | 0–255, mặc định 1.  **0 = không bao giờ làm DR/BDR** |
 | **AllSPFRouters** | Mọi router OSPF | **224.0.0.5** |
 | **AllDRouters** | Mọi DR/BDR | **224.0.0.6** — DROther gửi LSU tới đây |
-| **Network Type** | Loại mạng | ⭐ Quyết định DR/BDR, timer, cách tìm neighbor |
+| **Network Type** | Loại mạng | Quyết định DR/BDR, timer, cách tìm neighbor |
 | **Broadcast** | Quảng bá | Mặc định Ethernet. Bầu DR, 10/40 |
 | **NBMA** (Non-Broadcast Multi-Access) | Đa truy nhập không quảng bá | Bầu DR, 30/120, ⚠️ khai `neighbor` tay |
-| **Point-to-Point** | Điểm-điểm | ⭐ **Không** bầu DR, 10/40, **không sinh LSA 2** |
+| **Point-to-Point** | Điểm-điểm | **Không** bầu DR, 10/40, **không sinh LSA 2** |
 | **Point-to-Multipoint** | Điểm-đa điểm | Không bầu DR, 30/120 |
 | **Wait timer** | Bộ đếm chờ | = dead interval. Chờ trước khi bầu DR → P2P bỏ được bước này |
-| **Passive interface** | Interface thụ động | ⭐ **Không gửi Hello** nhưng **vẫn quảng bá subnet** |
+| **Passive interface** | Interface thụ động | **Không gửi Hello** nhưng **vẫn quảng bá subnet** |
 | **MTU mismatch** | Lệch MTU | 🔴 Nguyên nhân #1 của kẹt ExStart |
 | **`mtu-ignore`** | Bỏ qua kiểm tra MTU | ⚠️ Chỉ che triệu chứng — nên sửa MTU |
 | **Duplicate Router ID** | Trùng Router ID | Neighbor lên rồi tụt · Seq# tăng nhanh |
 | **LSA Age** | Tuổi LSA | Tối đa **3600 s**, refresh mỗi **1800 s** |
-| **Sequence Number** | Số thứ tự | Bắt đầu `0x80000001`. ⭐ Tăng nhanh = flapping/trùng RID |
+| **Sequence Number** | Số thứ tự | Bắt đầu `0x80000001`.  Tăng nhanh = flapping/trùng RID |
 | **LSA flooding** | Lan truyền LSA | Phát LSA ra toàn area |
-| **BFD** (Bidirectional Forwarding Detection) | Phát hiện chuyển tiếp hai chiều | ⭐ Phát hiện lỗi trong ms — tốt hơn timer OSPF nhanh |
+| **BFD** (Bidirectional Forwarding Detection) | Phát hiện chuyển tiếp hai chiều | Phát hiện lỗi trong ms — tốt hơn timer OSPF nhanh |
 
 ---
 
@@ -1650,17 +1650,17 @@ Cái nào lệch thì đó là nguyên nhân. Nhanh hơn debug rất nhiều.
 
 **3 điều rút ra:**
 
-1. ⭐ **Troubleshoot OSPF luôn đi theo 3 bảng: Neighbor → LSDB → Route.**
+1.  **Troubleshoot OSPF luôn đi theo 3 bảng: Neighbor → LSDB → Route.**
    Và khi neighbor không lên, chạy **`show ip ospf interface <if>` trên CẢ HAI router rồi so từng dòng**
    — một lệnh phủ 7/9 điều kiện adjacency. Hai thứ nó **không** cho bạn: **MTU** (dùng
    `show interfaces | include MTU`) và **passive-interface** (dùng `show ip protocols`).
 
-2. ⭐ **OSPF là link-state TRONG area, distance-vector GIỮA các area.**
+2.  **OSPF là link-state TRONG area, distance-vector GIỮA các area.**
    LSA type 1 và 2 (chứa topology thật) **không bao giờ ra khỏi area**. Router area khác chỉ nhận
    LSA type 3 = "địa chỉ + metric, đi qua ABR này". Đó vừa là ưu điểm (giới hạn SPF, giới hạn
    fault domain) vừa là hạn chế (mất tầm nhìn topology liên area).
 
-3. ⭐ **Hai lỗi cấu hình "im lặng" nguy hiểm nhất:** (a) **`reference-bandwidth` lệch** —
+3.  **Hai lỗi cấu hình "im lặng" nguy hiểm nhất:** (a) **`reference-bandwidth` lệch** —
    neighbor vẫn Full nhưng đường đi sai, cực khó phát hiện; (b) **DR/BDR non-preemptive** —
    router priority cao bật sau không chiếm quyền, nên phải **ép DR/BDR ngay từ khi triển khai**,
    đừng để mạng tự bầu rồi sửa sau (sửa = downtime).
@@ -1690,13 +1690,13 @@ Cái nào lệch thì đó là nguyên nhân. Nhanh hơn debug rất nhiều.
 | 11 | Bảng 5 network type: DR/BDR, timer, tìm neighbor tự động/tay | ☐ |
 | 12 | 3 lợi ích của `ip ospf network point-to-point`? | ☐ |
 | 13 | Bầu DR: so gì trước, gì sau? Cao hay thấp thắng? | ☐ |
-| 14 | ⭐ Non-preemptive nghĩa là gì? Muốn đổi DR thì làm sao? | ☐ |
+| 14 | Non-preemptive nghĩa là gì? Muốn đổi DR thì làm sao? | ☐ |
 | 15 | Priority 0 nghĩa là gì? Vì sao cần BDR? | ☐ |
 | 16 | 224.0.0.5 vs 224.0.0.6 — ai gửi tới đâu? | ☐ |
 | 17 | 4 vai trò router (Internal/Backbone/ABR/ASBR) — định nghĩa ABR chính xác | ☐ |
 | 18 | LSA type 1/2/3: ai sinh, flood đâu, LS ID là gì? | ☐ |
 | 19 | 4 Link Type trong LSA type 1? | ☐ |
-| 20 | ⭐ Router area 1 có biết topology area 2? Liên quan nhận định nào? | ☐ |
+| 20 | Router area 1 có biết topology area 2? Liên quan nhận định nào? | ☐ |
 | 21 | Metric của `O IA` tính thế nào? | ☐ |
 | 22 | Thứ tự ưu tiên route OSPF? `O IA` metric 5000 vs `O E1` metric 5 — ai thắng? | ☐ |
 | 23 | LSA Age tối đa? Chu kỳ refresh? `Seq#` tăng nhanh nghĩa là gì? | ☐ |
@@ -1710,23 +1710,23 @@ Cái nào lệch thì đó là nguyên nhân. Nhanh hơn debug rất nhiều.
 | 2 | Mọi neighbor `FULL` · verify bằng `show ip ospf neighbor` trên cả 4 router | ☐ |
 | 3 | Xác định đúng DR/BDR trên segment broadcast và giải thích **vì sao** router đó thắng | ☐ |
 | 4 | Đọc và giải thích **từng dòng** của `show ip ospf interface Gi0/1` | ☐ |
-| 5 | ⭐ Chứng minh R1 **không có** LSA type 1 nào của R3/R4 — chỉ có LSA type 3 từ ABR | ☐ |
+| 5 | Chứng minh R1 **không có** LSA type 1 nào của R3/R4 — chỉ có LSA type 3 từ ABR | ☐ |
 | 6 | Đọc LSA type 1: chỉ ra `Number of Links`, phân biệt `point-to-point` vs `Stub Network` | ☐ |
-| 7 | ⭐ Đọc LSA type 2: chỉ ra `Link State ID` = **IP của DR**, và `Attached Router` | ☐ |
-| 8 | ⭐ Đọc LSA type 3: chỉ ra `ADV Router` = ABR, và **chứng minh** metric route = metric LSA + cost tới ABR | ☐ |
+| 7 | Đọc LSA type 2: chỉ ra `Link State ID` = **IP của DR**, và `Attached Router` | ☐ |
+| 8 | Đọc LSA type 3: chỉ ra `ADV Router` = ABR, và **chứng minh** metric route = metric LSA + cost tới ABR | ☐ |
 | 9 | Dùng `show ip ospf database database-summary` chỉ ra Area 0 có Network LSA, Area 1 thì không | ☐ |
 | 10 | Phân biệt route `O` vs `O IA` trên R1 và R3, giải thích vì sao khác nhau | ☐ |
-| 11 | ⭐⭐ **Chứng minh non-preemptive**: đặt priority 255 → vẫn DROther | ☐ |
+| 11 | **Chứng minh non-preemptive**: đặt priority 255 → vẫn DROther | ☐ |
 | 12 | Buộc bầu lại DR bằng `clear ip ospf process` → priority 255 thành DR | ☐ |
-| 13 | ⭐ Tạo tình huống `2WAY/DROTHER` (2 router priority 0, 1 router 255) | ☐ |
-| 14 | ⭐ Đổi link Ethernet sang `point-to-point` cả 2 đầu → state `FULL/  -`, Area 1 không có LSA 2 | ☐ |
+| 13 | Tạo tình huống `2WAY/DROTHER` (2 router priority 0, 1 router 255) | ☐ |
+| 14 | Đổi link Ethernet sang `point-to-point` cả 2 đầu → state `FULL/  -`, Area 1 không có LSA 2 | ☐ |
 | 15 | Đổi 1 bên thôi → neighbor mất (chứng minh network type phải khớp) | ☐ |
 | 16 | 🔴 **Tái hiện MTU mismatch** → kẹt `EXSTART` → chẩn đoán bằng `show interfaces \| inc MTU` → sửa | ☐ |
 | 17 | Tái hiện **area mismatch** → chẩn đoán bằng `show ip ospf int \| inc Area` + `debug ip ospf adj` → sửa | ☐ |
 | 18 | Tái hiện **timer mismatch** → chẩn đoán → sửa (và thấy dead tự tính = 4×hello) | ☐ |
 | 19 | Tái hiện **duplicate Router ID** → thấy log `DUP_RTRID` và `Seq#` tăng nhanh → sửa | ☐ |
 | 20 | Tái hiện **`passive-interface` sai chỗ** → mất neighbor nhưng subnet vẫn được quảng bá | ☐ |
-| 21 | ⭐ Tái hiện **`reference-bandwidth` lệch** → neighbor **vẫn Full** nhưng cost lệch → sửa | ☐ |
+| 21 | Tái hiện **`reference-bandwidth` lệch** → neighbor **vẫn Full** nhưng cost lệch → sửa | ☐ |
 | 22 | Cố ý phá 1 thứ bất kỳ, tự tìm ra bằng **quy trình 5 bước §7.3** trong 10 phút | ☐ |
 
 > ⚠️ **Chưa tick hết Phần B thì đừng sang Module-04B.** Module-04B (area type, summarization,
@@ -1734,7 +1734,7 @@ Cái nào lệch thì đó là nguyên nhân. Nhanh hơn debug rất nhiều.
 > Không đọc được LSA type 1/2/3 thì không hiểu được stub area chặn LSA nào,
 > `area range` gộp cái gì, hay virtual-link tạo ra LSA gì.
 >
-> ⭐ **Nếu chỉ có thời gian làm một nửa lab:** ưu tiên **mục 5–10 (đọc LSDB)** và
+> **Nếu chỉ có thời gian làm một nửa lab:** ưu tiên **mục 5–10 (đọc LSDB)** và
 > **mục 16–21 (tái hiện 6 lỗi)**. Đó là hai phần có giá trị cao nhất cho cả thi và làm việc.
 
 ---
@@ -1744,17 +1744,17 @@ Cái nào lệch thì đó là nguyên nhân. Nhanh hơn debug rất nhiều.
 | Nguồn | Cụ thể |
 |---|---|
 | **Sách OCG 350-401** | Chương **OSPF** đầu tiên (thường là *"OSPF"* hoặc *"OSPFv2"*) — đọc kỹ phần neighbor states, network types, DR/BDR, LSA types |
-| **Cisco doc** ⭐ | *IP Routing: OSPF Configuration Guide* — chương *Configuring OSPF*. Search: `IOS-XE OSPF configuration guide` |
-| **Cisco doc** ⭐⭐ | ***OSPF Design Guide*** — tài liệu kinh điển của Cisco, giải thích **vì sao** có area, DR, LSA types. Search: `cisco ospf design guide` |
-| **Cisco doc** ⭐ | *OSPF Neighbor Problems Explained* — troubleshooting guide chính thức, đúng bảng 9 điều kiện adjacency |
+| **Cisco doc**  | *IP Routing: OSPF Configuration Guide* — chương *Configuring OSPF*. Search: `IOS-XE OSPF configuration guide` |
+| **Cisco doc**  | ***OSPF Design Guide*** — tài liệu kinh điển của Cisco, giải thích **vì sao** có area, DR, LSA types. Search: `cisco ospf design guide` |
+| **Cisco doc**  | *OSPF Neighbor Problems Explained* — troubleshooting guide chính thức, đúng bảng 9 điều kiện adjacency |
 | **Cisco doc** | *Why Does the `show ip ospf neighbor` Command Reveal Neighbors in the Init State?* |
 | **Cisco doc** | *OSPF Database Explanation Guide* — giải thích từng field của mọi LSA type |
 | **Cisco doc** | *Understanding and Configuring the OSPF `network` Command* + *OSPF Cost* |
 | **RFC 2328** | OSPFv2 — đọc **Section 7 (Bringing Up Adjacencies)** và **Section 12 (LSA)** nếu muốn nguồn gốc |
-| **Cisco Live** ⭐ | Search `Cisco Live OSPF deployment best practices` · `Cisco Live OSPF troubleshooting` — slide PDF chất lượng như sách |
-| **NetworkLessons** ⭐ | Loạt bài OSPF (neighbor states, network types, DR/BDR, LSA types) — giải thích rõ nhất trên internet, nhiều bài free |
+| **Cisco Live**  | Search `Cisco Live OSPF deployment best practices` · `Cisco Live OSPF troubleshooting` — slide PDF chất lượng như sách |
+| **NetworkLessons**  | Loạt bài OSPF (neighbor states, network types, DR/BDR, LSA types) — giải thích rõ nhất trên internet, nhiều bài free |
 | **Video** | CBT Nuggets ENCOR — module OSPF · Keith Barker: search `Keith Barker OSPF LSA types`, `Keith Barker OSPF DR BDR` |
-| **Wireshark** | Filter `ospf` — bắt gói Hello (xem Router ID, Area, timer, DR/BDR, neighbor list), DBD, LSU. ⭐ **Bắt trên link R1↔R2 và trên bridge để so** |
+| **Wireshark** | Filter `ospf` — bắt gói Hello (xem Router ID, Area, timer, DR/BDR, neighbor list), DBD, LSU.  **Bắt trên link R1↔R2 và trên bridge để so** |
 | **Forum** | https://community.cisco.com — search `ospf stuck exstart mtu`, `ospf 2way drother normal`, `ospf reference bandwidth mismatch` |
 
 ---

@@ -839,42 +839,42 @@ Khi IP SLA thất bại → track Down → **HSRP tự hạ priority 20 điểm*
 
 | # | Bẫy | Sự thật |
 |:---:|---|---|
-| 1 | 🔴⭐ **HSRP preempt mặc định** | 🔴 ⭐ **TẮT.** Router priority cao bật sau **KHÔNG** chiếm Active. Phải gõ `standby X preempt` |
-| 2 | 🔴⭐ **VRRP preempt mặc định** | 🔴 ⭐ **BẬT.** Ngược HSRP hoàn toàn |
-| 3 | ⭐ vMAC **HSRPv1** | ⭐ **`0000.0C07.AC` + group (hex 2 số)** |
-| 4 | ⭐ vMAC **HSRPv2** | ⭐ **`0000.0C9F.F` + group (hex 3 số)** |
-| 5 | ⭐ vMAC **VRRP** | ⭐ **`0000.5E00.01` + VRID (hex 2 số)** |
+| 1 | 🔴 **HSRP preempt mặc định** | 🔴  **TẮT.** Router priority cao bật sau **KHÔNG** chiếm Active. Phải gõ `standby X preempt` |
+| 2 | 🔴 **VRRP preempt mặc định** | 🔴  **BẬT.** Ngược HSRP hoàn toàn |
+| 3 | vMAC **HSRPv1** | **`0000.0C07.AC` + group (hex 2 số)** |
+| 4 | vMAC **HSRPv2** | **`0000.0C9F.F` + group (hex 3 số)** |
+| 5 | vMAC **VRRP** | **`0000.5E00.01` + VRID (hex 2 số)** |
 | 6 | vMAC **GLBP** | `0007.B400.` + group + AVF number |
-| 7 | ⭐ Multicast **HSRPv1 / v2** | ⭐ **224.0.0.2** / **224.0.0.102** |
-| 8 | ⭐ Multicast **VRRP** | ⭐ **224.0.0.18** |
+| 7 | Multicast **HSRPv1 / v2** | **224.0.0.2** / **224.0.0.102** |
+| 8 | Multicast **VRRP** | **224.0.0.18** |
 | 9 | Multicast **GLBP** | **224.0.0.102** (giống HSRPv2) |
-| 10 | ⭐ Transport: HSRP / VRRP / GLBP | ⭐ **UDP 1985** / ⭐ **IP protocol 112** / **UDP 3222** |
-| 11 | ⭐ Số state: HSRP / VRRP | ⭐ **6** / ⭐ **3** |
-| 12 | ⭐ 6 state HSRP theo thứ tự | **Initial → Learn → Listen → Speak → Standby → Active** |
+| 10 | Transport: HSRP / VRRP / GLBP | **UDP 1985** /  **IP protocol 112** / **UDP 3222** |
+| 11 | Số state: HSRP / VRRP | **6** /  **3** |
+| 12 | 6 state HSRP theo thứ tự | **Initial → Learn → Listen → Speak → Standby → Active** |
 | 13 | 3 state VRRP | **Initialize → Backup → Master** |
-| 14 | ⭐ Tên vai trò: HSRP / VRRP / GLBP | ⭐ **Active-Standby** / ⭐ **Master-Backup** / ⭐ **AVG-AVF** |
-| 15 | ⭐ Timer: HSRP / VRRP / GLBP | ⭐ **3/10 s** / ⭐ **1 s adv, ~3.6 s master-down** / 3/10 s |
+| 14 | Tên vai trò: HSRP / VRRP / GLBP | **Active-Standby** /  **Master-Backup** /  **AVG-AVF** |
+| 15 | Timer: HSRP / VRRP / GLBP | **3/10 s** /  **1 s adv, ~3.6 s master-down** / 3/10 s |
 | 16 | Group range: HSRPv1 / v2 / VRRP / GLBP | **0–255** / **0–4095** / **1–255** / **0–1023** |
-| 17 | Priority default (cả 3) | ⭐ **100**. HSRP 0–255 · VRRP 1–254 · GLBP 1–255 |
-| 18 | ⭐ VRRP priority **255** nghĩa gì | ⭐ Dành cho **IP address owner** (router có IP interface = Virtual IP) |
-| 19 | VRRP priority **0** nghĩa gì | ⭐ Master **chủ động nhường quyền** (gửi khi shutdown) |
-| 20 | ⭐ Protocol nào **load balance trong 1 group** | ⭐ **CHỈ GLBP** (tối đa 4 AVF). HSRP/VRRP chỉ load-balance **theo VLAN/group** |
-| 21 | ⭐ Protocol nào **chuẩn mở** | ⭐ **CHỈ VRRP** (RFC 3768/5798). HSRP và GLBP là **Cisco độc quyền** |
-| 22 | ⭐ GLBP: AVG làm gì | ⭐ **Trả lời ARP** cho VIP, phân bổ **vMAC khác nhau** cho từng host. 1 AVG/group |
-| 23 | GLBP: bao nhiêu AVF | ⭐ **Tối đa 4**/group |
-| 24 | 3 chế độ load-balancing GLBP | ⭐ **round-robin** (mặc định) · **weighted** · **host-dependent** |
-| 25 | 🔴⭐ **FHRP có biết uplink chết không?** | 🔴 ⭐ **KHÔNG** — chỉ biết interface **local** của mình. Cần ⭐ **object tracking** |
-| 26 | ⭐ Tracking hoạt động thế nào | ⭐ Track `Down` → **giảm priority** theo `decrement` → router kia **preempt** |
-| 27 | 🔴⭐ Tracking cần điều kiện gì để hoạt động | 🔴 ⭐ **Router KIA phải có `preempt`**. Tracking + preempt là **cặp đôi bắt buộc** |
-| 28 | ⭐ Tính decrement | ⭐ `decrement > (pri_mình − pri_kia)`. Pri 110 vs 100 → decrement **≥ 11**, nên dùng **20–30** |
-| 29 | ⭐ `preempt delay minimum` để làm gì | ⭐ Chờ N giây sau khi interface up mới preempt → **cho routing hội tụ trước** → chống black hole |
-| 30 | 🔴 IP SLA thiếu `source-interface` | 🔴 SLA ping theo bảng route → có thể đi đường khác → ⭐ **không phát hiện được lỗi uplink** |
+| 17 | Priority default (cả 3) | **100**. HSRP 0–255 · VRRP 1–254 · GLBP 1–255 |
+| 18 | VRRP priority **255** nghĩa gì | Dành cho **IP address owner** (router có IP interface = Virtual IP) |
+| 19 | VRRP priority **0** nghĩa gì | Master **chủ động nhường quyền** (gửi khi shutdown) |
+| 20 | Protocol nào **load balance trong 1 group** | **CHỈ GLBP** (tối đa 4 AVF). HSRP/VRRP chỉ load-balance **theo VLAN/group** |
+| 21 | Protocol nào **chuẩn mở** | **CHỈ VRRP** (RFC 3768/5798). HSRP và GLBP là **Cisco độc quyền** |
+| 22 | GLBP: AVG làm gì | **Trả lời ARP** cho VIP, phân bổ **vMAC khác nhau** cho từng host. 1 AVG/group |
+| 23 | GLBP: bao nhiêu AVF | **Tối đa 4**/group |
+| 24 | 3 chế độ load-balancing GLBP | **round-robin** (mặc định) · **weighted** · **host-dependent** |
+| 25 | 🔴 **FHRP có biết uplink chết không?** | 🔴  **KHÔNG** — chỉ biết interface **local** của mình. Cần  **object tracking** |
+| 26 | Tracking hoạt động thế nào | Track `Down` → **giảm priority** theo `decrement` → router kia **preempt** |
+| 27 | 🔴 Tracking cần điều kiện gì để hoạt động | 🔴  **Router KIA phải có `preempt`**. Tracking + preempt là **cặp đôi bắt buộc** |
+| 28 | Tính decrement | `decrement > (pri_mình − pri_kia)`. Pri 110 vs 100 → decrement **≥ 11**, nên dùng **20–30** |
+| 29 | `preempt delay minimum` để làm gì | Chờ N giây sau khi interface up mới preempt → **cho routing hội tụ trước** → chống black hole |
+| 30 | 🔴 IP SLA thiếu `source-interface` | 🔴 SLA ping theo bảng route → có thể đi đường khác →  **không phát hiện được lỗi uplink** |
 | 31 | 🔴 Quên `ip sla schedule` | 🔴 SLA **không chạy** → track Down → priority giảm sai |
-| 32 | ⭐ Triệu chứng **2 Active cùng lúc** | ⭐ **Auth mismatch** · **mất kết nối L2 giữa 2 router** · **VLAN chưa được trunk**. Hậu quả: MAC flapping |
+| 32 | Triệu chứng **2 Active cùng lúc** | **Auth mismatch** · **mất kết nối L2 giữa 2 router** · **VLAN chưa được trunk**. Hậu quả: MAC flapping |
 | 33 | HSRPv1 và v2 có tương thích? | ❌ **KHÔNG.** Cả 2 router phải cùng version |
-| 34 | ⭐ VRRPv3 có authentication? | ⭐ **KHÔNG** — RFC 5798 **bỏ** auth (dùng bảo mật L2/L3 thay) |
-| 35 | ⭐ SSO / NSF là gì | ⭐ **SSO** = 2 supervisor đồng bộ **state** · ⭐ **NSF** = **data plane tiếp tục forward** khi control plane restart |
-| 36 | ⭐ StackWise Virtual / VSS loại bỏ nhu cầu gì | ⭐ **FHRP** (1 gateway logic) và ⭐ **STP block** (dùng MEC) |
+| 34 | VRRPv3 có authentication? | **KHÔNG** — RFC 5798 **bỏ** auth (dùng bảo mật L2/L3 thay) |
+| 35 | SSO / NSF là gì | **SSO** = 2 supervisor đồng bộ **state** ·  **NSF** = **data plane tiếp tục forward** khi control plane restart |
+| 36 | StackWise Virtual / VSS loại bỏ nhu cầu gì | **FHRP** (1 gateway logic) và  **STP block** (dùng MEC) |
 
 ---
 
@@ -929,26 +929,26 @@ show ip route 0.0.0.0                       ! router Active có đường ra?
 
 | # | Triệu chứng | Nguyên nhân | Lệnh chẩn đoán | Cách sửa |
 |:---:|---|---|---|---|
-| 1 | 🔴⭐ Router priority **cao** mà vẫn là **Standby** | 🔴 ⭐ **HSRP preempt TẮT** (mặc định) | ⭐ `show standby brief` → **cột `P` trống** | ⭐ `standby X preempt` |
-| 2 | 🔴⭐ **Cả 2 router đều Active** | ⭐ **Auth mismatch** · mất kết nối L2 · VLAN chưa trunk · sub-interface sai `encapsulation` | ⭐ `show logging \| inc BADAUTH` · `show standby brief` **trên cả 2** · `show interfaces trunk` | Khớp auth · sửa trunk/VLAN · kiểm tra L2 |
-| 3 | ⭐ Switch báo **MAC flapping** cho vMAC | Hệ quả của lỗi #2 (2 Active) | ⭐ `show mac address-table \| inc 0000.0c` → vMAC ở **2 port** | Sửa lỗi #2 |
-| 4 | 🔴⭐ Uplink chết mà **HSRP không failover** → **black hole** | 🔴 ⭐ **Không có object tracking** | ⭐ `show standby <if> <grp> \| inc Track` → **không có dòng Track** | ⭐ Cấu hình IP SLA + `track` + `standby X track N decrement M` |
-| 5 | ⭐ Có tracking, track **Down**, mà **vẫn Active** | ⭐ **decrement quá nhỏ** (priority sau khi giảm vẫn > router kia) | ⭐ `show standby brief` → xem `Pri` sau khi giảm | Tăng decrement (`> pri_mình − pri_kia`) |
-| 6 | 🔴⭐ Track Down, priority đã giảm, mà **router kia không lên Active** | 🔴 ⭐ **Router KIA không có `preempt`** | ⭐ `show standby brief` **trên router kia** → cột `P` trống | ⭐ Bật `preempt` trên **cả 2** router |
-| 7 | ⭐ Track luôn `Down` ngay khi cấu hình | ⭐ Quên **`ip sla schedule`** | ⭐ `show ip sla statistics <n>` → `Operation time to live: 0`, successes = 0 | ⭐ `ip sla schedule <n> life forever start-time now` |
-| 8 | 🔴⭐ Track luôn `Up` dù uplink đã chết | 🔴 ⭐ **Thiếu `source-interface`** → SLA ping đường khác | ⭐ `show ip sla configuration <n>` → không có source | ⭐ `icmp-echo <ip> source-interface <uplink>` |
-| 9 | ⭐ Priority nhấp nháy / HSRP flap liên tục | Thiếu `delay down/up` trong track · uplink flapping · `frequency` quá ngắn | `show track <n>` → số `changes` cao · `show logging` | `delay down 3 up 10` · sửa uplink · tăng frequency |
-| 10 | 🔴⭐ Sau khi router reboot, mạng chết ~60 s | 🔴 ⭐ **Thiếu `preempt delay minimum`** — preempt trước khi routing hội tụ | `show standby <if> <grp> \| inc Preempt` → không có `delay` | ⭐ `standby X preempt delay minimum 90` |
+| 1 | 🔴 Router priority **cao** mà vẫn là **Standby** | 🔴  **HSRP preempt TẮT** (mặc định) | `show standby brief` → **cột `P` trống** | `standby X preempt` |
+| 2 | 🔴 **Cả 2 router đều Active** | **Auth mismatch** · mất kết nối L2 · VLAN chưa trunk · sub-interface sai `encapsulation` | `show logging \| inc BADAUTH` · `show standby brief` **trên cả 2** · `show interfaces trunk` | Khớp auth · sửa trunk/VLAN · kiểm tra L2 |
+| 3 | Switch báo **MAC flapping** cho vMAC | Hệ quả của lỗi #2 (2 Active) | `show mac address-table \| inc 0000.0c` → vMAC ở **2 port** | Sửa lỗi #2 |
+| 4 | 🔴 Uplink chết mà **HSRP không failover** → **black hole** | 🔴  **Không có object tracking** | `show standby <if> <grp> \| inc Track` → **không có dòng Track** | Cấu hình IP SLA + `track` + `standby X track N decrement M` |
+| 5 | Có tracking, track **Down**, mà **vẫn Active** | **decrement quá nhỏ** (priority sau khi giảm vẫn > router kia) | `show standby brief` → xem `Pri` sau khi giảm | Tăng decrement (`> pri_mình − pri_kia`) |
+| 6 | 🔴 Track Down, priority đã giảm, mà **router kia không lên Active** | 🔴  **Router KIA không có `preempt`** | `show standby brief` **trên router kia** → cột `P` trống | Bật `preempt` trên **cả 2** router |
+| 7 | Track luôn `Down` ngay khi cấu hình | Quên **`ip sla schedule`** | `show ip sla statistics <n>` → `Operation time to live: 0`, successes = 0 | `ip sla schedule <n> life forever start-time now` |
+| 8 | 🔴 Track luôn `Up` dù uplink đã chết | 🔴  **Thiếu `source-interface`** → SLA ping đường khác | `show ip sla configuration <n>` → không có source | `icmp-echo <ip> source-interface <uplink>` |
+| 9 | Priority nhấp nháy / HSRP flap liên tục | Thiếu `delay down/up` trong track · uplink flapping · `frequency` quá ngắn | `show track <n>` → số `changes` cao · `show logging` | `delay down 3 up 10` · sửa uplink · tăng frequency |
+| 10 | 🔴 Sau khi router reboot, mạng chết ~60 s | 🔴  **Thiếu `preempt delay minimum`** — preempt trước khi routing hội tụ | `show standby <if> <grp> \| inc Preempt` → không có `delay` | `standby X preempt delay minimum 90` |
 | 11 | PC không ping được gateway | PC trỏ IP **thật** của router thay vì **Virtual IP** · VLAN sai | `show arp` trên PC · `show standby brief` | Đặt gateway = **Virtual IP** |
-| 12 | HSRP lên nhưng traffic không ra Internet | Router Active **không có default route** | ⭐ `show ip route 0.0.0.0` **trên router Active** | Sửa routing · thêm tracking để failover |
+| 12 | HSRP lên nhưng traffic không ra Internet | Router Active **không có default route** | `show ip route 0.0.0.0` **trên router Active** | Sửa routing · thêm tracking để failover |
 | 13 | Không thấy neighbor HSRP (`Standby unknown`) | VLAN chưa trunk giữa 2 router · sub-interface `encapsulation` sai · ACL chặn 224.0.0.102 | `show interfaces trunk` · `show run int <subif>` · `show access-lists` | Sửa trunk/VLAN/ACL |
-| 14 | Đổi HSRP version xong mất neighbor | ⭐ **v1 và v2 KHÔNG tương thích** | `show standby <if> <grp>` → xem `(version X)` cả 2 | Đặt **cùng version** trên cả 2 |
+| 14 | Đổi HSRP version xong mất neighbor | **v1 và v2 KHÔNG tương thích** | `show standby <if> <grp>` → xem `(version X)` cả 2 | Đặt **cùng version** trên cả 2 |
 | 15 | `standby 300 ip ...` báo lỗi | HSRPv1 chỉ hỗ trợ group **0–255** | `show standby <if> <grp> \| inc version` | `standby version 2` trước |
-| 16 | Timer msec làm CPU cao | Quá nhiều group với msec timer | `show processes cpu sorted` (M01) | ⭐ Dùng **BFD** (`standby bfd`) thay msec timer |
-| 17 | ⭐ Traffic đi "zigzag" giữa 2 switch | ⭐ **STP root và HSRP Active ở 2 switch khác nhau** | `show spanning-tree vlan X \| inc root` vs `show standby brief` | ⭐ Đặt STP root và HSRP Active **cùng một switch** cho mỗi VLAN |
+| 16 | Timer msec làm CPU cao | Quá nhiều group với msec timer | `show processes cpu sorted` (M01) | Dùng **BFD** (`standby bfd`) thay msec timer |
+| 17 | Traffic đi "zigzag" giữa 2 switch | **STP root và HSRP Active ở 2 switch khác nhau** | `show spanning-tree vlan X \| inc root` vs `show standby brief` | Đặt STP root và HSRP Active **cùng một switch** cho mỗi VLAN |
 | 18 | GLBP: chỉ 1 vMAC được dùng | Chỉ có 1 AVF up · load-balancing = `host-dependent` với ít host | `show glbp brief` → xem các dòng `Fwd` | Kiểm tra AVF thứ 2 · đổi `round-robin` |
 
-### 7.3 ⭐ Quy trình troubleshoot FHRP — 5 bước
+### 7.3  Quy trình troubleshoot FHRP — 5 bước
 
 ```
 0. LỆNH ĐẦU TIÊN
@@ -986,7 +986,7 @@ show ip route 0.0.0.0                       ! router Active có đường ra?
    → show ip nat translations (nếu có NAT — xem Module-06B)
 ```
 
-> ⭐ **Hai cột phải nhìn đầu tiên trong `show standby brief`:**
+> **Hai cột phải nhìn đầu tiên trong `show standby brief`:**
 > **cột `P`** (preempt — thiếu là nguyên nhân #1) và **cột `Pri`** (priority thật sau khi tracking giảm).
 
 ---
@@ -998,13 +998,13 @@ R1 lên sau. Ai là Active? Vì sao? Sửa thế nào?
 
 <details><summary>Xem đáp án</summary>
 
-⭐ **R2 là Active** (priority 100), R1 là **Standby** (priority 110).
+ **R2 là Active** (priority 100), R1 là **Standby** (priority 110).
 
-**Vì sao:** ⭐ **HSRP có preempt TẮT mặc định.**
-R2 lên trước → thành Active. R1 lên sau, priority cao hơn, nhưng ⭐ **không được phép chiếm quyền**
+**Vì sao:**  **HSRP có preempt TẮT mặc định.**
+R2 lên trước → thành Active. R1 lên sau, priority cao hơn, nhưng  **không được phép chiếm quyền**
 → đành làm Standby.
 
-⭐ **Đây là hành vi giống DR/BDR của OSPF** (non-preemptive, Module-04A §2.9).
+ **Đây là hành vi giống DR/BDR của OSPF** (non-preemptive, Module-04A §2.9).
 
 **Chẩn đoán:**
 ```
@@ -1021,23 +1021,23 @@ interface Gi0/0.10
  standby 10 preempt delay minimum 60          ! nên có luôn
 ```
 
-⚠️ **So sánh với VRRP:** VRRP có ⭐ **preempt BẬT mặc định** → cùng kịch bản,
+⚠️ **So sánh với VRRP:** VRRP có  **preempt BẬT mặc định** → cùng kịch bản,
 R1 sẽ **chiếm lại Master ngay** mà không cần gõ lệnh gì.
 
-🧠 ⭐ ***"HSRP: không gõ `preempt` thì priority vô nghĩa."***
+🧠  ***"HSRP: không gõ `preempt` thì priority vô nghĩa."***
 </details>
 
 ---
 
-**Câu 2.** ⭐ Tính Virtual MAC cho: HSRPv1 group 5 · HSRPv2 group 100 · VRRP group 20
+**Câu 2.**  Tính Virtual MAC cho: HSRPv1 group 5 · HSRPv2 group 100 · VRRP group 20
 
 <details><summary>Xem đáp án</summary>
 
-| Protocol | Group | Group (hex) | ⭐ vMAC |
+| Protocol | Group | Group (hex) | vMAC |
 |---|:---:|:---:|---|
-| **HSRPv1** | 5 | `05` | ⭐ **`0000.0C07.AC05`** |
-| **HSRPv2** | 100 | `064` | ⭐ **`0000.0C9F.F064`** |
-| ⭐ **VRRP** | 20 | `14` | ⭐ **`0000.5E00.0114`** |
+| **HSRPv1** | 5 | `05` | **`0000.0C07.AC05`** |
+| **HSRPv2** | 100 | `064` | **`0000.0C9F.F064`** |
+| **VRRP** | 20 | `14` | **`0000.5E00.0114`** |
 
 **Ba tiền tố phải thuộc:**
 
@@ -1045,11 +1045,11 @@ R1 sẽ **chiếm lại Master ngay** mà không cần gõ lệnh gì.
 |---|---|---|
 | **HSRPv1** | `0000.0C07.AC` | + group hex **2 số** |
 | **HSRPv2** | `0000.0C9F.F` | + group hex **3 số** |
-| ⭐ **VRRP** | ⭐ **`0000.5E00.01`** | + VRID hex **2 số** |
+| **VRRP** | **`0000.5E00.01`** | + VRID hex **2 số** |
 | **GLBP** | `0007.B400.` | + group hex + AVF number |
 
-⭐ **Mẹo:** `0000.0C` là **OUI của Cisco** → HSRP và GLBP đều bắt đầu bằng Cisco OUI.
-⭐ **`0000.5E`** là OUI của **IANA** → VRRP là **chuẩn mở** nên dùng OUI của IANA, không phải Cisco.
+ **Mẹo:** `0000.0C` là **OUI của Cisco** → HSRP và GLBP đều bắt đầu bằng Cisco OUI.
+ **`0000.5E`** là OUI của **IANA** → VRRP là **chuẩn mở** nên dùng OUI của IANA, không phải Cisco.
 
 **Verify trong lab:**
 ```
@@ -1061,30 +1061,30 @@ show arp                                          ! trên PC
 
 ---
 
-**Câu 3.** ⭐ Điền bảng đầy đủ so sánh HSRP / VRRP / GLBP: chuẩn, group range, vMAC, multicast,
+**Câu 3.**  Điền bảng đầy đủ so sánh HSRP / VRRP / GLBP: chuẩn, group range, vMAC, multicast,
 transport, timer, số state, tên vai trò, load balancing, preempt mặc định.
 
 <details><summary>Xem đáp án</summary>
 
-| | ⭐ **HSRP** | ⭐ **VRRP** | 🟡 **GLBP** |
+| | **HSRP** | **VRRP** | 🟡 **GLBP** |
 |---|---|---|---|
-| **Chuẩn** | Cisco | ⭐ **Open (RFC 3768/5798)** | Cisco |
+| **Chuẩn** | Cisco | **Open (RFC 3768/5798)** | Cisco |
 | **Group** | v1: 0–255 · v2: **0–4095** | **1–255** | 0–1023 |
-| ⭐ **vMAC** | `0000.0C07.AC`+grp (v1)<br>`0000.0C9F.F`+grp (v2) | ⭐ **`0000.5E00.01`+VRID** | `0007.B400.`+grp+AVF |
-| ⭐ **Multicast** | **224.0.0.2** (v1)<br>**224.0.0.102** (v2) | ⭐ **224.0.0.18** | **224.0.0.102** |
-| ⭐ **Transport** | **UDP 1985** | ⭐ **IP proto 112** | **UDP 3222** |
-| ⭐ **Timer** | **3 s / 10 s** | **1 s adv / ~3.6 s** | 3 s / 10 s |
-| ⭐ **Số state** | ⭐ **6** | ⭐ **3** | 6 |
-| ⭐ **Vai trò** | ⭐ **Active / Standby** | ⭐ **Master / Backup** | ⭐ **AVG / AVF** |
-| ⭐ **Load balance trong group** | ❌ | ❌ | ⭐ ✅ **tối đa 4** |
-| 🔴⭐ **Preempt mặc định** | 🔴 ⭐ **TẮT** | 🔴 ⭐ **BẬT** | TẮT |
+| **vMAC** | `0000.0C07.AC`+grp (v1)<br>`0000.0C9F.F`+grp (v2) | **`0000.5E00.01`+VRID** | `0007.B400.`+grp+AVF |
+| **Multicast** | **224.0.0.2** (v1)<br>**224.0.0.102** (v2) | **224.0.0.18** | **224.0.0.102** |
+| **Transport** | **UDP 1985** | **IP proto 112** | **UDP 3222** |
+| **Timer** | **3 s / 10 s** | **1 s adv / ~3.6 s** | 3 s / 10 s |
+| **Số state** | **6** | **3** | 6 |
+| **Vai trò** | **Active / Standby** | **Master / Backup** | **AVG / AVF** |
+| **Load balance trong group** | ❌ | ❌ | ✅ **tối đa 4** |
+| 🔴 **Preempt mặc định** | 🔴  **TẮT** | 🔴  **BẬT** | TẮT |
 | Priority default | 100 (0–255) | 100 (1–254) | 100 (1–255) |
 | IPv6 | v2 ✅ | v3 ✅ | ✅ |
 
-⭐ **Ba điểm đề hỏi nhiều nhất:**
+ **Ba điểm đề hỏi nhiều nhất:**
 1. 🔴 **Preempt: HSRP TẮT, VRRP BẬT**
-2. ⭐ **VRRP là protocol duy nhất chuẩn mở**
-3. ⭐ **GLBP là protocol duy nhất load-balance được trong 1 group**
+2.  **VRRP là protocol duy nhất chuẩn mở**
+3.  **GLBP là protocol duy nhất load-balance được trong 1 group**
 </details>
 
 ---
@@ -1094,12 +1094,12 @@ Router kia priority 100. Nhưng router kia **vẫn không lên Active**. Nguyên
 
 <details><summary>Xem đáp án</summary>
 
-🔴 ⭐ **Router KIA không có `preempt`.**
+🔴  **Router KIA không có `preempt`.**
 
 **Cơ chế:** tracking chỉ **giảm priority của router A**. Việc **chiếm quyền Active** là hành động
 của **router B** — và nó chỉ làm được nếu **B có `preempt`**.
 
-⭐ **Tracking + preempt là CẶP ĐÔI BẮT BUỘC:**
+ **Tracking + preempt là CẶP ĐÔI BẮT BUỘC:**
 - Tracking (trên A) → giảm priority A
 - Preempt (trên B) → B thấy priority mình cao hơn → chiếm quyền
 
@@ -1124,18 +1124,18 @@ interface Gi0/0.10
  standby 10 preempt delay minimum 60
 ```
 
-⭐ **Best practice:** ⭐ **bật `preempt` trên MỌI router HSRP**, không chỉ router priority cao.
+ **Best practice:**  **bật `preempt` trên MỌI router HSRP**, không chỉ router priority cao.
 Không có lý do gì để không bật.
 </details>
 
 ---
 
-**Câu 5.** ⭐ Priority R1 = 110, R2 = 100. Bạn muốn tracking làm R1 nhường quyền khi uplink chết.
+**Câu 5.**  Priority R1 = 110, R2 = 100. Bạn muốn tracking làm R1 nhường quyền khi uplink chết.
 Chọn `decrement` bao nhiêu? Giải thích cách tính.
 
 <details><summary>Xem đáp án</summary>
 
-⭐ **Công thức:** `decrement > (priority_của_tôi − priority_của_router_kia)`
+ **Công thức:** `decrement > (priority_của_tôi − priority_của_router_kia)`
 
 ```
 110 − 100 = 10   →   decrement PHẢI > 10
@@ -1146,9 +1146,9 @@ Chọn `decrement` bao nhiêu? Giải thích cách tính.
 | 5 | 110 − 5 = **105** | ❌ 105 > 100 → **KHÔNG failover** |
 | 10 | 110 − 10 = **100** | ⚠️ **TIE** — không đảm bảo (tie-break theo IP) |
 | **20** | 110 − 20 = **90** | ✅ **Failover** |
-| ⭐ **30** | 110 − 30 = **80** | ⭐ ✅ **Failover, có biên an toàn** |
+| **30** | 110 − 30 = **80** | ✅ **Failover, có biên an toàn** |
 
-⭐ **Nên chọn 20–30**, không chọn đúng 11.
+ **Nên chọn 20–30**, không chọn đúng 11.
 
 **Vì sao cần dư biên:**
 1. Sau này ai đó đổi priority R2 lên 105 → decrement 11 lại không đủ
@@ -1179,13 +1179,13 @@ router Active chết → PC **mất mạng hoàn toàn** dù router Standby còn
 
 <details><summary>Xem đáp án</summary>
 
-🔴 ⭐ **FHRP không có object tracking.**
+🔴  **FHRP không có object tracking.**
 
 **Vì sao:** FHRP chỉ theo dõi **interface LOCAL của chính nó** (interface hướng xuống LAN).
-Uplink chết mà interface LAN vẫn `up` → ⭐ **HSRP thấy "mọi thứ ổn"** → router vẫn là Active
-→ ⭐ **traffic đi vào rồi drop** = **BLACK HOLE**.
+Uplink chết mà interface LAN vẫn `up` →  **HSRP thấy "mọi thứ ổn"** → router vẫn là Active
+→  **traffic đi vào rồi drop** = **BLACK HOLE**.
 
-⭐ Đây **chính xác** là cùng một lỗ hổng với **floating static route** (Module-03 §2.3):
+ Đây **chính xác** là cùng một lỗ hổng với **floating static route** (Module-03 §2.3):
 *"interface up ≠ đích còn sống"*.
 
 **Chẩn đoán:**
@@ -1198,7 +1198,7 @@ show ip route 0.0.0.0
 ! % Network not in table                              ← router Active không có đường ra
 ```
 
-⭐ **Sửa — 3 bước (kết hợp Module-03 §2.4):**
+ **Sửa — 3 bước (kết hợp Module-03 §2.4):**
 
 ```
 ! 1. IP SLA — ping THẬT một đích Internet qua ĐÚNG uplink
@@ -1238,39 +1238,39 @@ show ip sla statistics 1         ! return code OK, time to live Forever
 show standby brief               ! cột P có trên CẢ 2 router
 ```
 
-🧠 ⭐ ***"FHRP không có tracking = HA giả."*** Đây là lỗi thiết kế FHRP phổ biến nhất ở production.
+🧠  ***"FHRP không có tracking = HA giả."*** Đây là lỗi thiết kế FHRP phổ biến nhất ở production.
 </details>
 
 ---
 
-**Câu 7.** ⭐ `preempt delay minimum` để làm gì? Kể một sự cố thật mà nó phòng ngừa.
+**Câu 7.**  `preempt delay minimum` để làm gì? Kể một sự cố thật mà nó phòng ngừa.
 
 <details><summary>Xem đáp án</summary>
 
-⭐ **`preempt delay minimum <giây>`** = *"sau khi interface lên, **chờ N giây** rồi mới được preempt."*
+ **`preempt delay minimum <giây>`** = *"sau khi interface lên, **chờ N giây** rồi mới được preempt."*
 
-⭐ **Sự cố nó phòng ngừa — black hole sau khi router reboot:**
+ **Sự cố nó phòng ngừa — black hole sau khi router reboot:**
 
 | Giây | Chuyện gì | Vấn đề |
 |:---:|---|---|
 | 0 | R1 (priority 110, có preempt) boot lại | |
-| ~30 | ⭐ **Interface LAN lên** → HSRP thấy priority 110 → ⭐ **preempt ngay → Active** | ⚠️ |
-| 30–90 | ⭐ **OSPF/BGP vẫn đang hội tụ** — R1 ⭐ **chưa có default route** | 🔴 |
-| — | ⭐ **Toàn bộ traffic VLAN đi vào R1 → DROP** | 🔴 **BLACK HOLE ~60 giây** |
+| ~30 | **Interface LAN lên** → HSRP thấy priority 110 →  **preempt ngay → Active** | ⚠️ |
+| 30–90 | **OSPF/BGP vẫn đang hội tụ** — R1  **chưa có default route** | 🔴 |
+| — | **Toàn bộ traffic VLAN đi vào R1 → DROP** | 🔴 **BLACK HOLE ~60 giây** |
 | ~90 | Routing hội tụ xong | Giờ mới ổn |
 
 🔴 **Nghịch lý:** router **khỏe hơn** (priority cao) lại làm mạng **chết** —
 vì nó nhận trách nhiệm **trước khi** sẵn sàng.
 
-⭐ **Sửa:**
+ **Sửa:**
 ```
 interface Gi0/0.10
  standby 10 preempt delay minimum 90        ! dài hơn thời gian hội tụ IGP/BGP
 ```
 
-⭐ **Chọn giá trị bao nhiêu:** phải **dài hơn thời gian hội tụ routing** của mạng bạn.
+ **Chọn giá trị bao nhiêu:** phải **dài hơn thời gian hội tụ routing** của mạng bạn.
 - OSPF nội bộ: 30–60 s là đủ
-- ⭐ **BGP với ISP (nhận full table):** cần **120–300 s** (nhận 900k prefix mất vài phút)
+-  **BGP với ISP (nhận full table):** cần **120–300 s** (nhận 900k prefix mất vài phút)
 
 **Các biến thể:**
 ```
@@ -1285,7 +1285,7 @@ show standby Gi0/0.10 10 | include Preempt
 !   Preemption enabled, delay min 90 secs
 ```
 
-⭐ **Giải pháp tốt hơn nữa (kết hợp):** dùng cả `preempt delay minimum` **và**
+ **Giải pháp tốt hơn nữa (kết hợp):** dùng cả `preempt delay minimum` **và**
 `track 3 ip route 0.0.0.0 0.0.0.0 reachability` — router chỉ có priority cao khi
 **thực sự có default route trong RIB**.
 </details>
@@ -1303,10 +1303,10 @@ Mỗi router tưởng router kia đã chết → tự lên Active.
 
 | # | Nguyên nhân | Lệnh chẩn đoán |
 |:---:|---|---|
-| 1 | ⭐ **Authentication mismatch** | ⭐ `show logging \| include BADAUTH` → `%HSRP-4-BADAUTH: Bad authentication from ...` |
-| 2 | ⭐ **VLAN chưa được trunk** giữa 2 router | ⭐ `show interfaces trunk` **trên switch** → VLAN có trong `allowed`? |
-| 3 | ⭐ **Sub-interface `encapsulation dot1Q` sai VLAN** | `show run interface <subif>` **cả 2 router** → so số VLAN |
-| 4 | ⭐ **ACL chặn multicast HSRP** | `show access-lists` → có chặn `224.0.0.2`/`224.0.0.102` UDP 1985? |
+| 1 | **Authentication mismatch** | `show logging \| include BADAUTH` → `%HSRP-4-BADAUTH: Bad authentication from ...` |
+| 2 | **VLAN chưa được trunk** giữa 2 router | `show interfaces trunk` **trên switch** → VLAN có trong `allowed`? |
+| 3 | **Sub-interface `encapsulation dot1Q` sai VLAN** | `show run interface <subif>` **cả 2 router** → so số VLAN |
+| 4 | **ACL chặn multicast HSRP** | `show access-lists` → có chặn `224.0.0.2`/`224.0.0.102` UDP 1985? |
 | + | Mất kết nối L2 (link giữa 2 switch down, STP block sai) | `show interfaces status` · `show spanning-tree vlan X` |
 | + | **Version lệch** (v1 vs v2) | `show standby <if> <grp> \| include version` cả 2 |
 
@@ -1331,7 +1331,7 @@ show logging | include HSRP|BADAUTH
 debug standby errors                        ! ⚠️ chỉ lab — rất hữu ích cho auth
 ```
 
-⭐ **Kiểm tra L2 trước tiên:** ping IP thật của router kia trong cùng VLAN.
+ **Kiểm tra L2 trước tiên:** ping IP thật của router kia trong cùng VLAN.
 ```
 R1# ping 10.1.10.3            ! IP thật của R2
 ```
@@ -1341,33 +1341,33 @@ R1# ping 10.1.10.3            ! IP thật của R2
 
 ---
 
-**Câu 9.** ⭐ Protocol nào load-balance được trong **cùng một group**? Cơ chế thế nào?
+**Câu 9.**  Protocol nào load-balance được trong **cùng một group**? Cơ chế thế nào?
 Và cách thực tế để load-balance với HSRP/VRRP là gì?
 
 <details><summary>Xem đáp án</summary>
 
-⭐ **Chỉ GLBP** load-balance được trong cùng một group.
+ **Chỉ GLBP** load-balance được trong cùng một group.
 
 **Cơ chế GLBP:**
 
 | Vai | Nhiệm vụ |
 |---|---|
-| ⭐ **AVG** (Active Virtual Gateway) — **1**/group | ⭐ **Trả lời ARP** cho Virtual IP, nhưng trả về ⭐ **vMAC KHÁC NHAU cho từng host** |
-| ⭐ **AVF** (Active Virtual Forwarder) — ⭐ **tối đa 4**/group | Mỗi AVF có **1 vMAC riêng**, forward traffic của các host được gán vMAC đó |
+| **AVG** (Active Virtual Gateway) — **1**/group | **Trả lời ARP** cho Virtual IP, nhưng trả về  **vMAC KHÁC NHAU cho từng host** |
+| **AVF** (Active Virtual Forwarder) —  **tối đa 4**/group | Mỗi AVF có **1 vMAC riêng**, forward traffic của các host được gán vMAC đó |
 
 ```
 PC1 ARP "10.1.1.1?" → AVG trả vMAC1 (0007.b400.0a01) → PC1 đi qua R1
 PC2 ARP "10.1.1.1?" → AVG trả vMAC2 (0007.b400.0a02) → PC2 đi qua R2
 ```
-⭐ **Cùng một Virtual IP, nhưng mỗi host nhận một vMAC khác nhau.**
+ **Cùng một Virtual IP, nhưng mỗi host nhận một vMAC khác nhau.**
 
 **3 chế độ:** `round-robin` (mặc định) · `weighted` · `host-dependent`
 
 ⚠️ **Hạn chế GLBP:** chia theo **host**, không theo **flow** → 1 host với traffic khổng lồ
 vẫn chỉ dùng 1 router (giống **elephant flow** ở EtherChannel, Module-02 §7.4).
-Và ⭐ **Cisco độc quyền**.
+Và  **Cisco độc quyền**.
 
-⭐⭐ **CÁCH THỰC TẾ với HSRP/VRRP — load-balance THEO VLAN:**
+ **CÁCH THỰC TẾ với HSRP/VRRP — load-balance THEO VLAN:**
 
 ```
 ! ═══ R1 ═══
@@ -1389,39 +1389,39 @@ interface Gi0/0.20
 
 | VLAN | Active | Uplink được dùng |
 |:---:|---|---|
-| 10, 30, 50 (chẵn) | ⭐ **R1** | Uplink R1 |
-| 20, 40, 60 (lẻ) | ⭐ **R2** | Uplink R2 |
+| 10, 30, 50 (chẵn) | **R1** | Uplink R1 |
+| 20, 40, 60 (lẻ) | **R2** | Uplink R2 |
 
-→ ⭐ **Cả 2 uplink đều có traffic**. Đơn giản, **đa vendor** (dùng được VRRP), dễ hiểu, dễ vận hành.
+→  **Cả 2 uplink đều có traffic**. Đơn giản, **đa vendor** (dùng được VRRP), dễ hiểu, dễ vận hành.
 
-⭐ **Và nhớ:** đặt ⭐ **STP root cùng switch với HSRP Active** cho mỗi VLAN
+ **Và nhớ:** đặt  **STP root cùng switch với HSRP Active** cho mỗi VLAN
 (Module-02 §8 bước 4) — nếu lệch thì traffic đi zigzag qua link giữa 2 switch.
 
-⭐ **Xu hướng hiện đại:** **StackWise Virtual / VSS** — 2 switch thành 1 logic →
-⭐ **không cần FHRP** (1 gateway) và ⭐ **không cần STP block** (dùng MEC).
+ **Xu hướng hiện đại:** **StackWise Virtual / VSS** — 2 switch thành 1 logic →
+ **không cần FHRP** (1 gateway) và  **không cần STP block** (dùng MEC).
 </details>
 
 ---
 
-**Câu 10.** ⭐ SSO, NSF, StackWise Virtual là gì? StackWise Virtual loại bỏ nhu cầu dùng gì?
+**Câu 10.**  SSO, NSF, StackWise Virtual là gì? StackWise Virtual loại bỏ nhu cầu dùng gì?
 
 <details><summary>Xem đáp án</summary>
 
 | Kỹ thuật | Là gì | Bảo vệ khỏi |
 |---|---|---|
-| ⭐ **SSO** (Stateful Switchover) | 2 supervisor trong **1 chassis**, ⭐ **đồng bộ TRẠNG THÁI**. Sup chính chết → sup phụ tiếp nhận **giữ nguyên state** (không mất session) | Lỗi supervisor |
-| ⭐ **NSF** (Non-Stop Forwarding) | ⭐ **Data plane TIẾP TỤC forward** trong lúc control plane restart. Router nói với neighbor "đừng xóa route của tôi" | Downtime khi control plane restart |
-| ⭐ **NSF + SSO** | Đi cùng nhau: SSO giữ state, NSF giữ forwarding → ⭐ **switchover gần như không mất gói** | Chuẩn HA trong chassis |
-| ⭐ **StackWise** | Nhiều switch vật lý → ⭐ **1 switch logic** (1 control plane, 1 IP quản lý, 1 config) | Lỗi 1 switch trong stack |
-| ⭐ **StackWise Virtual / VSS** | ⭐ **2 chassis lớn → 1 thiết bị logic** | Lỗi 1 chassis |
+| **SSO** (Stateful Switchover) | 2 supervisor trong **1 chassis**,  **đồng bộ TRẠNG THÁI**. Sup chính chết → sup phụ tiếp nhận **giữ nguyên state** (không mất session) | Lỗi supervisor |
+| **NSF** (Non-Stop Forwarding) | **Data plane TIẾP TỤC forward** trong lúc control plane restart. Router nói với neighbor "đừng xóa route của tôi" | Downtime khi control plane restart |
+| **NSF + SSO** | Đi cùng nhau: SSO giữ state, NSF giữ forwarding →  **switchover gần như không mất gói** | Chuẩn HA trong chassis |
+| **StackWise** | Nhiều switch vật lý →  **1 switch logic** (1 control plane, 1 IP quản lý, 1 config) | Lỗi 1 switch trong stack |
+| **StackWise Virtual / VSS** | **2 chassis lớn → 1 thiết bị logic** | Lỗi 1 chassis |
 | **MEC** (Multi-chassis EtherChannel) | EtherChannel **trải trên 2 chassis** của VSS/StackWise Virtual | Lỗi 1 chassis, **không cần STP block** |
 
-⭐⭐ **StackWise Virtual / VSS loại bỏ nhu cầu dùng:**
+ **StackWise Virtual / VSS loại bỏ nhu cầu dùng:**
 
 | Loại bỏ | Vì sao |
 |---|---|
-| ⭐ **FHRP (HSRP/VRRP/GLBP)** | ⭐ 2 chassis = **1 thiết bị logic** = **1 gateway duy nhất** → không cần Virtual IP nữa |
-| ⭐ **STP blocking** | ⭐ Dùng **MEC** — EtherChannel trải 2 chassis, STP thấy **1 port logic** → **không có loop → không block** |
+| **FHRP (HSRP/VRRP/GLBP)** | 2 chassis = **1 thiết bị logic** = **1 gateway duy nhất** → không cần Virtual IP nữa |
+| **STP blocking** | Dùng **MEC** — EtherChannel trải 2 chassis, STP thấy **1 port logic** → **không có loop → không block** |
 | Nhiều điểm quản lý | 1 IP, 1 config cho cả 2 chassis |
 
 ```
@@ -1436,7 +1436,7 @@ interface Gi0/0.20
                                         không cần STP block
 ```
 
-⭐ **Ý nghĩa thiết kế:** đây là hướng campus hiện đại — **giảm độ phức tạp** thay vì
+ **Ý nghĩa thiết kế:** đây là hướng campus hiện đại — **giảm độ phức tạp** thay vì
 thêm protocol để vá. Biết điều này để **không đề xuất giải pháp lạc hậu** khi được hỏi ý kiến thiết kế.
 
 ```
@@ -1455,46 +1455,46 @@ show stackwise-virtual                     ! StackWise Virtual
 | Tiếng Anh | Tiếng Việt | Ghi chú |
 |---|---|---|
 | **FHRP** (First Hop Redundancy Protocol) | Giao thức dự phòng chặng đầu | HSRP · VRRP · GLBP |
-| ⭐ **Virtual IP (VIP)** | IP ảo | ⭐ IP mà PC dùng làm default gateway |
-| ⭐ **Virtual MAC (vMAC)** | MAC ảo | ⭐ **Không đổi khi failover** → PC không phải ARP lại |
-| ⭐ **HSRP** (Hot Standby Router Protocol) | Giao thức router dự phòng nóng | ⭐ **Cisco**. UDP 1985. Active/Standby |
-| ⭐ **VRRP** (Virtual Router Redundancy Protocol) | Giao thức dự phòng router ảo | ⭐ **Chuẩn mở** RFC 3768/5798. IP proto 112. Master/Backup |
-| ⭐ **GLBP** (Gateway Load Balancing Protocol) | Giao thức cân bằng tải gateway | ⭐ **Cisco**. UDP 3222. AVG/AVF. ⭐ **Load-balance trong 1 group** |
-| ⭐ **Active** (HSRP) | Đang hoạt động | Router forward traffic cho VIP |
-| ⭐ **Standby** (HSRP) | Dự phòng | Ứng viên tiếp theo |
+| **Virtual IP (VIP)** | IP ảo | IP mà PC dùng làm default gateway |
+| **Virtual MAC (vMAC)** | MAC ảo | **Không đổi khi failover** → PC không phải ARP lại |
+| **HSRP** (Hot Standby Router Protocol) | Giao thức router dự phòng nóng | **Cisco**. UDP 1985. Active/Standby |
+| **VRRP** (Virtual Router Redundancy Protocol) | Giao thức dự phòng router ảo | **Chuẩn mở** RFC 3768/5798. IP proto 112. Master/Backup |
+| **GLBP** (Gateway Load Balancing Protocol) | Giao thức cân bằng tải gateway | **Cisco**. UDP 3222. AVG/AVF.  **Load-balance trong 1 group** |
+| **Active** (HSRP) | Đang hoạt động | Router forward traffic cho VIP |
+| **Standby** (HSRP) | Dự phòng | Ứng viên tiếp theo |
 | **Listen** (HSRP) | Đang nghe | Không phải Active/Standby |
 | **Speak** (HSRP) | Đang nói | Gửi hello, tham gia bầu |
 | **Learn** (HSRP) | Đang học | Chưa biết VIP, chờ Active nói |
-| ⭐ **Master** (VRRP) | Chủ | Tương đương Active của HSRP |
-| ⭐ **Backup** (VRRP) | Dự phòng | Tương đương Standby |
-| ⭐ **AVG** (Active Virtual Gateway) | Cổng ảo hoạt động | ⭐ GLBP — **trả lời ARP**, phân bổ vMAC. 1/group |
-| ⭐ **AVF** (Active Virtual Forwarder) | Bộ chuyển tiếp ảo | ⭐ GLBP — **tối đa 4**/group, mỗi cái 1 vMAC |
-| ⭐ **Priority** | Ưu tiên | Mặc định **100**. **CAO** thắng |
-| 🔴 ⭐ **Preempt** | Chiếm quyền | 🔴 ⭐ **HSRP: TẮT** mặc định · ⭐ **VRRP: BẬT** mặc định |
-| ⭐ **`preempt delay minimum`** | Trễ trước khi chiếm quyền | ⭐ Chờ routing hội tụ → **chống black hole sau reboot** |
+| **Master** (VRRP) | Chủ | Tương đương Active của HSRP |
+| **Backup** (VRRP) | Dự phòng | Tương đương Standby |
+| **AVG** (Active Virtual Gateway) | Cổng ảo hoạt động | GLBP — **trả lời ARP**, phân bổ vMAC. 1/group |
+| **AVF** (Active Virtual Forwarder) | Bộ chuyển tiếp ảo | GLBP — **tối đa 4**/group, mỗi cái 1 vMAC |
+| **Priority** | Ưu tiên | Mặc định **100**. **CAO** thắng |
+| 🔴  **Preempt** | Chiếm quyền | 🔴  **HSRP: TẮT** mặc định ·  **VRRP: BẬT** mặc định |
+| **`preempt delay minimum`** | Trễ trước khi chiếm quyền | Chờ routing hội tụ → **chống black hole sau reboot** |
 | **`preempt delay reload`** | Trễ sau khi reload | Tính từ lúc router khởi động lại |
 | **Hello time / Hold time** | Thời gian chào / giữ | HSRP: 3/10 s · GLBP: 3/10 s |
 | **Advertisement interval** | Chu kỳ quảng bá | VRRP: 1 s |
 | **Master Down Interval** | Khoảng chờ Master chết | VRRP: `3×adv + skew` ≈ 3.6 s |
 | **Skew time** | Thời gian lệch | `(256−priority)/256` — priority cao phát hiện nhanh hơn |
-| ⭐ **IP address owner** | Chủ sở hữu IP | ⭐ VRRP priority **255** — router có IP interface = VIP |
-| ⭐ **Object tracking** | Theo dõi đối tượng | ⭐ Giảm priority khi điều kiện fail |
-| ⭐ **`decrement`** | Lượng giảm | ⭐ `> (pri_mình − pri_kia)`, nên dư biên |
-| ⭐ **`track list boolean and`** | Danh sách AND | ⭐ Kết hợp nhiều điều kiện track |
-| ⭐ **IP SLA** | Thỏa thuận mức dịch vụ IP | ⭐ **Ping thật đích** — vá lỗ hổng "interface up ≠ đích sống" |
-| ⭐ **`source-interface`** | Interface nguồn | 🔴 **BẮT BUỘC** — để SLA đi đúng uplink cần kiểm |
-| **Round-robin / Weighted / Host-dependent** | Luân phiên / Theo trọng số / Theo host | ⭐ 3 chế độ load-balancing GLBP |
-| ⭐ **Weighting** (GLBP) | Trọng lượng | Quyết định AVF nhận nhiều/ít host |
-| **BADAUTH** | Xác thực sai | ⭐ Log khi auth FHRP mismatch |
-| ⭐ **MAC flapping** | MAC nhấp nháy | ⭐ Triệu chứng của **2 Active cùng lúc** |
-| ⭐ **Black hole** | Hố đen | ⭐ Traffic vào router Active rồi drop (không có đường ra) |
-| ⭐ **SSO** (Stateful Switchover) | Chuyển đổi có trạng thái | ⭐ 2 supervisor đồng bộ **state** |
-| ⭐ **NSF** (Non-Stop Forwarding) | Chuyển tiếp không ngừng | ⭐ **Data plane tiếp tục forward** khi control plane restart |
+| **IP address owner** | Chủ sở hữu IP | VRRP priority **255** — router có IP interface = VIP |
+| **Object tracking** | Theo dõi đối tượng | Giảm priority khi điều kiện fail |
+| **`decrement`** | Lượng giảm | `> (pri_mình − pri_kia)`, nên dư biên |
+| **`track list boolean and`** | Danh sách AND | Kết hợp nhiều điều kiện track |
+| **IP SLA** | Thỏa thuận mức dịch vụ IP | **Ping thật đích** — vá lỗ hổng "interface up ≠ đích sống" |
+| **`source-interface`** | Interface nguồn | 🔴 **BẮT BUỘC** — để SLA đi đúng uplink cần kiểm |
+| **Round-robin / Weighted / Host-dependent** | Luân phiên / Theo trọng số / Theo host | 3 chế độ load-balancing GLBP |
+| **Weighting** (GLBP) | Trọng lượng | Quyết định AVF nhận nhiều/ít host |
+| **BADAUTH** | Xác thực sai | Log khi auth FHRP mismatch |
+| **MAC flapping** | MAC nhấp nháy | Triệu chứng của **2 Active cùng lúc** |
+| **Black hole** | Hố đen | Traffic vào router Active rồi drop (không có đường ra) |
+| **SSO** (Stateful Switchover) | Chuyển đổi có trạng thái | 2 supervisor đồng bộ **state** |
+| **NSF** (Non-Stop Forwarding) | Chuyển tiếp không ngừng | **Data plane tiếp tục forward** khi control plane restart |
 | **Graceful Restart** | Khởi động lại nhẹ nhàng | Neighbor không xóa route trong lúc restart |
-| ⭐ **StackWise** | Xếp chồng switch | ⭐ Nhiều switch → 1 logic |
-| ⭐ **StackWise Virtual / VSS** | Xếp chồng ảo | ⭐ 2 chassis → 1 logic. ⭐ **Loại bỏ nhu cầu FHRP + STP block** |
-| ⭐ **MEC** (Multi-chassis EtherChannel) | EtherChannel đa chassis | ⭐ EtherChannel trải 2 chassis → không cần STP block |
-| ⭐ **BFD** | Phát hiện chuyển tiếp 2 chiều | ⭐ Phát hiện lỗi ~ms mà không tốn CPU như msec timer |
+| **StackWise** | Xếp chồng switch | Nhiều switch → 1 logic |
+| **StackWise Virtual / VSS** | Xếp chồng ảo | 2 chassis → 1 logic.  **Loại bỏ nhu cầu FHRP + STP block** |
+| **MEC** (Multi-chassis EtherChannel) | EtherChannel đa chassis | EtherChannel trải 2 chassis → không cần STP block |
+| **BFD** | Phát hiện chuyển tiếp 2 chiều | Phát hiện lỗi ~ms mà không tốn CPU như msec timer |
 
 ---
 
@@ -1502,20 +1502,20 @@ show stackwise-virtual                     ! StackWise Virtual
 
 **3 điều rút ra:**
 
-1. 🔴⭐ **HSRP preempt TẮT mặc định, VRRP BẬT mặc định.**
-   Với HSRP, ⭐ **không gõ `preempt` thì priority hoàn toàn vô nghĩa** —
-   và đó là lỗi cấu hình FHRP phổ biến nhất. Kèm theo: ⭐ **luôn có `preempt delay minimum`**
+1. 🔴 **HSRP preempt TẮT mặc định, VRRP BẬT mặc định.**
+   Với HSRP,  **không gõ `preempt` thì priority hoàn toàn vô nghĩa** —
+   và đó là lỗi cấu hình FHRP phổ biến nhất. Kèm theo:  **luôn có `preempt delay minimum`**
    để router không nhận trách nhiệm trước khi routing hội tụ.
 
-2. 🔴⭐ **FHRP không có object tracking = HA GIẢ.**
+2. 🔴 **FHRP không có object tracking = HA GIẢ.**
    FHRP chỉ thấy interface **local** của mình — uplink chết mà LAN còn up thì nó **không biết**
    → **black hole**. Đây là **cùng một lỗ hổng** với floating static route (Module-03).
-   ⭐ Vá bằng **IP SLA + track (boolean and) + decrement đủ lớn** — và ⭐ **router KIA phải có `preempt`**.
+    Vá bằng **IP SLA + track (boolean and) + decrement đủ lớn** — và  **router KIA phải có `preempt`**.
 
-3. ⭐ **Thuộc bảng so sánh 3 protocol.** Ba điểm đề hỏi nhiều nhất:
-   ⭐ **VRRP là protocol duy nhất chuẩn mở** · ⭐ **GLBP là protocol duy nhất load-balance
-   trong 1 group** · ⭐ **vMAC prefix** (`0000.0C07.AC` / `0000.0C9F.F` / **`0000.5E00.01`**).
-   Và biết rằng ⭐ **StackWise Virtual loại bỏ nhu cầu FHRP hoàn toàn** — đó là hướng thiết kế hiện đại.
+3.  **Thuộc bảng so sánh 3 protocol.** Ba điểm đề hỏi nhiều nhất:
+    **VRRP là protocol duy nhất chuẩn mở** ·  **GLBP là protocol duy nhất load-balance
+   trong 1 group** ·  **vMAC prefix** (`0000.0C07.AC` / `0000.0C9F.F` / **`0000.5E00.01`**).
+   Và biết rằng  **StackWise Virtual loại bỏ nhu cầu FHRP hoàn toàn** — đó là hướng thiết kế hiện đại.
 
 🧠 **Một câu để nhớ:** *FHRP không làm router dự phòng nhanh hơn — nó làm **PC không cần biết**
 có bao nhiêu router. Nhưng nó chỉ **nhìn được cánh cổng của mình** — muốn nó biết **con đường phía sau
@@ -1530,25 +1530,25 @@ có bao nhiêu router. Nhưng nó chỉ **nhìn được cánh cổng của mìn
 | # | Câu | ✅ |
 |:---:|---|:---:|
 | 1 | FHRP giải quyết vấn đề gì? Vì sao vMAC quan trọng? | ☐ |
-| 2 | 🔴 ⭐ Preempt mặc định của HSRP và VRRP? | ☐ |
-| 3 | ⭐ Tính vMAC: HSRPv1 grp 5 · HSRPv2 grp 100 · VRRP grp 20 | ☐ |
-| 4 | ⭐ Điền đủ bảng so sánh HSRP/VRRP/GLBP (10 tiêu chí) | ☐ |
+| 2 | 🔴  Preempt mặc định của HSRP và VRRP? | ☐ |
+| 3 | Tính vMAC: HSRPv1 grp 5 · HSRPv2 grp 100 · VRRP grp 20 | ☐ |
+| 4 | Điền đủ bảng so sánh HSRP/VRRP/GLBP (10 tiêu chí) | ☐ |
 | 5 | 6 state HSRP theo thứ tự? 3 state VRRP? | ☐ |
 | 6 | Multicast + transport của 3 protocol? | ☐ |
-| 7 | ⭐ VRRP priority 255 và 0 nghĩa là gì? | ☐ |
+| 7 | VRRP priority 255 và 0 nghĩa là gì? | ☐ |
 | 8 | HSRPv1 vs v2 khác gì? Có tương thích không? | ☐ |
-| 9 | ⭐ GLBP: AVG làm gì, AVF làm gì, tối đa mấy AVF? | ☐ |
+| 9 | GLBP: AVG làm gì, AVF làm gì, tối đa mấy AVF? | ☐ |
 | 10 | 3 chế độ load-balancing GLBP? Hạn chế của GLBP? | ☐ |
-| 11 | 🔴 ⭐ FHRP có biết uplink chết không? Vì sao? | ☐ |
-| 12 | ⭐ Object tracking hoạt động thế nào? | ☐ |
-| 13 | 🔴 ⭐ Tracking cần điều kiện gì ở router kia? | ☐ |
-| 14 | ⭐ Cách tính `decrement`? Vì sao nên dư biên? | ☐ |
-| 15 | ⭐ `preempt delay minimum` phòng ngừa sự cố gì? | ☐ |
+| 11 | 🔴  FHRP có biết uplink chết không? Vì sao? | ☐ |
+| 12 | Object tracking hoạt động thế nào? | ☐ |
+| 13 | 🔴  Tracking cần điều kiện gì ở router kia? | ☐ |
+| 14 | Cách tính `decrement`? Vì sao nên dư biên? | ☐ |
+| 15 | `preempt delay minimum` phòng ngừa sự cố gì? | ☐ |
 | 16 | 🔴 2 lỗi IP SLA dễ mắc nhất? | ☐ |
 | 17 | 🔴 4 nguyên nhân "2 Active cùng lúc"? Triệu chứng phụ? | ☐ |
-| 18 | ⭐ Cách thực tế load-balance với HSRP/VRRP? | ☐ |
-| 19 | ⭐ Vì sao STP root và HSRP Active nên cùng switch? | ☐ |
-| 20 | ⭐ SSO / NSF / StackWise Virtual? StackWise Virtual bỏ được nhu cầu gì? | ☐ |
+| 18 | Cách thực tế load-balance với HSRP/VRRP? | ☐ |
+| 19 | Vì sao STP root và HSRP Active nên cùng switch? | ☐ |
+| 20 | SSO / NSF / StackWise Virtual? StackWise Virtual bỏ được nhu cầu gì? | ☐ |
 
 **Phần B — Lab:**
 
@@ -1556,30 +1556,30 @@ có bao nhiêu router. Nhưng nó chỉ **nhìn được cánh cổng của mìn
 |:---:|---|:---:|
 | 1 | Dựng 2 router + 1 switch + PC, router-on-a-stick, VLAN 10/20 | ☐ |
 | 2 | HSRPv2 group 10 và 20, load-balance theo VLAN (R1 Active V10, R2 Active V20) | ☐ |
-| 3 | ⭐ PC ping Internet qua Virtual IP · `arp` trên PC hiện **vMAC** | ☐ |
-| 4 | ⭐ Tính và verify vMAC khớp với công thức HSRPv2 | ☐ |
-| 5 | 🔴⭐⭐ **Chứng minh bẫy preempt**: priority 110 mà vẫn Standby → cột `P` trống | ☐ |
+| 3 | PC ping Internet qua Virtual IP · `arp` trên PC hiện **vMAC** | ☐ |
+| 4 | Tính và verify vMAC khớp với công thức HSRPv2 | ☐ |
+| 5 | 🔴 **Chứng minh bẫy preempt**: priority 110 mà vẫn Standby → cột `P` trống | ☐ |
 | 6 | Bật `preempt` + `preempt delay minimum` → R1 chiếm lại Active, cột `P` xuất hiện | ☐ |
-| 7 | ⭐ Đo downtime failover: timer mặc định vs `msec 200/750`, điền bảng | ☐ |
-| 8 | 🔴⭐⭐ **Tái hiện BLACK HOLE**: cắt uplink R1 → R1 vẫn Active → PC mất mạng | ☐ |
-| 9 | ⭐⭐ Cấu hình **IP SLA + track 1/2/3 + track 10 boolean and** trên **cả 2 router** | ☐ |
-| 10 | Verify `show track 10` → `Boolean AND is Up` + ⭐ `Tracked by: HSRP ...` | ☐ |
-| 11 | ⭐⭐ Test failover: cắt uplink → priority **110→80** → R2 preempt → PC ping lại được | ☐ |
+| 7 | Đo downtime failover: timer mặc định vs `msec 200/750`, điền bảng | ☐ |
+| 8 | 🔴 **Tái hiện BLACK HOLE**: cắt uplink R1 → R1 vẫn Active → PC mất mạng | ☐ |
+| 9 | Cấu hình **IP SLA + track 1/2/3 + track 10 boolean and** trên **cả 2 router** | ☐ |
+| 10 | Verify `show track 10` → `Boolean AND is Up` +  `Tracked by: HSRP ...` | ☐ |
+| 11 | Test failover: cắt uplink → priority **110→80** → R2 preempt → PC ping lại được | ☐ |
 | 12 | Test hồi phục: bật lại uplink → priority về 110 → R1 lấy lại Active | ☐ |
-| 13 | ⭐ Tái hiện lỗi **decrement quá nhỏ** (5) → không failover | ☐ |
-| 14 | 🔴⭐ Tái hiện lỗi **R2 không có preempt** → R1 priority 80 mà vẫn Active | ☐ |
+| 13 | Tái hiện lỗi **decrement quá nhỏ** (5) → không failover | ☐ |
+| 14 | 🔴 Tái hiện lỗi **R2 không có preempt** → R1 priority 80 mà vẫn Active | ☐ |
 | 15 | 🔴 Tái hiện lỗi **IP SLA thiếu `source-interface`** | ☐ |
-| 16 | ⭐ Chuyển VLAN 20 sang **VRRP**, tính và verify vMAC `0000.5e00.0114` | ☐ |
-| 17 | ⭐⭐ **Chứng minh VRRP preempt BẬT mặc định** (cột `Pre = Y` mà không gõ lệnh nào) | ☐ |
-| 18 | ⭐ Điền bảng so sánh trực tiếp HSRP vs VRRP từ kết quả lab | ☐ |
+| 16 | Chuyển VLAN 20 sang **VRRP**, tính và verify vMAC `0000.5e00.0114` | ☐ |
+| 17 | **Chứng minh VRRP preempt BẬT mặc định** (cột `Pre = Y` mà không gõ lệnh nào) | ☐ |
+| 18 | Điền bảng so sánh trực tiếp HSRP vs VRRP từ kết quả lab | ☐ |
 | 19 | 🚀 VRRPv3 với `address-family ipv4` (tùy chọn) | ☐ |
 | 20 | 🟡 GLBP: thấy `Fwd -` (AVG) + `Fwd 1/2` (AVF) với 2 vMAC khác nhau (nếu image hỗ trợ) | ☐ |
 | 21 | 🟡 2 PC trong VLAN GLBP nhận **2 vMAC khác nhau** cho cùng 1 VIP | ☐ |
-| 22 | ⭐ Bật HSRP **MD5 auth**, tái hiện **key lệch → 2 Active** → thấy log `BADAUTH` | ☐ |
-| 23 | ⭐ Thấy **MAC flapping** trên switch khi có 2 Active | ☐ |
+| 22 | Bật HSRP **MD5 auth**, tái hiện **key lệch → 2 Active** → thấy log `BADAUTH` | ☐ |
+| 23 | Thấy **MAC flapping** trên switch khi có 2 Active | ☐ |
 | 24 | Cố ý phá 1 thứ, tự tìm ra bằng **quy trình 5 bước §7.3** trong 10 phút | ☐ |
 
-> ⭐ **Nếu chỉ có thời gian làm một nửa:** ưu tiên **mục 5–6** (bẫy preempt),
+> **Nếu chỉ có thời gian làm một nửa:** ưu tiên **mục 5–6** (bẫy preempt),
 > **mục 8–14** (black hole + tracking — phần giá trị nhất cho công việc thật),
 > và **mục 17** (VRRP preempt mặc định). Đó là ba thứ đề hỏi nhiều nhất **và**
 > ba lỗi thiết kế FHRP phổ biến nhất ở production.
@@ -1591,20 +1591,20 @@ có bao nhiêu router. Nhưng nó chỉ **nhìn được cánh cổng của mìn
 | Nguồn | Cụ thể |
 |---|---|
 | **Sách OCG 350-401** | Chương *First Hop Redundancy Protocols* — bảng so sánh HSRP/VRRP/GLBP |
-| **Cisco doc** ⭐ | *First Hop Redundancy Protocols Configuration Guide* — chương *Configuring HSRP*, *Configuring VRRP*, *Configuring GLBP* |
-| **Cisco doc** ⭐⭐ | *Hot Standby Router Protocol Features and Functionality* — ⭐ tài liệu kinh điển, giải thích state machine và vMAC |
-| **Cisco doc** ⭐ | *Enhanced Object Tracking Configuration Guide* — ⭐ track + HSRP + IP SLA |
-| **Cisco doc** ⭐ | *IP SLAs Configuration Guide* → *IP SLAs ICMP Echo Operations* |
-| **Cisco doc** | *Understanding and Troubleshooting HSRP Problems* — ⭐ đúng bảng "2 Active cùng lúc" |
+| **Cisco doc**  | *First Hop Redundancy Protocols Configuration Guide* — chương *Configuring HSRP*, *Configuring VRRP*, *Configuring GLBP* |
+| **Cisco doc**  | *Hot Standby Router Protocol Features and Functionality* —  tài liệu kinh điển, giải thích state machine và vMAC |
+| **Cisco doc**  | *Enhanced Object Tracking Configuration Guide* —  track + HSRP + IP SLA |
+| **Cisco doc**  | *IP SLAs Configuration Guide* → *IP SLAs ICMP Echo Operations* |
+| **Cisco doc** | *Understanding and Troubleshooting HSRP Problems* —  đúng bảng "2 Active cùng lúc" |
 | **Cisco doc** | *GLBP Load Balancing* · *Configuring VRRPv3* |
-| **Cisco doc** ⭐ | *High Availability Configuration Guide* → *Stateful Switchover (SSO)*, *Nonstop Forwarding (NSF)* |
-| **Cisco doc** | *Cisco StackWise Virtual White Paper* — ⭐ hiểu vì sao nó thay thế FHRP |
+| **Cisco doc**  | *High Availability Configuration Guide* → *Stateful Switchover (SSO)*, *Nonstop Forwarding (NSF)* |
+| **Cisco doc** | *Cisco StackWise Virtual White Paper* —  hiểu vì sao nó thay thế FHRP |
 | **RFC 5798** | VRRPv3 for IPv4 and IPv6 |
 | **RFC 2281** | Cisco HSRP (informational) |
-| **Cisco Live** ⭐ | Search `Cisco Live campus high availability design` · `Cisco Live FHRP best practices` |
-| **NetworkLessons** ⭐ | Loạt bài *HSRP*, *VRRP*, *GLBP*, *HSRP with object tracking* — nhiều bài free |
+| **Cisco Live**  | Search `Cisco Live campus high availability design` · `Cisco Live FHRP best practices` |
+| **NetworkLessons**  | Loạt bài *HSRP*, *VRRP*, *GLBP*, *HSRP with object tracking* — nhiều bài free |
 | **Video** | CBT Nuggets ENCOR — module FHRP · Keith Barker: search `Keith Barker HSRP`, `Keith Barker GLBP` |
-| **Wireshark** | Filter `hsrp` (UDP 1985 → 224.0.0.102) · `vrrp` (IP proto 112 → 224.0.0.18) · `glbp`. ⭐ **Xem vMAC và priority thật trong gói** |
+| **Wireshark** | Filter `hsrp` (UDP 1985 → 224.0.0.102) · `vrrp` (IP proto 112 → 224.0.0.18) · `glbp`.  **Xem vMAC và priority thật trong gói** |
 | **Forum** | https://community.cisco.com — search `hsrp both active`, `hsrp preempt not working`, `hsrp track ip sla` |
 
 ---

@@ -957,47 +957,47 @@ vì bên ngoài không hiểu type 7.
 
 | # | Bẫy | Sự thật |
 |:---:|---|---|
-| 1 | LSA **type 4** — ai sinh, LS ID là gì | ⭐ **ABR** sinh · LS ID = ⭐ **Router ID của ASBR** |
-| 2 | LSA **type 5** — ai sinh, flood đâu | ⭐ **ASBR** sinh · flood ⭐ **TOÀN AS** (trừ stub/NSSA) |
-| 3 | ⭐ Vì sao cần LSA type 4 | Router ở area khác **không có LSA 1 của ASBR** → không biết ASBR ở đâu → LSA 5 vô dụng. LSA 4 nói "ASBR ở hướng này" |
+| 1 | LSA **type 4** — ai sinh, LS ID là gì | **ABR** sinh · LS ID =  **Router ID của ASBR** |
+| 2 | LSA **type 5** — ai sinh, flood đâu | **ASBR** sinh · flood  **TOÀN AS** (trừ stub/NSSA) |
+| 3 | Vì sao cần LSA type 4 | Router ở area khác **không có LSA 1 của ASBR** → không biết ASBR ở đâu → LSA 5 vô dụng. LSA 4 nói "ASBR ở hướng này" |
 | 4 | ASBR **cùng area** có cần LSA 4? | ❌ **Không** — đã có LSA type 1 của ASBR |
-| 5 | ⭐ **Stub** chặn LSA nào | ⭐ **LSA 4 + 5** |
-| 6 | ⭐ **Totally Stubby** chặn LSA nào | ⭐ **LSA 3 + 4 + 5** (thêm LSA 3 so với stub) |
-| 7 | ⭐ **NSSA** chặn LSA nào, cho phép gì | Chặn **4 + 5**, ⭐ **cho phép LSA 7** |
+| 5 | **Stub** chặn LSA nào | **LSA 4 + 5** |
+| 6 | **Totally Stubby** chặn LSA nào | **LSA 3 + 4 + 5** (thêm LSA 3 so với stub) |
+| 7 | **NSSA** chặn LSA nào, cho phép gì | Chặn **4 + 5**,  **cho phép LSA 7** |
 | 8 | **Totally NSSA** | Chặn **3 + 4 + 5**, cho phép **LSA 7** |
-| 9 | ⭐ `no-summary` cấu hình ở đâu | ⭐ **CHỈ trên ABR** |
-| 10 | 🔴 Area type khai ở đâu | ⭐ **MỌI router trong area** — thiếu 1 = **E-bit mismatch** = mất neighbor |
+| 9 | `no-summary` cấu hình ở đâu | **CHỈ trên ABR** |
+| 10 | 🔴 Area type khai ở đâu | **MỌI router trong area** — thiếu 1 = **E-bit mismatch** = mất neighbor |
 | 11 | Area 0 có thể là stub? | ❌ **KHÔNG** |
-| 12 | Area có ASBR có thể là stub? | ❌ **KHÔNG** (stub chặn LSA 5) → ⭐ **dùng NSSA** |
+| 12 | Area có ASBR có thể là stub? | ❌ **KHÔNG** (stub chặn LSA 5) →  **dùng NSSA** |
 | 13 | 🔴 **NSSA có tự động default route?** | ❌ **KHÔNG!** Khác stub. Phải `area X nssa default-information-originate` |
-| 14 | Default route trong stub là loại gì | ⭐ **`O*IA`** — LSA type **3** do ABR inject (không phải LSA 5) |
-| 15 | LSA 7 → 5 do ai dịch | ⭐ **ABR của NSSA** (NSSA translator) |
-| 16 | `Forward Address` trong LSA 7 | ⭐ Là **IP của ASBR** (không phải `0.0.0.0` như LSA 5 thường) |
+| 14 | Default route trong stub là loại gì | **`O*IA`** — LSA type **3** do ABR inject (không phải LSA 5) |
+| 15 | LSA 7 → 5 do ai dịch | **ABR của NSSA** (NSSA translator) |
+| 16 | `Forward Address` trong LSA 7 | Là **IP của ASBR** (không phải `0.0.0.0` như LSA 5 thường) |
 | 17 | Ký hiệu route NSSA external | **`O N1`** / **`O N2`** |
-| 18 | ⭐ `area range` vs `summary-address` | `area range` → ⭐ **ABR**, gộp **LSA 3** · `summary-address` → ⭐ **ASBR**, gộp **LSA 5/7** |
-| 19 | ⭐ Lợi ích lớn nhất của summarization | ⭐ **Chặn LSA flooding** → subnet nhấp nháy không làm area khác chạy lại SPF (không chỉ là "bảng route gọn") |
-| 20 | Metric của summary route (mặc định) | ⭐ **Metric NHỎ NHẤT** trong các route thành phần |
-| 21 | Discard route Null0 để làm gì | ⭐ **Chống loop** — drop gói tới subnet không tồn tại trong dải gộp, ngay tại ABR/ASBR |
-| 22 | ⭐ Lệnh nào lọc route mà **KHÔNG** ảnh hưởng LSDB | ⭐ **`distribute-list ... in`** |
-| 23 | 🔴 Vì sao `distribute-list in` nguy hiểm | LSDB vẫn đủ, router khác **vẫn tin** "đi qua đây tới được" → ⭐ **black hole** |
+| 18 | `area range` vs `summary-address` | `area range` →  **ABR**, gộp **LSA 3** · `summary-address` →  **ASBR**, gộp **LSA 5/7** |
+| 19 | Lợi ích lớn nhất của summarization | **Chặn LSA flooding** → subnet nhấp nháy không làm area khác chạy lại SPF (không chỉ là "bảng route gọn") |
+| 20 | Metric của summary route (mặc định) | **Metric NHỎ NHẤT** trong các route thành phần |
+| 21 | Discard route Null0 để làm gì | **Chống loop** — drop gói tới subnet không tồn tại trong dải gộp, ngay tại ABR/ASBR |
+| 22 | Lệnh nào lọc route mà **KHÔNG** ảnh hưởng LSDB | **`distribute-list ... in`** |
+| 23 | 🔴 Vì sao `distribute-list in` nguy hiểm | LSDB vẫn đủ, router khác **vẫn tin** "đi qua đây tới được" →  **black hole** |
 | 24 | `area filter-list ... in` vs `out` | `in` = chặn LSA 3 **VÀO** area · `out` = chặn LSA 3 **RA KHỎI** area (nhìn từ góc độ area) |
 | 25 | `distribute-list out` trong OSPF | ⚠️ Chỉ hoạt động **trên ASBR**, chỉ lọc route **redistribute** — **không** lọc LSA 3 |
 | 26 | Prefix-list thiếu catch-all | 🔴 **Implicit deny** → chặn **hết** thay vì 1 dải |
 | 27 | `default-information originate` vs `always` | Không `always`: chỉ quảng bá **nếu có** `0.0.0.0/0` trong RIB · ⚠️ `always`: quảng bá **luôn** → nguy cơ black hole |
-| 28 | Auth: interface-level vs area-level | ⭐ **Interface-level thắng.** `ip ospf authentication null` tắt auth trên 1 interface |
-| 29 | Virtual link dùng gì để chỉ đầu kia | ⭐ **Router ID**, không phải IP interface |
+| 28 | Auth: interface-level vs area-level | **Interface-level thắng.** `ip ospf authentication null` tắt auth trên 1 interface |
+| 29 | Virtual link dùng gì để chỉ đầu kia | **Router ID**, không phải IP interface |
 | 30 | Transit area của virtual link có thể là stub? | ❌ **KHÔNG** — cần LSA 3/4/5 đi qua |
 | 31 | Virtual link sinh Link Type nào trong LSA 1 | **Type 4** (Virtual link) |
-| 32 | 🔴 **OSPFv3 Router ID** | ⭐ **VẪN LÀ 32-bit dạng IPv4.** Router IPv6-only → **không tự chọn được** → **phải gõ tay** |
-| 33 | OSPFv3 bật vào OSPF bằng lệnh gì | ⭐ **`ipv6 ospf 1 area X`** trên **interface** (không dùng `network`) |
-| 34 | OSPFv3 multicast | ⭐ **FF02::5** và **FF02::6** |
-| 35 | OSPFv3 Hello dùng địa chỉ nguồn nào | ⭐ **Link-local (`FE80::/10`)** |
-| 36 | OSPFv3 authentication | ⭐ Dùng **IPsec (AH/ESP)** — không có field auth riêng |
-| 37 | ⭐ LSA mới của OSPFv3 | ⭐ **Type 8 (Link LSA)** và **Type 9 (Intra-Area Prefix LSA)** |
-| 38 | ⭐ Vì sao v3 có Type 9 | ⭐ Trong v3, LSA 1/2 **không mang prefix** — chỉ mô tả topology. Prefix nằm ở LSA 9 → **tách topology khỏi địa chỉ** |
+| 32 | 🔴 **OSPFv3 Router ID** | **VẪN LÀ 32-bit dạng IPv4.** Router IPv6-only → **không tự chọn được** → **phải gõ tay** |
+| 33 | OSPFv3 bật vào OSPF bằng lệnh gì | **`ipv6 ospf 1 area X`** trên **interface** (không dùng `network`) |
+| 34 | OSPFv3 multicast | **FF02::5** và **FF02::6** |
+| 35 | OSPFv3 Hello dùng địa chỉ nguồn nào | **Link-local (`FE80::/10`)** |
+| 36 | OSPFv3 authentication | Dùng **IPsec (AH/ESP)** — không có field auth riêng |
+| 37 | LSA mới của OSPFv3 | **Type 8 (Link LSA)** và **Type 9 (Intra-Area Prefix LSA)** |
+| 38 | Vì sao v3 có Type 9 | Trong v3, LSA 1/2 **không mang prefix** — chỉ mô tả topology. Prefix nằm ở LSA 9 → **tách topology khỏi địa chỉ** |
 | 39 | LSA 3 và 4 trong OSPFv3 gọi là gì | LSA 3 → **Inter-Area Prefix LSA** · LSA 4 → **Inter-Area Router LSA** |
-| 40 | Ký hiệu route OSPFv3 inter-area | ⭐ **`OI`** (v2 là `O IA`) |
-| 41 | Next-hop trong `show ipv6 route ospf` | ⭐ **Link-local address**, không phải global unicast |
+| 40 | Ký hiệu route OSPFv3 inter-area | **`OI`** (v2 là `O IA`) |
+| 41 | Next-hop trong `show ipv6 route ospf` | **Link-local address**, không phải global unicast |
 | 42 | Thiếu `ipv6 unicast-routing` | OSPFv3 **không chạy** — không có neighbor, không có route |
 
 ---
@@ -1073,31 +1073,31 @@ undebug all
 
 | # | Triệu chứng | Nguyên nhân | Lệnh chẩn đoán | Cách sửa |
 |:---:|---|---|---|---|
-| 1 | 🔴 Mất neighbor sau khi cấu hình stub/NSSA | ⭐ **Area type không khai đủ mọi router** (E-bit/N-bit mismatch) | `show ip ospf \| inc stub\|nssa` trên **MỌI** router trong area · `debug ip ospf adj` | Khai area type trên **tất cả** router |
+| 1 | 🔴 Mất neighbor sau khi cấu hình stub/NSSA | **Area type không khai đủ mọi router** (E-bit/N-bit mismatch) | `show ip ospf \| inc stub\|nssa` trên **MỌI** router trong area · `debug ip ospf adj` | Khai area type trên **tất cả** router |
 | 2 | Khai `no-summary` mà LSA 3 vẫn có | `no-summary` khai trên **router nội bộ**, không phải ABR | `show ip ospf \| inc It is an` (có "area border router"?) | Khai `no-summary` **trên ABR** |
-| 3 | Area có ASBR mà route external không ra được | Area được khai **stub** (chặn LSA 5) | `show ip ospf \| inc stub` | ⭐ Đổi sang **NSSA** |
-| 4 | 🔴 NSSA: nhánh **không ra được Internet** | ⭐ **NSSA không tự có default route** | `show ip route 0.0.0.0` → không có | ⭐ `area X nssa default-information-originate` trên ABR |
+| 3 | Area có ASBR mà route external không ra được | Area được khai **stub** (chặn LSA 5) | `show ip ospf \| inc stub` | Đổi sang **NSSA** |
+| 4 | 🔴 NSSA: nhánh **không ra được Internet** | **NSSA không tự có default route** | `show ip route 0.0.0.0` → không có | `area X nssa default-information-originate` trên ABR |
 | 5 | Route external biến mất ở area khác | Area đó là stub/NSSA (đúng thiết kế) | `show ip ospf db database-summary` → Type-5 = 0 | ✅ Đúng — dùng default route |
-| 6 | `O E2` có nhưng ping fail | ⭐ **Thiếu LSA type 4** → không biết đường tới ASBR | `show ip ospf db asbr-summary` · `show ip ospf border-routers` | Kiểm tra ABR có sinh LSA 4 · kiểm tra area type có chặn LSA 4 |
+| 6 | `O E2` có nhưng ping fail | **Thiếu LSA type 4** → không biết đường tới ASBR | `show ip ospf db asbr-summary` · `show ip ospf border-routers` | Kiểm tra ABR có sinh LSA 4 · kiểm tra area type có chặn LSA 4 |
 | 7 | Summarize rồi mà bên kia vẫn thấy route lẻ | `area range` khai trên **router sai** (không phải ABR của area đó) | `show run \| sec router ospf` · `show ip ospf \| inc It is an` | Khai trên **ABR của area chứa các subnet đó** |
 | 8 | `summary-address` không có tác dụng | Khai trên **ABR** thay vì **ASBR** | `show ip ospf \| inc autonomous system` | Khai trên **ASBR** |
 | 9 | ⚠️ Traffic tới subnet không tồn tại bị **drop** | ✅ **Discard route Null0** — đúng thiết kế | `show ip route \| inc Null0` | Không cần sửa (nếu subnet đúng ra phải ở nơi khác thì sửa thiết kế) |
 | 10 | ⚠️ **Black hole** sau khi summarize | Dải gộp bao gồm subnet **không thuộc area này** | `show ip route <summary>` trên ABR · so với thiết kế IP | Chỉ gộp dải mà mọi subnet đều thuộc area · sửa quy hoạch IP |
-| 11 | 🔴 Sau khi thêm prefix-list, **mất gần hết route** | ⭐ **Prefix-list thiếu catch-all** (implicit deny) | `show ip prefix-list detail <TÊN>` → xem counter | Thêm `permit 0.0.0.0/0 le 32` ở seq cuối |
-| 12 | ⭐ Route bị lọc trên 1 router, router khác vẫn gửi traffic qua đó | ⭐ Dùng **`distribute-list in`** — LSDB vẫn đủ → **black hole** | So `show ip ospf db summary <prefix>` (có LSA) vs `show ip route <prefix>` (không route) | ⭐ Dùng **`area filter-list`** hoặc **`area range not-advertise`** trên ABR |
+| 11 | 🔴 Sau khi thêm prefix-list, **mất gần hết route** | **Prefix-list thiếu catch-all** (implicit deny) | `show ip prefix-list detail <TÊN>` → xem counter | Thêm `permit 0.0.0.0/0 le 32` ở seq cuối |
+| 12 | Route bị lọc trên 1 router, router khác vẫn gửi traffic qua đó | Dùng **`distribute-list in`** — LSDB vẫn đủ → **black hole** | So `show ip ospf db summary <prefix>` (có LSA) vs `show ip route <prefix>` (không route) | Dùng **`area filter-list`** hoặc **`area range not-advertise`** trên ABR |
 | 13 | Filter `out` không có tác dụng | Nhầm chiều — `out` lọc LSA **ra khỏi** area | `show run \| inc filter-list` | Đổi sang `in` (hoặc ngược lại) |
 | 14 | Mất neighbor sau khi bật auth | Key hoặc loại auth **lệch** | `show ip ospf int Gi0/0 \| inc auth\|digest` cả 2 đầu · `debug ip ospf adj` | Khớp loại + key ID + key string |
 | 15 | Bật area auth mà 1 link vẫn không lên | Interface đó chưa đặt `message-digest-key` | `show ip ospf int <if> \| inc digest` | Đặt key trên interface, hoặc `ip ospf authentication null` |
-| 16 | ⚠️ Default route hút traffic vào hố đen | ⭐ `default-information originate **always**` mà router mất đường ra | `show ip route 0.0.0.0` trên ASBR | Bỏ `always` + dùng **IP SLA/track** (Module-03) |
+| 16 | ⚠️ Default route hút traffic vào hố đen | `default-information originate **always**` mà router mất đường ra | `show ip route 0.0.0.0` trên ASBR | Bỏ `always` + dùng **IP SLA/track** (Module-03) |
 | 17 | Virtual link `down` | Transit area là **stub/NSSA** · sai Router ID · auth lệch | `show ip ospf virtual-links` · `show ip ospf \| inc stub` | Transit area phải là **normal** · dùng đúng Router ID · khớp auth |
 | 18 | Route area xa không tới được | Area **không nối area 0** | `show ip ospf \| inc Area` trên các ABR | Thêm link tới area 0, hoặc **virtual link** (tạm) |
-| 19 | 🔴 **OSPFv3 không chạy** — không neighbor, không route | ⭐ Thiếu **`ipv6 unicast-routing`** | `show ipv6 protocols` · `show run \| inc ipv6 unicast` | `ipv6 unicast-routing` |
-| 20 | 🔴 OSPFv3 báo **không chọn được Router ID** | ⭐ Router **IPv6-only**, không có IPv4 nào | `show ipv6 ospf \| inc Router ID` | ⭐ **Gõ tay** `router-id x.x.x.x` |
+| 19 | 🔴 **OSPFv3 không chạy** — không neighbor, không route | Thiếu **`ipv6 unicast-routing`** | `show ipv6 protocols` · `show run \| inc ipv6 unicast` | `ipv6 unicast-routing` |
+| 20 | 🔴 OSPFv3 báo **không chọn được Router ID** | Router **IPv6-only**, không có IPv4 nào | `show ipv6 ospf \| inc Router ID` | **Gõ tay** `router-id x.x.x.x` |
 | 21 | OSPFv3 neighbor không lên | Network type lệch · area lệch · MTU · thiếu `ipv6 enable` | `show ipv6 ospf interface <if>` **cả 2 đầu** rồi so | Khớp từng dòng |
-| 22 | Có route OSPFv2 nhưng không có OSPFv3 (dual-stack) | ⭐ **2 process độc lập** — cấu hình v3 chưa đủ | `show ipv6 ospf interface brief` (interface nào trong v3?) | Bật `ipv6 ospf 1 area X` trên đủ interface |
-| 23 | ⭐ CPU cao, SPF chạy liên tục | Link nhấp nháy + **không có summarization** → LSA flood toàn AS | ⭐ `show ip ospf \| inc SPF algorithm executed` (tăng nhanh?) · `show ip ospf db router` → Seq# | Sửa link flapping · ⭐ **thêm summarization** để chặn LSA lan |
+| 22 | Có route OSPFv2 nhưng không có OSPFv3 (dual-stack) | **2 process độc lập** — cấu hình v3 chưa đủ | `show ipv6 ospf interface brief` (interface nào trong v3?) | Bật `ipv6 ospf 1 area X` trên đủ interface |
+| 23 | CPU cao, SPF chạy liên tục | Link nhấp nháy + **không có summarization** → LSA flood toàn AS | `show ip ospf \| inc SPF algorithm executed` (tăng nhanh?) · `show ip ospf db router` → Seq# | Sửa link flapping ·  **thêm summarization** để chặn LSA lan |
 
-### 7.3 ⭐ Quy trình troubleshoot Module-04B — 4 câu hỏi
+### 7.3  Quy trình troubleshoot Module-04B — 4 câu hỏi
 
 ```
 CÂU HỎI 1: "Route bị mất — LSA có tồn tại không?"
@@ -1129,10 +1129,10 @@ CÂU HỎI 4: "Có route dạng gộp hoặc default không?"
    → Nếu có default route thì traffic VẪN ĐI ĐƯỢC dù không có route cụ thể
 ```
 
-> ⭐ **Câu hỏi 1 là bước quan trọng nhất và người mới hay bỏ:**
+> **Câu hỏi 1 là bước quan trọng nhất và người mới hay bỏ:**
 > **"LSA có tồn tại không?"** — nó phân chia bài toán làm hai nửa hoàn toàn khác nhau.
 > LSA không có = chặn ở nguồn (area type / filter trên ABR).
-> LSA có mà route không có = ⭐ **`distribute-list in`** (và đó là dấu hiệu của black hole).
+> LSA có mà route không có =  **`distribute-list in`** (và đó là dấu hiệu của black hole).
 
 ---
 
@@ -1142,8 +1142,8 @@ CÂU HỎI 4: "Có route dạng gộp hoặc default không?"
 
 <details><summary>Xem đáp án</summary>
 
-- **Ai sinh:** ⭐ **ABR**
-- **LS ID:** ⭐ **Router ID của ASBR**
+- **Ai sinh:**  **ABR**
+- **LS ID:**  **Router ID của ASBR**
 - **Flood tới:** area khác
 
 **Vì sao cần:**
@@ -1157,7 +1157,7 @@ Nhưng router ở **area khác** **không có LSA type 1 của ASBR** (LSA 1 kh�
 
 🧠 **LSA 5 = "mạng ở đâu" · LSA 4 = "người giữ mạng ở đâu".** Thiếu một trong hai thì route vô dụng.
 
-⭐ **Ngoại lệ:** ASBR **cùng area** thì **không cần** LSA 4 — router đã có LSA type 1 của ASBR.
+ **Ngoại lệ:** ASBR **cùng area** thì **không cần** LSA 4 — router đã có LSA type 1 của ASBR.
 
 **Verify:**
 ```
@@ -1175,10 +1175,10 @@ show ip ospf border-routers               ! ASBR nào biết + cost
 | Area type | LSA 1,2 | LSA 3 | LSA 4,5 | LSA 7 | Default tự động |
 |---|:---:|:---:|:---:|:---:|---|
 | **Normal / Backbone** | ✅ | ✅ | ✅ | ❌ | Nếu có ASBR quảng bá |
-| **Stub** | ✅ | ✅ | ❌ **chặn** | ❌ | ⭐ **Có** — ABR inject → `O*IA` |
-| **Totally Stubby** | ✅ | ❌ **chặn** | ❌ **chặn** | ❌ | ⭐ **Có** — ABR inject |
+| **Stub** | ✅ | ✅ | ❌ **chặn** | ❌ | **Có** — ABR inject → `O*IA` |
+| **Totally Stubby** | ✅ | ❌ **chặn** | ❌ **chặn** | ❌ | **Có** — ABR inject |
 | **NSSA** | ✅ | ✅ | ❌ **chặn** | ✅ **OK** | 🔴 **KHÔNG!** Phải `default-information-originate` |
-| **Totally NSSA** | ✅ | ❌ **chặn** | ❌ **chặn** | ✅ **OK** | ⭐ **Có** (vì `no-summary`) |
+| **Totally NSSA** | ✅ | ❌ **chặn** | ❌ **chặn** | ✅ **OK** | **Có** (vì `no-summary`) |
 
 **Cách nhớ:**
 - **Stub** = chặn **4 + 5** (external)
@@ -1212,7 +1212,7 @@ debug ip ospf adj
 
 **Sửa:** khai `area 1 stub` trên **tất cả** router có interface trong area 1 — **kể cả ABR**.
 
-⭐ **Quy trình production:**
+ **Quy trình production:**
 1. Viết block config một lần
 2. Copy-paste **cùng block** lên mọi router trong area
 3. Verify `show ip ospf | include stub` trên **tất cả**
@@ -1230,18 +1230,18 @@ nhưng **không có tác dụng** — dễ tưởng đã xong.
 
 | | **`area <X> range`** | **`summary-address`** |
 |---|---|---|
-| Cấu hình trên | ⭐ **ABR** | ⭐ **ASBR** |
-| Gộp loại LSA | ⭐ **LSA 3** (Summary/inter-area) | ⭐ **LSA 5 / LSA 7** (External) |
+| Cấu hình trên | **ABR** | **ASBR** |
+| Gộp loại LSA | **LSA 3** (Summary/inter-area) | **LSA 5 / LSA 7** (External) |
 | Route bị gộp | `O IA` | `O E1` / `O E2` / `O N1` / `O N2` |
 | Nguồn route | Từ **area X** sang area khác | Từ **redistribution** vào OSPF |
 | Cú pháp | `area 1 range 172.16.0.0 255.255.252.0` | `summary-address 203.0.112.0 255.255.252.0` |
 | Discard route Null0 | ✅ Tự tạo trên ABR | ✅ Tự tạo trên ASBR |
 | Metric mặc định | Nhỏ nhất trong nhóm | Nhỏ nhất trong nhóm |
 
-🧠 **Cách nhớ:** *`area range` — có chữ "**area**" → ⭐ **ABR** (router biên **area**), gộp route giữa area.
-`summary-address` — không có chữ "area" → ⭐ **ASBR** (router biên **AS**), gộp route ngoài AS.*
+🧠 **Cách nhớ:** *`area range` — có chữ "**area**" →  **ABR** (router biên **area**), gộp route giữa area.
+`summary-address` — không có chữ "area" →  **ASBR** (router biên **AS**), gộp route ngoài AS.*
 
-⭐ **Bẫy đề:** khai `summary-address` trên ABR (không phải ASBR) → **không có tác dụng**, và ngược lại.
+ **Bẫy đề:** khai `summary-address` trên ABR (không phải ASBR) → **không có tác dụng**, và ngược lại.
 </details>
 
 ---
@@ -1250,7 +1250,7 @@ nhưng **không có tác dụng** — dễ tưởng đã xong.
 
 <details><summary>Xem đáp án</summary>
 
-⭐ **Lợi ích lớn nhất: CHẶN LSA FLOODING → giới hạn phạm vi chạy SPF (fault domain).**
+ **Lợi ích lớn nhất: CHẶN LSA FLOODING → giới hạn phạm vi chạy SPF (fault domain).**
 
 **Cơ chế:**
 
@@ -1266,9 +1266,9 @@ Area 1 có 4 subnet `172.16.0.0/24` → `172.16.3.0/24`.
 **CÓ summarize (`area 1 range 172.16.0.0 255.255.252.0`):**
 - ABR chỉ quảng bá **một** LSA 3 cho `172.16.0.0/22`
 - Subnet `.1.0/24` nhấp nháy
-- → ⭐ **LSA `/22` KHÔNG ĐỔI** (vì `/22` vẫn còn `.0.0`, `.2.0`, `.3.0`)
-- → Area 0 và area 2 ⭐ **KHÔNG NHẬN LSA MỚI**
-- → ⭐ **KHÔNG chạy lại SPF**
+- →  **LSA `/22` KHÔNG ĐỔI** (vì `/22` vẫn còn `.0.0`, `.2.0`, `.3.0`)
+- → Area 0 và area 2  **KHÔNG NHẬN LSA MỚI**
+- →  **KHÔNG chạy lại SPF**
 
 **Cách đo trong lab:**
 ```
@@ -1311,9 +1311,9 @@ Routing entry for 172.16.0.0/22
 3. Router area 0 thấy `/22` → gửi gói cho ABR
 4. ⚠️ **Nếu không có discard route:** ABR tra bảng route → không có `/24` cụ thể →
    có thể match **default route** hoặc route khác → **gửi gói NGƯỢC ra area 0** → **LOOP**
-5. ✅ **Có discard route:** ABR match `/22 → Null0` → ⭐ **drop gói ngay tại ABR**
+5. ✅ **Có discard route:** ABR match `/22 → Null0` →  **drop gói ngay tại ABR**
 
-⭐ **Đừng xóa nó.** Có thể tắt nhưng không nên:
+ **Đừng xóa nó.** Có thể tắt nhưng không nên:
 ```
 router ospf 1
  no discard-route internal        ! ⚠️ KHÔNG khuyến nghị
@@ -1335,7 +1335,7 @@ show ip route | include Null0
 
 <details><summary>Xem đáp án</summary>
 
-⭐ **`distribute-list <prefix-list|acl> in`**
+ **`distribute-list <prefix-list|acl> in`**
 
 ```
 ip prefix-list PL-X seq 5 deny 172.16.4.0/24
@@ -1361,10 +1361,10 @@ show ip route 172.16.4.0                               ← ❌ route KHÔNG có
 
 🔴 **Vì sao nguy hiểm — BLACK HOLE:**
 - Router A: không có route (đã lọc) — không biết forward `172.16.4.0/24` đi đâu
-- Router B: ⭐ **vẫn thấy LSA đầy đủ**, và LSA đó nói "đi qua A là tới được"
-- → B gửi traffic cho A → **A drop** → ⭐ **black hole**
+- Router B:  **vẫn thấy LSA đầy đủ**, và LSA đó nói "đi qua A là tới được"
+- → B gửi traffic cho A → **A drop** →  **black hole**
 
-⭐ **Muốn lọc THẬT thì dùng trên ABR:**
+ **Muốn lọc THẬT thì dùng trên ABR:**
 ```
 router ospf 1
  area 1 range 172.16.4.0 255.255.255.0 not-advertise     ! LSA không được sinh
@@ -1378,7 +1378,7 @@ router ospf 1
 | | LSDB | RIB local | Router khác biết? |
 |---|:---:|:---:|:---:|
 | `area range not-advertise` / `area filter-list` | ❌ Không có LSA | ❌ | ❌ **Không** |
-| ⭐ `distribute-list in` | ⭐ **Vẫn có** | ❌ | ⭐ **Vẫn biết** → 🔴 black hole |
+| `distribute-list in` | **Vẫn có** | ❌ | **Vẫn biết** → 🔴 black hole |
 </details>
 
 ---
@@ -1392,7 +1392,7 @@ ip prefix-list PL-X seq 5 deny 172.16.2.0/24
 
 🔴 **Chặn HẾT mọi LSA type 3 đi ra khỏi area 1** — không chỉ `172.16.2.0/24`.
 
-**Vì sao:** prefix-list có ⭐ **implicit deny** ở cuối. Prefix nào **không khớp dòng nào**
+**Vì sao:** prefix-list có  **implicit deny** ở cuối. Prefix nào **không khớp dòng nào**
 sẽ bị **deny mặc định**.
 
 Ở đây chỉ có 1 dòng (`deny 172.16.2.0/24`) → mọi prefix khác **không khớp** → bị **implicit deny**
@@ -1415,7 +1415,7 @@ show ip prefix-list detail PL-X
 !    seq 5 deny 172.16.2.0/24 (hit count: 1, refcount: 1)
 !    seq 10 permit 0.0.0.0/0 le 32 (hit count: 8, refcount: 1)
 ```
-⭐ **`hit count`** cho biết prefix-list có thật sự được dùng và mỗi dòng khớp bao nhiêu lần.
+ **`hit count`** cho biết prefix-list có thật sự được dùng và mỗi dòng khớp bao nhiêu lần.
 
 ⚠️ **Đây là lỗi gây downtime thật ở production** — cùng loại với lỗi thiếu catch-all trong
 route-map (Module-03 §2.7).
@@ -1459,7 +1459,7 @@ R-in-area2# show ip route 0.0.0.0
 ! O*IA  0.0.0.0/0 [110/1] via ...        ← đã có
 ```
 
-⭐ **Vì sao Cisco thiết kế khác stub:** NSSA **có ASBR riêng** → rất có thể nó **tự có đường ra**
+ **Vì sao Cisco thiết kế khác stub:** NSSA **có ASBR riêng** → rất có thể nó **tự có đường ra**
 qua ASBR của mình. Tự động inject default route có thể **ghi đè đường đi tốt hơn**
 → Cisco để bạn **chủ động** quyết định.
 
@@ -1479,24 +1479,24 @@ area 2 nssa no-summary                                        ! Totally NSSA →
 
 | # | Điểm | OSPFv2 | **OSPFv3** |
 |:---:|---|---|---|
-| **1** | 🔴 **Router ID** | 32-bit (thường lấy từ IP) | ⭐ **VẪN 32-bit dạng IPv4** → router **IPv6-only phải gõ tay `router-id`**, không thì OSPFv3 **không khởi động** |
-| **2** | ⭐ **Cách bật vào OSPF** | `network <ip> <wildcard> area X` | ⭐ **`ipv6 ospf 1 area X`** trên **interface** |
-| **3** | ⭐ **Địa chỉ nguồn Hello** | IP interface | ⭐ **Link-local (`FE80::/10`)** — next-hop trong bảng route cũng là link-local |
-| **4** | ⭐ **Authentication** | Có sẵn (plain/MD5/SHA) | ⭐ Dùng **IPsec (AH/ESP)** — v3 không có field auth riêng |
-| **5** | ⭐ **Multicast** | 224.0.0.5 / 224.0.0.6 | ⭐ **FF02::5 / FF02::6** |
+| **1** | 🔴 **Router ID** | 32-bit (thường lấy từ IP) | **VẪN 32-bit dạng IPv4** → router **IPv6-only phải gõ tay `router-id`**, không thì OSPFv3 **không khởi động** |
+| **2** | **Cách bật vào OSPF** | `network <ip> <wildcard> area X` | **`ipv6 ospf 1 area X`** trên **interface** |
+| **3** | **Địa chỉ nguồn Hello** | IP interface | **Link-local (`FE80::/10`)** — next-hop trong bảng route cũng là link-local |
+| **4** | **Authentication** | Có sẵn (plain/MD5/SHA) | Dùng **IPsec (AH/ESP)** — v3 không có field auth riêng |
+| **5** | **Multicast** | 224.0.0.5 / 224.0.0.6 | **FF02::5 / FF02::6** |
 
 **Bổ sung hay hỏi:**
 
 | | OSPFv2 | OSPFv3 |
 |---|---|---|
-| LSA mới | — | ⭐ **Type 8 (Link LSA)** + **Type 9 (Intra-Area Prefix LSA)** |
-| LSA 1/2 mang prefix? | ✅ Có | ⭐ **KHÔNG** — chỉ mô tả topology. Prefix ở LSA 9 |
+| LSA mới | — | **Type 8 (Link LSA)** + **Type 9 (Intra-Area Prefix LSA)** |
+| LSA 1/2 mang prefix? | ✅ Có | **KHÔNG** — chỉ mô tả topology. Prefix ở LSA 9 |
 | LSA 3 / LSA 4 gọi là gì | Summary / ASBR Summary | **Inter-Area Prefix** / **Inter-Area Router** |
-| Nhiều instance/link | ❌ | ⭐ ✅ (**Instance ID**) |
-| Ký hiệu route inter-area | `O IA` | ⭐ **`OI`** |
+| Nhiều instance/link | ❌ | ✅ (**Instance ID**) |
+| Ký hiệu route inter-area | `O IA` | **`OI`** |
 | RFC | 2328 | **5340** |
 
-⭐ **GIỐNG NHAU hoàn toàn:** 8 neighbor state · DR/BDR election (non-preemptive) ·
+ **GIỐNG NHAU hoàn toàn:** 8 neighbor state · DR/BDR election (non-preemptive) ·
 5 network type · timer 10/40 và 30/120 · Dijkstra SPF · area & area 0 backbone ·
 stub/NSSA · cost formula.
 
@@ -1511,7 +1511,7 @@ LSA 9 nói *"trên đó có prefix gì"*. Nhờ vậy **đổi địa chỉ IPv6
 
 <details><summary>Xem đáp án</summary>
 
-⭐ Cấu hình trên **ABR của area 1**. Hai cách:
+ Cấu hình trên **ABR của area 1**. Hai cách:
 
 **Cách 1 — `area range ... not-advertise`** (đơn giản nhất cho 1 dải):
 ```
@@ -1527,10 +1527,10 @@ ip prefix-list PL-HIDE seq 10 permit 0.0.0.0/0 le 32     ! đừng quên catch-a
 router ospf 1
  area 1 filter-list prefix PL-HIDE out
 ```
-⭐ `out` = chặn LSA 3 **đi RA khỏi** area 1.
+ `out` = chặn LSA 3 **đi RA khỏi** area 1.
 
 **Cả hai cách đều:** ABR **không sinh LSA type 3** cho `172.16.2.0/24` →
-⭐ **mọi router ở area khác hoàn toàn không biết** mạng này tồn tại → **nhất quán**, không black hole.
+ **mọi router ở area khác hoàn toàn không biết** mạng này tồn tại → **nhất quán**, không black hole.
 
 **Verify:**
 ```
@@ -1557,7 +1557,7 @@ kết nối tới ISP (mất route `0.0.0.0/0` trong RIB). Chuyện gì xảy ra
 <details><summary>Xem đáp án</summary>
 
 🔴 **Router VẪN tiếp tục quảng bá `0.0.0.0/0` vào OSPF** → mọi router trong AS vẫn gửi traffic
-Internet về đây → router này **không có đường ra** → ⭐ **drop toàn bộ traffic → BLACK HOLE**.
+Internet về đây → router này **không có đường ra** →  **drop toàn bộ traffic → BLACK HOLE**.
 
 Và nếu có router biên thứ 2 còn sống, traffic vẫn có thể bị **hút về router chết** này
 (nếu cost tới nó nhỏ hơn).
@@ -1574,7 +1574,7 @@ router ospf 1
 ```
 → Mất default route trong RIB → OSPF **tự động ngừng quảng bá** → traffic chuyển sang router khác.
 
-**Lớp 2 — ⭐ IP SLA + track cho default route** (Module-03 §2.4):
+**Lớp 2 —  IP SLA + track cho default route** (Module-03 §2.4):
 ```
 ip sla 1
  icmp-echo 8.8.8.8 source-interface GigabitEthernet0/0      ! ⚠️ tùy chọn về cú pháp — thiếu thì SLA ping đường khác, track không bao giờ Down
@@ -1597,7 +1597,7 @@ IP SLA ping fail → track 1 Down → static default route bị XÓA khỏi RIB
                  → mọi router chuyển sang router biên khác ✅
 ```
 
-⭐ **Đây là lý do Module-03 (IP SLA) và Module-04B (default origination) phải học cùng nhau** —
+ **Đây là lý do Module-03 (IP SLA) và Module-04B (default origination) phải học cùng nhau** —
 một mình mỗi cái đều không đủ để làm dual-ISP đúng.
 
 **Verify:**
@@ -1615,52 +1615,52 @@ show ip ospf database external 0.0.0.0     ! LSA 5 default có được sinh?
 
 | Tiếng Anh | Tiếng Việt | Ghi chú |
 |---|---|---|
-| **ASBR Summary LSA (Type 4)** | LSA tóm tắt ASBR | ⭐ **ABR** sinh · LS ID = **Router ID của ASBR** · "ASBR ở hướng này" |
-| **AS External LSA (Type 5)** | LSA ngoại vi AS | ⭐ **ASBR** sinh · flood **toàn AS** · route redistribute |
-| **NSSA External LSA (Type 7)** | LSA ngoại vi NSSA | ⭐ **ASBR trong NSSA** sinh · chỉ trong NSSA · ABR dịch → LSA 5 |
+| **ASBR Summary LSA (Type 4)** | LSA tóm tắt ASBR | **ABR** sinh · LS ID = **Router ID của ASBR** · "ASBR ở hướng này" |
+| **AS External LSA (Type 5)** | LSA ngoại vi AS | **ASBR** sinh · flood **toàn AS** · route redistribute |
+| **NSSA External LSA (Type 7)** | LSA ngoại vi NSSA | **ASBR trong NSSA** sinh · chỉ trong NSSA · ABR dịch → LSA 5 |
 | **ASBR** (AS Boundary Router) | Router biên hệ tự trị | Router redistribute route ngoài vào OSPF |
-| **Forward Address** | Địa chỉ chuyển tiếp | ⭐ Trong LSA 7 là **IP của ASBR** (LSA 5 thường là `0.0.0.0`) |
-| **NSSA Translator** | Bộ dịch NSSA | ⭐ **ABR của NSSA** — dịch LSA 7 → LSA 5 |
+| **Forward Address** | Địa chỉ chuyển tiếp | Trong LSA 7 là **IP của ASBR** (LSA 5 thường là `0.0.0.0`) |
+| **NSSA Translator** | Bộ dịch NSSA | **ABR của NSSA** — dịch LSA 7 → LSA 5 |
 | **Normal / Standard area** | Vùng bình thường | Nhận đủ LSA 3, 4, 5 |
-| ⭐ **Stub area** | Vùng cụt | Chặn **LSA 4 + 5**. ABR tự inject default (`O*IA`) |
-| ⭐ **Totally Stubby area** | Vùng cụt hoàn toàn | Chặn **LSA 3 + 4 + 5**. LSDB nhỏ nhất |
-| ⭐ **NSSA** (Not-So-Stubby Area) | Vùng "không hẳn cụt" | Chặn 4+5, ⭐ **cho phép LSA 7** (có ASBR riêng) |
+| **Stub area** | Vùng cụt | Chặn **LSA 4 + 5**. ABR tự inject default (`O*IA`) |
+| **Totally Stubby area** | Vùng cụt hoàn toàn | Chặn **LSA 3 + 4 + 5**. LSDB nhỏ nhất |
+| **NSSA** (Not-So-Stubby Area) | Vùng "không hẳn cụt" | Chặn 4+5,  **cho phép LSA 7** (có ASBR riêng) |
 | **Totally NSSA** | NSSA hoàn toàn | Chặn 3+4+5, cho phép 7 |
-| **`no-summary`** | Không tóm tắt | ⭐ Chặn thêm LSA 3. **CHỈ cấu hình trên ABR** |
-| **E-bit** (External capability) | Bit ngoại vi | ⭐ Trong Hello. `0` = stub · `1` = normal. **Phải khớp** |
+| **`no-summary`** | Không tóm tắt | Chặn thêm LSA 3. **CHỈ cấu hình trên ABR** |
+| **E-bit** (External capability) | Bit ngoại vi | Trong Hello. `0` = stub · `1` = normal. **Phải khớp** |
 | **N-bit** (NSSA capability) | Bit NSSA | Trong Hello, cho NSSA. Phải khớp |
 | **Route summarization** | Tóm tắt route | Gộp nhiều prefix thành 1 prefix ngắn hơn |
-| ⭐ **`area <X> range`** | Dải của area | ⭐ Trên **ABR** — gộp **LSA 3** (inter-area) |
-| ⭐ **`summary-address`** | Địa chỉ tóm tắt | ⭐ Trên **ASBR** — gộp **LSA 5/7** (external) |
-| ⭐ **Discard route** | Route loại bỏ | ⭐ `<summary> → Null0`, IOS tự tạo, **chống loop** |
-| **Contiguous addressing** | Địa chỉ liền mạch | ⭐ Điều kiện để summarize được — phải quy hoạch IP theo area từ đầu |
+| **`area <X> range`** | Dải của area | Trên **ABR** — gộp **LSA 3** (inter-area) |
+| **`summary-address`** | Địa chỉ tóm tắt | Trên **ASBR** — gộp **LSA 5/7** (external) |
+| **Discard route** | Route loại bỏ | `<summary> → Null0`, IOS tự tạo, **chống loop** |
+| **Contiguous addressing** | Địa chỉ liền mạch | Điều kiện để summarize được — phải quy hoạch IP theo area từ đầu |
 | **Black hole** | Hố đen | Traffic bị hút vào rồi drop, không có thông báo |
-| **`not-advertise`** | Không quảng bá | ⭐ Ẩn hẳn 1 dải — LSA 3 không được sinh |
-| ⭐ **`area filter-list`** | Danh sách lọc area | ⭐ Trên **ABR** — lọc **LSA 3** vào (`in`) / ra (`out`) area |
-| ⭐ **`distribute-list ... in`** | Danh sách phân phối | ⭐ Lọc **route vào RIB**, ⭐ **KHÔNG** ảnh hưởng LSDB → 🔴 nguy cơ black hole |
+| **`not-advertise`** | Không quảng bá | Ẩn hẳn 1 dải — LSA 3 không được sinh |
+| **`area filter-list`** | Danh sách lọc area | Trên **ABR** — lọc **LSA 3** vào (`in`) / ra (`out`) area |
+| **`distribute-list ... in`** | Danh sách phân phối | Lọc **route vào RIB**,  **KHÔNG** ảnh hưởng LSDB → 🔴 nguy cơ black hole |
 | **Prefix-list** | Danh sách tiền tố | ⚠️ Có **implicit deny** — cần catch-all `permit 0.0.0.0/0 le 32` |
 | **`le` / `ge`** | Nhỏ hơn/bằng · Lớn hơn/bằng | Giới hạn độ dài mask trong prefix-list |
-| **Catch-all statement** | Câu bắt tất cả | ⭐ `permit 0.0.0.0/0 le 32` — chống implicit deny |
-| **Hit count** | Số lần khớp | ⭐ `show ip prefix-list detail` — kiểm tra filter có hoạt động |
+| **Catch-all statement** | Câu bắt tất cả | `permit 0.0.0.0/0 le 32` — chống implicit deny |
+| **Hit count** | Số lần khớp | `show ip prefix-list detail` — kiểm tra filter có hoạt động |
 | **`default-information originate`** | Khởi tạo thông tin mặc định | Quảng bá `0.0.0.0/0` vào OSPF |
 | ⚠️ **`always`** | Luôn luôn | ⚠️ Quảng bá default **dù không có** trong RIB → nguy cơ black hole |
 | **Candidate default** | Ứng viên mặc định | Ký hiệu `*` trong `O*IA` / `O*E2` |
 | **MD5 authentication** | Xác thực MD5 | `ip ospf authentication message-digest` + `message-digest-key` |
 | **Key chain** | Chuỗi khóa | Dùng cho SHA auth, hỗ trợ rotate key |
-| **`ip ospf authentication null`** | Tắt xác thực | ⭐ Interface-level **thắng** area-level |
+| **`ip ospf authentication null`** | Tắt xác thực | Interface-level **thắng** area-level |
 | **Virtual link** | Liên kết ảo | ⚠️ Vá lỗi area không nối area 0. **Dấu hiệu thiết kế sai** |
 | **Transit area** | Vùng trung chuyển | Area mà virtual link đi qua. 🔴 **Không được là stub/NSSA** |
 | **OSPFv3** | OSPF phiên bản 3 | RFC **5340**, cho IPv6 |
-| ⭐ **Link LSA (Type 8)** | LSA liên kết | ⭐ Mới trong v3 — quảng bá link-local + prefix trên link |
-| ⭐ **Intra-Area Prefix LSA (Type 9)** | LSA tiền tố nội vùng | ⭐ Mới trong v3 — **mang prefix IPv6** (LSA 1/2 không mang) |
-| **Inter-Area Prefix LSA** | LSA tiền tố liên vùng | ⭐ = LSA type 3 của v2, đổi tên |
-| **Inter-Area Router LSA** | LSA router liên vùng | ⭐ = LSA type 4 của v2, đổi tên |
-| **Instance ID** | ID thực thể | ⭐ v3 hỗ trợ nhiều instance OSPF trên 1 link |
+| **Link LSA (Type 8)** | LSA liên kết | Mới trong v3 — quảng bá link-local + prefix trên link |
+| **Intra-Area Prefix LSA (Type 9)** | LSA tiền tố nội vùng | Mới trong v3 — **mang prefix IPv6** (LSA 1/2 không mang) |
+| **Inter-Area Prefix LSA** | LSA tiền tố liên vùng | = LSA type 3 của v2, đổi tên |
+| **Inter-Area Router LSA** | LSA router liên vùng | = LSA type 4 của v2, đổi tên |
+| **Instance ID** | ID thực thể | v3 hỗ trợ nhiều instance OSPF trên 1 link |
 | **Interface ID** | ID interface | Mới trong v3, xuất hiện trong `show ipv6 ospf neighbor` |
-| **Link-local address** | Địa chỉ liên kết cục bộ | ⭐ `FE80::/10` — nguồn Hello và next-hop của OSPFv3 |
+| **Link-local address** | Địa chỉ liên kết cục bộ | `FE80::/10` — nguồn Hello và next-hop của OSPFv3 |
 | **`ipv6 unicast-routing`** | Bật định tuyến IPv6 | 🔴 **BẮT BUỘC** — thiếu là OSPFv3 không chạy |
 | **`OI`** | OSPF Inter-area (IPv6) | Ký hiệu trong `show ipv6 route` (v2 là `O IA`) |
-| **Dual-stack** | Ngăn xếp kép | Chạy IPv4 + IPv6 song song. ⭐ v2 và v3 là **2 process độc lập** |
+| **Dual-stack** | Ngăn xếp kép | Chạy IPv4 + IPv6 song song.  v2 và v3 là **2 process độc lập** |
 
 ---
 
@@ -1668,12 +1668,12 @@ show ip ospf database external 0.0.0.0     ! LSA 5 default có được sinh?
 
 **3 điều rút ra:**
 
-1. ⭐ **Mọi thứ trong module này là câu hỏi "LSA nào bị chặn ở đâu".**
+1.  **Mọi thứ trong module này là câu hỏi "LSA nào bị chặn ở đâu".**
    **Stub** chặn LSA 4+5 · **Totally** chặn thêm LSA 3 · **NSSA** như stub nhưng cho LSA 7.
    Và lệnh chứng minh duy nhất bạn cần: **`show ip ospf database database-summary`** —
    đếm LSA trước và sau khi cấu hình. Trong lab bạn đã tự đo được **18 → 3 LSA**.
 
-2. ⭐ **Summarization không phải để bảng route gọn — mà để chặn LSA flooding.**
+2.  **Summarization không phải để bảng route gọn — mà để chặn LSA flooding.**
    Subnet nhấp nháy trong area không làm area khác chạy lại SPF. Đó là **bức tường chắn sự cố**
    hiệu quả nhất của OSPF. Nhưng nó **đòi hỏi quy hoạch IP theo area NGAY TỪ ĐẦU** —
    không có contiguous addressing thì không summarize được, và sửa sau = re-IP toàn mạng.
@@ -1695,30 +1695,30 @@ LSA có mà route không có = `distribute-list in`, và đó là dấu hiệu c
 
 | # | Câu | ✅ |
 |:---:|---|:---:|
-| 1 | LSA type 4: ai sinh, LS ID là gì, ⭐ **vì sao cần tồn tại**? | ☐ |
+| 1 | LSA type 4: ai sinh, LS ID là gì,  **vì sao cần tồn tại**? | ☐ |
 | 2 | LSA type 5: ai sinh, flood tới đâu? | ☐ |
 | 3 | LSA type 7: ai sinh, flood tới đâu, ai dịch thành LSA 5? | ☐ |
 | 4 | `Forward Address` trong LSA 7 khác LSA 5 thế nào? | ☐ |
-| 5 | ⭐ Điền bảng 5 area type: chặn LSA nào, default route tự động không? | ☐ |
+| 5 | Điền bảng 5 area type: chặn LSA nào, default route tự động không? | ☐ |
 | 6 | `no-summary` cấu hình ở đâu? Khai sai chỗ thì sao? | ☐ |
 | 7 | Area type khai ở đâu? Thiếu 1 router thì sao? Bit nào gây lỗi? | ☐ |
 | 8 | Area 0 / area có ASBR có thể là stub không? Vì sao? | ☐ |
 | 9 | 🔴 NSSA có tự động default route không? Vì sao Cisco thiết kế vậy? | ☐ |
 | 10 | Default route trong stub là loại LSA nào? Ký hiệu route là gì? | ☐ |
-| 11 | ⭐ `area range` vs `summary-address`: ở đâu, gộp gì? | ☐ |
-| 12 | ⭐ Lợi ích **lớn nhất** của summarization? Cơ chế? | ☐ |
+| 11 | `area range` vs `summary-address`: ở đâu, gộp gì? | ☐ |
+| 12 | Lợi ích **lớn nhất** của summarization? Cơ chế? | ☐ |
 | 13 | Metric của summary route (mặc định)? Cách ép? | ☐ |
 | 14 | Discard route Null0 là gì, vì sao cần? | ☐ |
-| 15 | ⭐ 3 cách filtering, mỗi cách ở đâu, ảnh hưởng LSDB không? | ☐ |
+| 15 | 3 cách filtering, mỗi cách ở đâu, ảnh hưởng LSDB không? | ☐ |
 | 16 | 🔴 Vì sao `distribute-list in` nguy hiểm? | ☐ |
 | 17 | `area filter-list in` vs `out` — chiều nào là gì? | ☐ |
 | 18 | Prefix-list thiếu catch-all → hậu quả? Dòng catch-all viết thế nào? | ☐ |
 | 19 | `default-information originate` vs `always` — rủi ro? Cách làm đúng? | ☐ |
 | 20 | Auth: interface-level vs area-level, cái nào thắng? Cách tắt trên 1 interface? | ☐ |
 | 21 | Virtual link: dùng gì chỉ đầu kia, transit area có điều kiện gì? | ☐ |
-| 22 | ⭐ 5 điểm khác biệt OSPFv3 vs OSPFv2? | ☐ |
+| 22 | 5 điểm khác biệt OSPFv3 vs OSPFv2? | ☐ |
 | 23 | 🔴 Vì sao router IPv6-only phải gõ tay `router-id` OSPFv3? | ☐ |
-| 24 | ⭐ LSA type 8 và 9 của OSPFv3 làm gì? Ý nghĩa kiến trúc? | ☐ |
+| 24 | LSA type 8 và 9 của OSPFv3 làm gì? Ý nghĩa kiến trúc? | ☐ |
 | 25 | Ký hiệu route OSPFv3 inter-area? Next-hop là loại địa chỉ gì? | ☐ |
 
 **Phần B — Lab (tự làm không xem hướng dẫn):**
@@ -1726,35 +1726,35 @@ LSA có mà route không có = `distribute-list in`, và đó là dấu hiệu c
 | # | Yêu cầu | ✅ |
 |:---:|---|:---:|
 | 1 | Biến R4 thành **ASBR** (redistribute static + connected có route-map lọc) | ☐ |
-| 2 | ⭐ Đọc **LSA 5**: chỉ ra `Advertising Router` = ASBR, `Metric Type 2`, `Metric 20` | ☐ |
-| 3 | ⭐⭐ Đọc **LSA 4**: chỉ ra `LS ID` = Router ID của ASBR, `ADV Router` = ABR | ☐ |
+| 2 | Đọc **LSA 5**: chỉ ra `Advertising Router` = ASBR, `Metric Type 2`, `Metric 20` | ☐ |
+| 3 | Đọc **LSA 4**: chỉ ra `LS ID` = Router ID của ASBR, `ADV Router` = ABR | ☐ |
 | 4 | Dùng `show ip ospf border-routers` chỉ ra ASBR + cost tới nó | ☐ |
 | 5 | So sánh `O E1` vs `O E2` trong **cùng một** bảng route, giải thích metric | ☐ |
-| 6 | ⭐⭐ Biến area 1 thành **Stub** → **chứng minh LSA 4 và 5 = 0** bằng `database-summary` | ☐ |
+| 6 | Biến area 1 thành **Stub** → **chứng minh LSA 4 và 5 = 0** bằng `database-summary` | ☐ |
 | 7 | Chỉ ra default route `O*IA` và giải thích vì sao là **LSA 3** chứ không phải LSA 5 | ☐ |
-| 8 | ⭐ Tái hiện lỗi **quên khai stub trên 1 router** → mất neighbor → sửa | ☐ |
-| 9 | ⭐⭐ Biến thành **Totally Stubby** → chứng minh chỉ còn **1 LSA 3** (default) và **1 route OSPF** | ☐ |
-| 10 | ⭐ Điền đầy đủ bảng so sánh LSA count: **Normal 18 → Stub 12 → Totally Stub 3** | ☐ |
+| 8 | Tái hiện lỗi **quên khai stub trên 1 router** → mất neighbor → sửa | ☐ |
+| 9 | Biến thành **Totally Stubby** → chứng minh chỉ còn **1 LSA 3** (default) và **1 route OSPF** | ☐ |
+| 10 | Điền đầy đủ bảng so sánh LSA count: **Normal 18 → Stub 12 → Totally Stub 3** | ☐ |
 | 11 | Chứng minh khai `no-summary` trên router nội bộ **không có tác dụng** | ☐ |
 | 12 | Tạo ASBR trong area 2, cấu hình **NSSA** | ☐ |
-| 13 | ⭐ Đọc **LSA 7**: chỉ ra `Forward Address` ≠ `0.0.0.0` | ☐ |
-| 14 | ⭐ Chứng minh **LSA 7 → LSA 5** ở ABR (so LSDB của R3 và R2) | ☐ |
+| 13 | Đọc **LSA 7**: chỉ ra `Forward Address` ≠ `0.0.0.0` | ☐ |
+| 14 | Chứng minh **LSA 7 → LSA 5** ở ABR (so LSDB của R3 và R2) | ☐ |
 | 15 | 🔴 Chứng minh **NSSA không có default route** → thêm `default-information-originate` → có | ☐ |
-| 16 | ⭐⭐ Cấu hình `area range` gộp 4 subnet `/24` → **1 route `/22`**, xác nhận **4 LSA → 1 LSA** | ☐ |
-| 17 | ⭐ Chỉ ra **discard route Null0** trên ABR và test nó drop gói tới subnet không tồn tại | ☐ |
+| 16 | Cấu hình `area range` gộp 4 subnet `/24` → **1 route `/22`**, xác nhận **4 LSA → 1 LSA** | ☐ |
+| 17 | Chỉ ra **discard route Null0** trên ABR và test nó drop gói tới subnet không tồn tại | ☐ |
 | 18 | Ép metric summary bằng `... cost 500` và verify | ☐ |
-| 19 | ⭐⭐ **ĐO lợi ích summarization**: đếm `SPF algorithm executed` trên R3, làm subnet area 1 nhấp nháy, so **có** vs **không** summarize | ☐ |
+| 19 | **ĐO lợi ích summarization**: đếm `SPF algorithm executed` trên R3, làm subnet area 1 nhấp nháy, so **có** vs **không** summarize | ☐ |
 | 20 | Cấu hình `summary-address` trên **ASBR** gộp 4 external → 1 route | ☐ |
 | 21 | Filtering cách 1: `area range ... not-advertise` → LSA không tồn tại | ☐ |
 | 22 | Filtering cách 2: `area filter-list prefix ... out` và `... in`, hiểu đúng chiều | ☐ |
 | 23 | 🔴 Tái hiện lỗi **prefix-list thiếu catch-all** → mất gần hết route → sửa | ☐ |
-| 24 | ⭐⭐ Filtering cách 3: `distribute-list in` → **chứng minh LSA VẪN CÓ mà route KHÔNG CÓ** | ☐ |
+| 24 | Filtering cách 3: `distribute-list in` → **chứng minh LSA VẪN CÓ mà route KHÔNG CÓ** | ☐ |
 | 25 | Điền bảng so sánh 3 cách filtering (LSDB / RIB / router khác có biết) | ☐ |
 | 26 | Bật **MD5 auth** trên link, tái hiện lỗi key lệch → sửa | ☐ |
 | 27 | Test **interface-level thắng area-level** bằng `ip ospf authentication null` | ☐ |
-| 28 | ⭐ Cấu hình **OSPFv3** trên ít nhất 2 router, neighbor `FULL` | ☐ |
-| 29 | ⭐ Đọc `show ipv6 ospf interface`: chỉ ra `Link Local Address`, `Interface ID`, `Instance ID` | ☐ |
-| 30 | ⭐⭐ Đọc `show ipv6 ospf database`: chỉ ra **Link (Type-8)** và **Intra Area Prefix (Type-9)** | ☐ |
+| 28 | Cấu hình **OSPFv3** trên ít nhất 2 router, neighbor `FULL` | ☐ |
+| 29 | Đọc `show ipv6 ospf interface`: chỉ ra `Link Local Address`, `Interface ID`, `Instance ID` | ☐ |
+| 30 | Đọc `show ipv6 ospf database`: chỉ ra **Link (Type-8)** và **Intra Area Prefix (Type-9)** | ☐ |
 | 31 | Chỉ ra ký hiệu **`OI`** và **next-hop là link-local** trong `show ipv6 route ospf` | ☐ |
 | 32 | Tái hiện lỗi thiếu **`ipv6 unicast-routing`** → OSPFv3 không chạy | ☐ |
 | 33 | Cố ý phá 1 thứ bất kỳ, tự tìm ra bằng **4 câu hỏi §7.3** trong 10 phút | ☐ |
@@ -1763,7 +1763,7 @@ LSA có mà route không có = `distribute-list in`, và đó là dấu hiệu c
 > Nếu tick được hết Phần B thì bạn đã nắm **toàn bộ OSPF ở mức ENCOR** —
 > phần lớn nhất của domain Infrastructure (30% đề).
 >
-> ⭐ **Nếu chỉ có thời gian làm một nửa:** ưu tiên **mục 6–10** (chứng minh LSA bị chặn),
+> **Nếu chỉ có thời gian làm một nửa:** ưu tiên **mục 6–10** (chứng minh LSA bị chặn),
 > **mục 16–19** (summarization + đo SPF), và **mục 24** (`distribute-list in` không ảnh hưởng LSDB).
 > Ba phần đó là ba câu hỏi mà đề ENCOR hỏi nhiều nhất, và cũng là ba thứ có giá trị nhất khi đi làm.
 
@@ -1774,18 +1774,18 @@ LSA có mà route không có = `distribute-list in`, và đó là dấu hiệu c
 | Nguồn | Cụ thể |
 |---|---|
 | **Sách OCG 350-401** | Chương **OSPF** thứ hai (thường *"Advanced OSPF"*) — area types, LSA 4/5/7, summarization, filtering + chương **OSPFv3** |
-| **Cisco doc** ⭐⭐ | ***OSPF Design Guide*** — phần *Area Types*, *Stub Areas*, *NSSA*, *Route Summarization*. **Tài liệu tốt nhất về vì sao**, không chỉ cách làm |
-| **Cisco doc** ⭐ | *IP Routing: OSPF Configuration Guide* → *Configuring OSPF NSSA*, *Configuring OSPF Stub Areas*, *Configuring Route Summarization* |
-| **Cisco doc** ⭐ | *OSPF Not-So-Stubby Area (NSSA)* — giải thích chi tiết type 7 → 5 translation |
-| **Cisco doc** ⭐ | *OSPF Database Explanation Guide* — từng field của LSA type 4, 5, 7 |
+| **Cisco doc**  | ***OSPF Design Guide*** — phần *Area Types*, *Stub Areas*, *NSSA*, *Route Summarization*. **Tài liệu tốt nhất về vì sao**, không chỉ cách làm |
+| **Cisco doc**  | *IP Routing: OSPF Configuration Guide* → *Configuring OSPF NSSA*, *Configuring OSPF Stub Areas*, *Configuring Route Summarization* |
+| **Cisco doc**  | *OSPF Not-So-Stubby Area (NSSA)* — giải thích chi tiết type 7 → 5 translation |
+| **Cisco doc**  | *OSPF Database Explanation Guide* — từng field của LSA type 4, 5, 7 |
 | **Cisco doc** | *How Does OSPF Generate Default Routes?* — giải thích `default-information originate` và `always` |
 | **Cisco doc** | *Understanding OSPF Filtering* — phân biệt `area filter-list`, `distribute-list`, `area range not-advertise` |
 | **Cisco doc** | *OSPF Virtual Link* · *Configuring OSPF Authentication* |
-| **Cisco doc** ⭐ | *Implementing OSPFv3* / *IPv6 Routing: OSPFv3 Configuration Guide* |
+| **Cisco doc**  | *Implementing OSPFv3* / *IPv6 Routing: OSPFv3 Configuration Guide* |
 | **RFC 3101** | The OSPF NSSA Option — nguồn gốc của NSSA |
 | **RFC 5340** | OSPF for IPv6 — đọc **Section 2 (Differences from OSPF for IPv4)** nếu muốn nguồn gốc |
-| **Cisco Live** ⭐ | Search `Cisco Live OSPF deployment best practices` · `Cisco Live IPv6 routing OSPFv3` |
-| **NetworkLessons** ⭐ | Loạt bài *OSPF Stub Area*, *OSPF NSSA*, *OSPF Summarization*, *OSPF Filtering*, *OSPFv3* |
+| **Cisco Live**  | Search `Cisco Live OSPF deployment best practices` · `Cisco Live IPv6 routing OSPFv3` |
+| **NetworkLessons**  | Loạt bài *OSPF Stub Area*, *OSPF NSSA*, *OSPF Summarization*, *OSPF Filtering*, *OSPFv3* |
 | **Video** | CBT Nuggets ENCOR — module Advanced OSPF · Keith Barker: search `Keith Barker OSPF stub NSSA`, `Keith Barker OSPFv3` |
 | **Wireshark** | Filter `ospf` → xem **E-bit** trong Hello (Options field) để hiểu vì sao stub mismatch gây mất neighbor. Filter `ospf.v3` cho OSPFv3 |
 | **Forum** | https://community.cisco.com — search `nssa default route not working`, `ospf distribute-list in lsdb`, `ospfv3 router-id ipv6 only` |

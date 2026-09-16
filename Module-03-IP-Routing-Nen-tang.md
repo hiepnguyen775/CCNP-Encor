@@ -1003,33 +1003,33 @@ nên nó có thể **thắng route gốc** → traffic đi đường vòng.
 
 | # | Bẫy | Sự thật |
 |:---:|---|---|
-| 1 | ⭐ *"AD nhỏ hơn thì luôn thắng"* | ❌ **Longest prefix match ĐỨNG TRƯỚC AD.** `/24` RIP thắng `/16` OSPF |
+| 1 | *"AD nhỏ hơn thì luôn thắng"* | ❌ **Longest prefix match ĐỨNG TRƯỚC AD.** `/24` RIP thắng `/16` OSPF |
 | 2 | *"Blueprint ENCOR yêu cầu cấu hình EIGRP"* | ❌ Chỉ **compare** EIGRP với OSPF. Cấu hình thì chỉ **OSPF** và **eBGP** |
-| 3 | EIGRP là loại protocol gì | ⭐ **Advanced Distance Vector** (không phải link-state, không phải "hybrid" theo cách gọi cũ) |
+| 3 | EIGRP là loại protocol gì | **Advanced Distance Vector** (không phải link-state, không phải "hybrid" theo cách gọi cũ) |
 | 4 | Thuật toán EIGRP / OSPF | **DUAL** / **Dijkstra SPF** |
-| 5 | ⭐ Protocol nào hỗ trợ **unequal-cost load balancing** | **EIGRP** (`variance`). OSPF **chỉ** equal-cost |
-| 6 | ⭐ MTU có trong công thức metric EIGRP? | ❌ **KHÔNG.** Mặc định chỉ **Bandwidth (K1) + Delay (K3)**. MTU chỉ được gửi kèm |
+| 5 | Protocol nào hỗ trợ **unequal-cost load balancing** | **EIGRP** (`variance`). OSPF **chỉ** equal-cost |
+| 6 | MTU có trong công thức metric EIGRP? | ❌ **KHÔNG.** Mặc định chỉ **Bandwidth (K1) + Delay (K3)**. MTU chỉ được gửi kèm |
 | 7 | EIGRP metric: bandwidth lấy thế nào? Delay? | Bandwidth = **NHỎ NHẤT** trên đường (bottleneck) · Delay = **CỘNG DỒN** |
-| 8 | Feasibility Condition | ⭐ **RD < FD** (neighbor phải gần đích hơn tôi) |
+| 8 | Feasibility Condition | **RD < FD** (neighbor phải gần đích hơn tôi) |
 | 9 | SIA là gì | **Stuck-In-Active** — query lan quá xa / không ai trả lời → route bị xóa |
-| 10 | EIGRP summarization ở đâu | ⭐ **Bất kỳ đâu.** OSPF **chỉ ở ABR/ASBR** |
+| 10 | EIGRP summarization ở đâu | **Bất kỳ đâu.** OSPF **chỉ ở ABR/ASBR** |
 | 11 | AD của EIGRP internal / external | **90** / **170** |
 | 12 | Multicast: EIGRP / OSPF | **224.0.0.10** / **224.0.0.5** và **224.0.0.6** |
 | 13 | IP protocol number: EIGRP / OSPF | **88** / **89** |
-| 14 | ⭐ Seed metric khi redistribute vào **EIGRP/RIP** | ⚠️ **INFINITE** → **bắt buộc** chỉ định metric, nếu không route bị bỏ |
+| 14 | Seed metric khi redistribute vào **EIGRP/RIP** | ⚠️ **INFINITE** → **bắt buộc** chỉ định metric, nếu không route bị bỏ |
 | 15 | Seed metric khi redistribute vào **OSPF** | **20** (từ BGP: **1**), type **E2** |
 | 16 | Thiếu `subnets` khi redistribute vào OSPF | Chỉ redistribute **classful network**, **bỏ hết subnet** |
-| 17 | ⭐ **E1 vs E2** | **E1** = external + internal cost tới ASBR (chọn ASBR gần) · **E2** = **chỉ** external, không đổi toàn domain |
+| 17 | **E1 vs E2** | **E1** = external + internal cost tới ASBR (chọn ASBR gần) · **E2** = **chỉ** external, không đổi toàn domain |
 | 18 | Thứ tự ưu tiên route OSPF | **Intra (O) → Inter (O IA) → E1 → E2**. Áp dụng **trước** khi so metric |
 | 19 | Static route trong config mà không trong `show ip route` | **Recursive lookup thất bại** — next-hop không reachable |
-| 20 | ⭐ Floating static có phát hiện "đích chết, link up"? | ❌ **KHÔNG.** Cần **IP SLA + track** |
+| 20 | Floating static có phát hiện "đích chết, link up"? | ❌ **KHÔNG.** Cần **IP SLA + track** |
 | 21 | Quên `ip sla schedule ... start-time now` | SLA **không chạy** → track Down → route bị xóa. Kiểm tra `Operation time to live` |
 | 22 | IP SLA thiếu `source-interface` | ⚠️ SLA ping theo bảng route → có thể đi qua đường dự phòng → **không bao giờ phát hiện lỗi** |
 | 23 | AD 255 nghĩa là gì | **Không cài vào RIB** |
-| 24 | Route-map không có `match` | ⭐ Khớp **MỌI THỨ** (catch-all) |
-| 25 | Cuối route-map có gì | ⭐ **Implicit deny** — route không khớp dòng nào bị loại |
+| 24 | Route-map không có `match` | Khớp **MỌI THỨ** (catch-all) |
+| 25 | Cuối route-map có gì | **Implicit deny** — route không khớp dòng nào bị loại |
 | 26 | Nhiều `match` cùng dòng vs khác dòng | Cùng dòng (`match ip address 1 2`) = **OR** · Khác loại `match` = **AND** |
-| 27 | ⭐ Chống mutual redistribution loop | **Route tag** (tốt nhất) · prefix-list · đổi AD (dễ sai) |
+| 27 | Chống mutual redistribution loop | **Route tag** (tốt nhất) · prefix-list · đổi AD (dễ sai) |
 | 28 | Tag được mang ở đâu trong OSPF | **LSA type 5** — trường `External Route Tag` |
 
 ---
@@ -1089,18 +1089,18 @@ debug ip policy                               ! ⚠️ chỉ lab
 
 | # | Triệu chứng | Nguyên nhân | Cách sửa |
 |:---:|---|---|---|
-| 1 | Static route trong `show run` mà **không** trong `show ip route` | ⭐ **Recursive lookup thất bại** — next-hop không reachable | `ping <next-hop>` · `show ip route <next-hop>` · dùng **fully specified** (`Gi0/0 10.0.12.2`) |
-| 2 | Route "vô lý" được chọn thay vì route bạn mong đợi | Longest prefix match — có route cụ thể hơn | ⭐ `show ip route <ip đích>` → xem prefix nào đang thắng |
+| 1 | Static route trong `show run` mà **không** trong `show ip route` | **Recursive lookup thất bại** — next-hop không reachable | `ping <next-hop>` · `show ip route <next-hop>` · dùng **fully specified** (`Gi0/0 10.0.12.2`) |
+| 2 | Route "vô lý" được chọn thay vì route bạn mong đợi | Longest prefix match — có route cụ thể hơn | `show ip route <ip đích>` → xem prefix nào đang thắng |
 | 3 | Route mong đợi không được dùng dù AD tốt | Có route prefix **dài hơn** từ nguồn khác | `show ip route <ip>` · so prefix, không so AD trước |
-| 4 | Redistribute rồi mà bên kia **không có route** | ⭐ Vào EIGRP/RIP: **thiếu metric** · Vào OSPF: **thiếu `subnets`** · route-map implicit deny | `show ip protocols` · thêm `metric`/`default-metric` · thêm `subnets` · thêm dòng catch-all vào route-map |
+| 4 | Redistribute rồi mà bên kia **không có route** | Vào EIGRP/RIP: **thiếu metric** · Vào OSPF: **thiếu `subnets`** · route-map implicit deny | `show ip protocols` · thêm `metric`/`default-metric` · thêm `subnets` · thêm dòng catch-all vào route-map |
 | 5 | Redistribute chỉ vào **một phần** subnet | Thiếu `subnets` (chỉ classful) | Thêm `subnets` |
 | 6 | Route external có metric **không đổi** dù đi xa | ✅ Bình thường — đây là **E2** | Muốn phản ánh khoảng cách → dùng `metric-type 1` |
 | 7 | Traffic ra Internet chọn ASBR **xa** thay vì gần | Dùng **E2** (không tính internal cost) | Chuyển sang **E1** (`metric-type 1`) trên mọi ASBR |
-| 8 | ⭐ Routing loop / route "nhảy qua nhảy lại" sau khi thêm điểm redistribute thứ 2 | **Mutual redistribution không có tag** | Thêm **route tag**: `set tag` khi ra, `match tag` + `deny` khi vào |
-| 9 | Route bị mất bất ngờ sau khi thêm route-map | ⭐ **Implicit deny** ở cuối route-map | Thêm dòng catch-all: `route-map X permit 999` (không có `match`) |
-| 10 | Route-map "không có tác dụng" | Chưa được gọi, hoặc match không khớp | ⭐ `show route-map` → xem **counter**. Counter = 0 → không được gọi hoặc không khớp |
-| 11 | ⭐ IP SLA `Number of successes: 0`, `time to live: 0` | ⭐ **Quên `ip sla schedule <n> life forever start-time now`** | Thêm dòng schedule |
-| 12 | Track luôn `Up` dù đường chính đã chết | ⭐ **Thiếu `source-interface`** → SLA ping qua đường dự phòng | Thêm `source-interface <if đường chính>` |
+| 8 | Routing loop / route "nhảy qua nhảy lại" sau khi thêm điểm redistribute thứ 2 | **Mutual redistribution không có tag** | Thêm **route tag**: `set tag` khi ra, `match tag` + `deny` khi vào |
+| 9 | Route bị mất bất ngờ sau khi thêm route-map | **Implicit deny** ở cuối route-map | Thêm dòng catch-all: `route-map X permit 999` (không có `match`) |
+| 10 | Route-map "không có tác dụng" | Chưa được gọi, hoặc match không khớp | `show route-map` → xem **counter**. Counter = 0 → không được gọi hoặc không khớp |
+| 11 | IP SLA `Number of successes: 0`, `time to live: 0` | **Quên `ip sla schedule <n> life forever start-time now`** | Thêm dòng schedule |
+| 12 | Track luôn `Up` dù đường chính đã chết | **Thiếu `source-interface`** → SLA ping qua đường dự phòng | Thêm `source-interface <if đường chính>` |
 | 13 | Track `Down` ngay khi vừa cấu hình | SLA chưa chạy đủ chu kỳ, hoặc đích không ping được từ đầu | `show ip sla statistics` · thử ping tay từ đúng source |
 | 14 | Route flapping liên tục (up/down/up) | Thiếu `delay down/up` trong track, hoặc `frequency` quá ngắn | `track <n> ip sla <n> reachability` → `delay down 3 up 10` |
 | 15 | Failover xảy ra nhưng **không hồi phục** | `delay up` quá lớn, hoặc SLA vẫn fail qua đường chính | `show track` xem `Reachability` · `show ip sla stat` |
@@ -1146,7 +1146,7 @@ debug ip policy                               ! ⚠️ chỉ lab
    show ip policy                   → PBR
 ```
 
-> ⭐ **Bước 4 là bước phân biệt người mới với người có kinh nghiệm.** Người mới nhìn `show ip route`
+> **Bước 4 là bước phân biệt người mới với người có kinh nghiệm.** Người mới nhìn `show ip route`
 > rồi nói "route sai". Người có kinh nghiệm đọc **prefix → AD → metric** theo đúng thứ tự
 > và giải thích được **vì sao** router chọn như vậy — rồi mới quyết định sửa gì.
 
@@ -1177,7 +1177,7 @@ Bước 1 — Longest prefix match. Kiểm tra route nào **khớp** `172.16.5.1
 
 → `/24` thắng. **AD 120 (tệ nhất) không quan trọng** vì AD chỉ được xét khi các route **cùng prefix**.
 
-⭐ Đây là bẫy đề số 1 của module này.
+ Đây là bẫy đề số 1 của module này.
 </details>
 
 ---
@@ -1209,9 +1209,9 @@ unequal-cost LB, summarization, multicast, protocol number). **Không cần** la
 |---|---|---|
 | **1. Loại protocol** | Advanced **Distance Vector** | **Link-State** |
 | **2. Thuật toán** | **DUAL** | **Dijkstra SPF** |
-| **3. Unequal-cost LB** | ⭐ **CÓ** (`variance`) | ⭐ **KHÔNG** (chỉ ECMP) |
-| **4. Summarization** | ⭐ **Bất kỳ đâu** | ⭐ **Chỉ ABR/ASBR** |
-| **5. Cần thiết kế phân cấp** | ❌ Không bắt buộc | ⭐ **Có** (area, area 0 backbone) |
+| **3. Unequal-cost LB** | **CÓ** (`variance`) | **KHÔNG** (chỉ ECMP) |
+| **4. Summarization** | **Bất kỳ đâu** | **Chỉ ABR/ASBR** |
+| **5. Cần thiết kế phân cấp** | ❌ Không bắt buộc | **Có** (area, area 0 backbone) |
 
 **Bổ sung hay hỏi:**
 - Metric: EIGRP = composite **Bandwidth + Delay** · OSPF = **cost = ref-bw / int-bw**
@@ -1270,7 +1270,7 @@ Metric = 256 × [ (10^7 / min-bandwidth-kbps) + (tổng delay-microsec / 10) ]
 Load (K2) và Reliability (K4) cũng tắt mặc định — bật lên sẽ gây **route flapping**
 vì chúng thay đổi liên tục theo tải.
 
-⭐ Đây là bẫy đề rất phổ biến.
+ Đây là bẫy đề rất phổ biến.
 </details>
 
 ---
@@ -1284,8 +1284,8 @@ không có log lỗi. Nguyên nhân?
 
 | Redistribute VÀO | Seed metric mặc định | Cần chỉ định tay? |
 |---|---|:---:|
-| **EIGRP** | ⚠️ **INFINITE** | ⭐ **BẮT BUỘC** |
-| **RIP** | ⚠️ **INFINITE** | ⭐ **BẮT BUỘC** |
+| **EIGRP** | ⚠️ **INFINITE** | **BẮT BUỘC** |
+| **RIP** | ⚠️ **INFINITE** | **BẮT BUỘC** |
 | OSPF | 20 (từ BGP: 1) | ❌ Không cần |
 | BGP | Metric IGP → MED | ❌ Không cần |
 
@@ -1301,7 +1301,7 @@ router eigrp 100
  redistribute static
 ```
 
-⭐ Đây là nguyên nhân của rất nhiều giờ debug vô ích. Ghi vào sổ tay lỗi.
+ Đây là nguyên nhân của rất nhiều giờ debug vô ích. Ghi vào sổ tay lỗi.
 </details>
 
 ---
@@ -1315,8 +1315,8 @@ Bạn muốn mỗi router nội bộ ra Internet qua **ASBR gần nhất**. Dùn
 
 | | **E2** (mặc định) | **E1** |
 |---|---|---|
-| Metric | **Chỉ** external cost — **không đổi** trong toàn domain | ⭐ External cost **+ internal cost tới ASBR** |
-| Phân biệt ASBR gần/xa? | ❌ Cả 2 ASBR cùng metric 20 | ⭐ ✅ ASBR gần có metric nhỏ hơn |
+| Metric | **Chỉ** external cost — **không đổi** trong toàn domain | External cost **+ internal cost tới ASBR** |
+| Phân biệt ASBR gần/xa? | ❌ Cả 2 ASBR cùng metric 20 | ✅ ASBR gần có metric nhỏ hơn |
 
 Với **E2**: mọi router nội bộ thấy `0.0.0.0/0` metric 20 từ **cả hai** ASBR
 → không phân biệt được → có thể ECMP hoặc chọn theo forward metric (không đảm bảo).
@@ -1365,7 +1365,7 @@ ping 172.16.99.99                   ! reachable không?
    ip route 10.5.5.0 255.255.255.0 GigabitEthernet0/0
    ```
 
-⭐ **Cách phát hiện nhanh:** so sánh
+ **Cách phát hiện nhanh:** so sánh
 `show running-config | include ip route` (đã cấu hình) với
 `show ip route static` (đã vào RIB). Chênh lệch = recursion fail.
 </details>
@@ -1404,9 +1404,9 @@ ip route 0.0.0.0 0.0.0.0 198.51.100.2 200                  ! ISP2 dự phòng
 ```
 
 **Hai điểm dễ sai nhất:**
-1. ⭐ **Quên `ip sla schedule`** → SLA không chạy → track Down ngay → route bị xóa.
+1.  **Quên `ip sla schedule`** → SLA không chạy → track Down ngay → route bị xóa.
    Kiểm tra: `show ip sla statistics 1` → `Operation time to live` phải là `Forever`
-2. ⭐ **Thiếu `source-interface`** → SLA ping theo bảng route → khi ISP1 chết nó ping qua ISP2
+2.  **Thiếu `source-interface`** → SLA ping theo bảng route → khi ISP1 chết nó ping qua ISP2
    và báo "OK" → **track không bao giờ Down**. Lỗi rất khó tìm
 
 **Nâng cao:** dùng `track <n> list boolean and` với 2–3 đích khác nhau —
@@ -1437,9 +1437,9 @@ route-map RM permit 20
 |---|---|---|
 | `10.1.1.0/24` | ❌ **Bị loại** | Khớp `deny 10` (tag 100) → dừng ngay |
 | `10.2.2.0/24` | ✅ **Được redistribute, metric 50** | Không khớp deny 10 → khớp `permit 20` |
-| `10.3.3.0/24` | ❌ **Bị loại** | Không khớp dòng nào → ⭐ **implicit deny** ở cuối route-map |
+| `10.3.3.0/24` | ❌ **Bị loại** | Không khớp dòng nào →  **implicit deny** ở cuối route-map |
 
-⭐ **Nếu bạn muốn `10.3.3.0/24` được redistribute** (chỉ chặn tag 100), phải thêm **catch-all**:
+ **Nếu bạn muốn `10.3.3.0/24` được redistribute** (chỉ chặn tag 100), phải thêm **catch-all**:
 ```
 route-map RM permit 999
 !  (không có match → khớp MỌI THỨ còn lại)
@@ -1498,7 +1498,7 @@ redistribute khác → bị nhận diện và **từ chối**.
 **Hai cách khác** (kém hơn): prefix-list/distribute-list (phải bảo trì danh sách),
 đổi AD (dễ gây loop mới nếu không đồng bộ).
 
-⭐ **Thực chiến:** dùng tag **ngay từ ngày đầu**, kể cả khi mới có 1 điểm redistribute.
+ **Thực chiến:** dùng tag **ngay từ ngày đầu**, kể cả khi mới có 1 điểm redistribute.
 Chi phí bằng 0, và ngày bạn thêm điểm thứ 2 sẽ không thành sự cố.
 </details>
 
@@ -1516,7 +1516,7 @@ Operation time to live: 0
 
 <details><summary>Xem đáp án</summary>
 
-⭐ **`Operation time to live: 0` + `successes: 0` + `failures: 0`** → **SLA chưa bao giờ chạy.**
+ **`Operation time to live: 0` + `successes: 0` + `failures: 0`** → **SLA chưa bao giờ chạy.**
 
 **Nguyên nhân: quên dòng schedule.**
 
@@ -1552,7 +1552,7 @@ show track 1
 |---|---|---|
 | **RIB** (Routing Information Base) | Cơ sở dữ liệu định tuyến | `show ip route` |
 | **FIB** (Forwarding Information Base) | Cơ sở dữ liệu chuyển tiếp | `show ip cef` (Module-01) |
-| **Longest prefix match** | Khớp tiền tố dài nhất | ⭐ **Bước 1**, đứng trước AD |
+| **Longest prefix match** | Khớp tiền tố dài nhất | **Bước 1**, đứng trước AD |
 | **Administrative Distance (AD)** | Khoảng cách quản trị | Mức tin cậy nguồn route. Bước 2 |
 | Metric | Số đo / chi phí | Trong cùng protocol. Bước 3 |
 | **ECMP** (Equal-Cost Multi-Path) | Đa đường chi phí bằng nhau | Cùng prefix, cùng AD, cùng metric |
@@ -1564,35 +1564,35 @@ show track 1
 | **IP SLA** | Thỏa thuận mức dịch vụ IP | Chủ động đo/ping để kiểm tra đường |
 | **Object tracking** | Theo dõi đối tượng | Nối kết quả IP SLA vào route/HSRP/PBR |
 | Reachability | Khả năng tới được | Loại track hay dùng nhất |
-| `delay down/up` | Độ trễ báo xuống/lên | ⭐ Chống route flapping |
-| `source-interface` | Interface nguồn | ⭐ Bắt buộc — để SLA đi đúng đường cần kiểm |
+| `delay down/up` | Độ trễ báo xuống/lên | Chống route flapping |
+| `source-interface` | Interface nguồn | Bắt buộc — để SLA đi đúng đường cần kiểm |
 | Route flapping | Route nhấp nháy | Route liên tục vào/ra RIB |
 | **Distance Vector** | Vector khoảng cách | Chỉ biết "hướng nào, xa bao nhiêu" |
-| **Advanced Distance Vector** | Vector khoảng cách nâng cao | ⭐ EIGRP |
-| **Link-State** | Trạng thái liên kết | ⭐ OSPF — có bản đồ toàn mạng |
+| **Advanced Distance Vector** | Vector khoảng cách nâng cao | EIGRP |
+| **Link-State** | Trạng thái liên kết | OSPF — có bản đồ toàn mạng |
 | **DUAL** (Diffusing Update Algorithm) | Thuật toán cập nhật khuếch tán | Thuật toán của EIGRP |
 | **Dijkstra SPF** | Thuật toán đường ngắn nhất | Thuật toán của OSPF |
 | **FD** (Feasible Distance) | Khoảng cách khả thi | Metric tốt nhất **của tôi** tới đích |
 | **RD** (Reported Distance) | Khoảng cách được báo | Metric mà **neighbor** báo |
 | **Successor** | Người kế vị | Route chính, vào RIB |
-| **Feasible Successor (FS)** | Người kế vị khả thi | ⭐ Route dự phòng đã kiểm chứng không loop |
-| **Feasibility Condition** | Điều kiện khả thi | ⭐ **RD < FD** |
+| **Feasible Successor (FS)** | Người kế vị khả thi | Route dự phòng đã kiểm chứng không loop |
+| **Feasibility Condition** | Điều kiện khả thi | **RD < FD** |
 | **SIA** (Stuck-In-Active) | Kẹt ở trạng thái Active | Query lan quá xa → route bị xóa |
 | Composite metric | Metric tổng hợp | EIGRP: Bandwidth + Delay |
 | **K values** | Hệ số K | K1=bw, K2=load, K3=delay, K4=rel, K5=MTU. Mặc định chỉ K1, K3 |
 | Wide metric | Metric rộng (64-bit) | EIGRP named mode — phân biệt link 10G/40G/100G |
-| **Variance** | Hệ số dao động | ⭐ EIGRP unequal-cost load balancing |
-| Unequal-cost load balancing | Chia tải chi phí không bằng | ⭐ **Chỉ EIGRP**, OSPF không có |
+| **Variance** | Hệ số dao động | EIGRP unequal-cost load balancing |
+| Unequal-cost load balancing | Chia tải chi phí không bằng | **Chỉ EIGRP**, OSPF không có |
 | **Redistribution** | Phân phối lại route | Đưa route từ protocol A sang B |
-| **Seed metric** | Metric hạt giống | ⭐ Metric ban đầu khi vào protocol mới |
+| **Seed metric** | Metric hạt giống | Metric ban đầu khi vào protocol mới |
 | `subnets` keyword | Từ khóa subnets | Thiếu = chỉ redistribute classful network |
 | **E1** (External Type 1) | Ngoại vi loại 1 | External cost **+ internal cost** tới ASBR |
-| **E2** (External Type 2) | Ngoại vi loại 2 | ⭐ **Chỉ** external cost, không đổi toàn domain |
+| **E2** (External Type 2) | Ngoại vi loại 2 | **Chỉ** external cost, không đổi toàn domain |
 | **ASBR** (AS Boundary Router) | Router biên hệ tự trị | Router làm redistribution vào OSPF |
 | **Mutual redistribution** | Phân phối lại hai chiều | ⚠️ Nguy cơ loop nếu không có tag |
-| **Route tag** | Nhãn route | ⭐ "Con dấu hộ chiếu" chống loop |
+| **Route tag** | Nhãn route | "Con dấu hộ chiếu" chống loop |
 | **Route-map** | Bản đồ route | Công cụ lọc/sửa thuộc tính route |
-| Implicit deny | Chặn ngầm | ⭐ Dòng deny ẩn ở cuối route-map |
+| Implicit deny | Chặn ngầm | Dòng deny ẩn ở cuối route-map |
 | Catch-all statement | Câu bắt tất cả | `permit` không có `match` |
 | **Prefix-list** | Danh sách tiền tố | Lọc route theo prefix + độ dài mask |
 | Distribute-list | Danh sách phân phối | Lọc route vào/ra protocol |
@@ -1636,7 +1636,7 @@ và đó là toàn bộ nội dung câu "compare EIGRP and OSPF" mà đề ENCOR
 | 4 | Recursive lookup là gì? Dấu hiệu nó thất bại? | ☐ |
 | 5 | Điểm yếu của floating static? Giải pháp? | ☐ |
 | 6 | 3 bước cấu hình IP SLA + track? Hai lỗi dễ sai nhất? | ☐ |
-| 7 | ⭐ Blueprint ENCOR yêu cầu gì về EIGRP? | ☐ |
+| 7 | Blueprint ENCOR yêu cầu gì về EIGRP? | ☐ |
 | 8 | 5 khác biệt chính giữa EIGRP và OSPF | ☐ |
 | 9 | FD, RD, Successor, Feasible Successor là gì? | ☐ |
 | 10 | Feasibility Condition? Vì sao nó chống được loop? | ☐ |
@@ -1657,19 +1657,19 @@ và đó là toàn bộ nội dung câu "compare EIGRP and OSPF" mà đề ENCOR
 |:---:|---|:---:|
 | 1 | Dựng 3 router OSPF area 0, mọi neighbor `FULL` | ☐ |
 | 2 | Giải mã được toàn bộ output `show ip route`: `C`, `L`, `O`, `O IA`, `O E1`, `O E2`, `[AD/metric]`, `variably subnetted` | ☐ |
-| 3 | ⭐ **Chứng minh longest prefix thắng AD**: thêm static `/8` AD 1 → route OSPF `/32` vẫn thắng | ☐ |
-| 4 | ⭐ **Chứng minh ngược**: thêm static `/32` AD 1 → giờ static thắng | ☐ |
+| 3 | **Chứng minh longest prefix thắng AD**: thêm static `/8` AD 1 → route OSPF `/32` vẫn thắng | ☐ |
+| 4 | **Chứng minh ngược**: thêm static `/32` AD 1 → giờ static thắng | ☐ |
 | 5 | Tái hiện recursion fail: static với next-hop không reachable → không vào RIB | ☐ |
-| 6 | ⭐ **Tái hiện lỗ hổng floating static**: cắt đường **phía sau** next-hop → link vẫn up → route KHÔNG failover → ping fail | ☐ |
-| 7 | ⭐⭐ Cấu hình **IP SLA + track + static tracked** đầy đủ 3 bước | ☐ |
+| 6 | **Tái hiện lỗ hổng floating static**: cắt đường **phía sau** next-hop → link vẫn up → route KHÔNG failover → ping fail | ☐ |
+| 7 | Cấu hình **IP SLA + track + static tracked** đầy đủ 3 bước | ☐ |
 | 8 | Verify: `show ip sla statistics` (`return code: OK`, `time to live: Forever`) + `show track` (`Up`, `Tracked by`) | ☐ |
-| 9 | ⭐ **Test failover thật**: cắt đường phía sau ISP1 → track `Down` → route chuyển ISP2 → ping OK trở lại | ☐ |
+| 9 | **Test failover thật**: cắt đường phía sau ISP1 → track `Down` → route chuyển ISP2 → ping OK trở lại | ☐ |
 | 10 | Test hồi phục: bật lại → track `Up` → route quay về ISP1 | ☐ |
 | 11 | Tái hiện lỗi **quên `ip sla schedule`** và nhận diện qua `time to live: 0` | ☐ |
-| 12 | ⭐ Tái hiện lỗi **thiếu `source-interface`** → SLA ping qua đường dự phòng → track không bao giờ Down | ☐ |
+| 12 | Tái hiện lỗi **thiếu `source-interface`** → SLA ping qua đường dự phòng → track không bao giờ Down | ☐ |
 | 13 | `redistribute connected subnets` → thấy `O E2` metric 20 | ☐ |
 | 14 | Lọc redistribution bằng **route-map + prefix-list** (chỉ 1 subnet được vào) | ☐ |
-| 15 | ⭐ **So sánh E1 vs E2**: đổi `metric-type 1` → metric = external + internal, chọn ASBR gần | ☐ |
+| 15 | **So sánh E1 vs E2**: đổi `metric-type 1` → metric = external + internal, chọn ASBR gần | ☐ |
 | 16 | Đánh **route tag** và thấy nó trong `show ip route <prefix>` và `show ip ospf database external` | ☐ |
 | 17 | Viết route-map `deny tag` + `permit` catch-all, verify bằng counter `show route-map` | ☐ |
 | 18 | Tái hiện lỗi redistribute vào EIGRP **thiếu metric** → route bị bỏ âm thầm | ☐ |
@@ -1680,7 +1680,7 @@ và đó là toàn bộ nội dung câu "compare EIGRP and OSPF" mà đề ENCOR
 > lên nền này: LSA type, area type, summarization — tất cả đều là câu chuyện về **route được học
 > từ đâu, mang metric gì, và router chọn cái nào**.
 >
-> ⭐ Riêng mục **6–12 (IP SLA + track)** là phần **giá trị nhất cho công việc thật** của cả module.
+> Riêng mục **6–12 (IP SLA + track)** là phần **giá trị nhất cho công việc thật** của cả module.
 > Nếu chỉ có thời gian làm một nửa lab, hãy làm phần đó.
 
 ---
@@ -1689,15 +1689,15 @@ và đó là toàn bộ nội dung câu "compare EIGRP and OSPF" mà đề ENCOR
 
 | Nguồn | Cụ thể |
 |---|---|
-| **Sách OCG 350-401** | Chương *IP Routing Essentials* (bảng AD, route selection) + chương *Advanced Distance Vector — EIGRP* (⭐ **đọc phần khái niệm và bảng so sánh, BỎ phần cấu hình chi tiết**) |
-| **Cisco doc** ⭐ | *IP Routing: Protocol-Independent Configuration Guide* — chương *Configuring Static Routes* và *Route Redistribution* |
-| **Cisco doc** ⭐ | *IP SLAs Configuration Guide* — chương *IP SLAs ICMP Echo Operations* |
-| **Cisco doc** ⭐ | *Enhanced Object Tracking Configuration Guide* — cách track kết hợp với static route / HSRP / PBR |
+| **Sách OCG 350-401** | Chương *IP Routing Essentials* (bảng AD, route selection) + chương *Advanced Distance Vector — EIGRP* ( **đọc phần khái niệm và bảng so sánh, BỎ phần cấu hình chi tiết**) |
+| **Cisco doc**  | *IP Routing: Protocol-Independent Configuration Guide* — chương *Configuring Static Routes* và *Route Redistribution* |
+| **Cisco doc**  | *IP SLAs Configuration Guide* — chương *IP SLAs ICMP Echo Operations* |
+| **Cisco doc**  | *Enhanced Object Tracking Configuration Guide* — cách track kết hợp với static route / HSRP / PBR |
 | **Cisco doc** | *Redistributing Routing Protocols* — tài liệu kinh điển, có đúng bảng seed metric bạn cần thuộc |
 | **Cisco doc** | *Route Selection in Cisco Routers* — giải thích thứ tự longest prefix → AD → metric từ chính Cisco |
 | **Cisco doc** | *Introduction to EIGRP* + RFC 7868 — cho phần compare (đọc mục Metric và DUAL) |
 | **Cisco doc** | *Route-Maps for IP Routing Protocol Redistribution Configuration* |
-| **Cisco Live** ⭐ | Search `Cisco Live routing protocol design best practices` · `Cisco Live EIGRP vs OSPF` |
+| **Cisco Live**  | Search `Cisco Live routing protocol design best practices` · `Cisco Live EIGRP vs OSPF` |
 | **NetworkLessons** | Bài *Administrative Distance*, *Route Redistribution*, *IP SLA*, *EIGRP DUAL* — giải thích rõ, nhiều bài free |
 | **Video** | CBT Nuggets ENCOR — module IP Routing · Keith Barker: search `Keith Barker IP SLA`, `Keith Barker route redistribution` |
 | **Forum** | https://community.cisco.com — search `redistribute eigrp no metric`, `ip sla track static route`, `mutual redistribution loop` để đọc case thật |

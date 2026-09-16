@@ -1178,7 +1178,7 @@ con switch rẻ tiền đó** → mạng chậm thảm hại, và kẻ tấn cô
 | 1 | *"RSTP có 5 state"* | ❌ **3 state**: Discarding, Learning, Forwarding |
 | 2 | Alternate vs Backup port | **Alternate** = đường khác về root (dự phòng Root Port, hay gặp) · **Backup** = 2 port cùng switch trên cùng segment (chỉ có hub/half-duplex) |
 | 3 | *"RSTP luôn hội tụ nhanh"* | ❌ Trên **shared link (half-duplex)** thì RSTP **rơi về hành vi 802.1D chậm** — không handshake được |
-| 4 | MST region cần khớp gì | ⭐ **3 thứ**: Name + Revision + **VLAN-to-instance mapping**. Thiếu 1 VLAN = khác region |
+| 4 | MST region cần khớp gì | **3 thứ**: Name + Revision + **VLAN-to-instance mapping**. Thiếu 1 VLAN = khác region |
 | 5 | MST0 là gì | **IST** — bắt buộc có, chứa mọi VLAN chưa map, là cây duy nhất nói chuyện ra ngoài region |
 | 6 | *"MST priority hiện = priority + VLAN ID"* | ❌ Trong MST, `sysid` = **Instance ID**. MST1 priority 4096 → **4097**. (PVST+ mới là + VLAN ID) |
 | 7 | BPDU Filter interface vs global | **Interface** = không gửi & không nhận → **tắt STP hẳn** (nguy hiểm) · **Global** = chỉ trên PortFast port, nhận BPDU thì tự tắt PortFast và hồi phục |
@@ -1187,17 +1187,17 @@ con switch rẻ tiền đó** → mạng chậm thảm hại, và kẻ tấn cô
 | 10 | Đặt Root Guard ở đâu | Port **hướng xuống** (downstream) / nối đối tác. **Không** đặt trên uplink |
 | 11 | Đặt Loop Guard ở đâu | Port **hướng lên** (Root/Alternate port = uplink) |
 | 12 | UDLD normal vs aggressive | **Normal**: phát hiện unidirectional rõ ràng → err-disable; chỉ timeout → **chỉ log** · **Aggressive**: timeout cũng err-disable sau **8 lần** thử lại |
-| 13 | ⭐ LACP `passive + passive` | ❌ **KHÔNG bundle.** Cần ít nhất 1 bên `active` |
-| 14 | ⭐ PAgP `auto + auto` | ❌ **KHÔNG bundle.** Cần ít nhất 1 bên `desirable` |
+| 13 | LACP `passive + passive` | ❌ **KHÔNG bundle.** Cần ít nhất 1 bên `active` |
+| 14 | PAgP `auto + auto` | ❌ **KHÔNG bundle.** Cần ít nhất 1 bên `desirable` |
 | 15 | `on` + `active` | ❌ **KHÔNG bundle.** `on` chỉ bắt tay với `on` |
 | 16 | `(I)` vs `(s)` trong `show etherchannel summary` | `(s)` **suspended** = không có partner, port **không forward** (an toàn) · `(I)` **individual** = port **forward độc lập** → ⚠️ **nguy cơ loop** |
 | 17 | `(u)` nghĩa là gì | **unsuitable for bundling** = tham số lệch giữa member port |
 | 18 | `Po1(SU)` nghĩa là gì | **S** = Layer2 · **U** = in use → ✅ đúng. `(RU)` = Layer3 in use |
 | 19 | Số link EtherChannel nên dùng | **2, 4, 8** (chia đều 8 bucket). 3/5/6/7 chia không đều |
 | 20 | *"EtherChannel 2×1G = 1 flow được 2 Gbps"* | ❌ **Một flow chỉ đi 1 link.** EtherChannel tăng tổng băng thông, không tăng băng thông 1 flow |
-| 21 | Cấu hình EtherChannel ở đâu | ⭐ `channel-group` trên **member port** · mọi thứ khác trên **`interface Port-channel`** |
+| 21 | Cấu hình EtherChannel ở đâu | `channel-group` trên **member port** · mọi thứ khác trên **`interface Port-channel`** |
 | 22 | L3 EtherChannel thứ tự | `no switchport` trên **member TRƯỚC**, rồi `channel-group`, rồi `no switchport` + IP trên Po |
-| 23 | STP timer đổi ở đâu | ⭐ Trên **Root Bridge** — timer trong BPDU lấy từ root |
+| 23 | STP timer đổi ở đâu | Trên **Root Bridge** — timer trong BPDU lấy từ root |
 | 24 | Cắt 1 member EtherChannel có gây TC? | ❌ **Không** — STP vẫn thấy `Po1` up. Đó là ưu điểm chính |
 | 25 | MST cost link 1 Gbps | **20000** (long path cost). PVST+ short mode là **4** |
 
@@ -1263,7 +1263,7 @@ show logging | include SPANTREE|EC-|PM-|UDLD   ! đọc log
 | 2 | Mạng chậm bất thường, MAC table nhảy liên tục | ⚠️ **STP loop**, hoặc link flapping | `show spanning-tree blockedports` (phải có port block) · `show spanning-tree detail \| inc occurr` (TC tăng?) · tìm switch tắt STP hoặc BPDU Filter interface-level |
 | 3 | `show spanning-tree detail` TC tăng liên tục | Link flapping / port nhấp nháy | `show interfaces \| include flapped` · `show logging` tìm link up/down · sửa cáp/SFP · bật `errdisable recovery cause link-flap` |
 | 4 | Port PC lên mất 30 s | Thiếu PortFast | `spanning-tree portfast` (hoặc `portfast default`) |
-| 5 | VM mất mạng 30 s mỗi lần host ảo hóa reboot | Trunk tới hypervisor thiếu PortFast | ⭐ `spanning-tree portfast trunk` + giữ BPDU Guard |
+| 5 | VM mất mạng 30 s mỗi lần host ảo hóa reboot | Trunk tới hypervisor thiếu PortFast | `spanning-tree portfast trunk` + giữ BPDU Guard |
 | 6 | Port `err-disabled`, reason `bpduguard` | Có switch cắm vào port PortFast | Tìm ai cắm sai → `shut`/`no shut` (hoặc chờ errdisable recovery) |
 | 7 | Port `BKN *ROOT_Inc` | **Root Guard** chặn Superior BPDU | Tìm switch đang cố làm root (`show spanning-tree root`) → sửa priority của nó |
 | 8 | Port `BKN *LOOP_Inc` | **Loop Guard**: ngừng nhận BPDU trên Root/Alternate port | Kiểm tra link một chiều (`show udld`), lỗi SFP/fiber, hoặc CPU switch đối diện quá cao |
@@ -1276,7 +1276,7 @@ show logging | include SPANTREE|EC-|PM-|UDLD   ! đọc log
 
 | # | Triệu chứng | Nguyên nhân | Cách sửa |
 |:---:|---|---|---|
-| 13 | ⭐ Cây MST "chia đôi", switch nhìn topology khác nhau | **Region không khớp** | `show spanning-tree mst configuration digest` trên mọi switch → digest phải **giống tuyệt đối**. Sửa name/revision/mapping |
+| 13 | Cây MST "chia đôi", switch nhìn topology khác nhau | **Region không khớp** | `show spanning-tree mst configuration digest` trên mọi switch → digest phải **giống tuyệt đối**. Sửa name/revision/mapping |
 | 14 | Port bất ngờ thành **boundary** | Switch đó ra khỏi region (thiếu VLAN trong mapping, lệch revision) | So digest → sửa mapping |
 | 15 | VLAN mới thêm vào bị block hết | VLAN chưa map → rơi vào **MST0 (IST)**, mà IST có topology khác | Map VLAN mới vào instance đúng **trên MỌI switch**, hoặc dùng mapping theo dải rộng ngay từ đầu |
 | 16 | Đổi sang MST làm mất mạng | Đổi mode gây hội tụ lại toàn mạng | Đây là hành vi bình thường → phải có cửa sổ bảo trì |
@@ -1286,12 +1286,12 @@ show logging | include SPANTREE|EC-|PM-|UDLD   ! đọc log
 | # | Triệu chứng (`show etherchannel summary`) | Nguyên nhân | Cách sửa |
 |:---:|---|---|---|
 | 17 | `Gi0/3(s)` **suspended** | LACP cấu hình 1 bên, bên kia **chưa cấu hình gì** — hoặc `passive+passive` / `auto+auto` | Cấu hình bên kia · đảm bảo ít nhất 1 bên `active`/`desirable` |
-| 18 | ⚠️ `Gi0/3(I)` **individual** | Bên kia dùng `on` (static) trong khi bên này LACP · hoặc LACP không thỏa thuận được | ⭐ **Nguy hiểm — có thể loop.** Đưa 2 bên về cùng protocol. Bật `spanning-tree etherchannel guard misconfig` |
-| 19 | `Gi0/3(u)` **unsuitable** | ⭐ Tham số lệch giữa member: speed/duplex/mode/native VLAN/**allowed VLAN** | `show logging \| include EC-5` → log nói thẳng lý do · `default interface Gi0/3` rồi cấu hình lại đúng quy tắc (mọi thứ trên Port-channel) |
+| 18 | ⚠️ `Gi0/3(I)` **individual** | Bên kia dùng `on` (static) trong khi bên này LACP · hoặc LACP không thỏa thuận được | **Nguy hiểm — có thể loop.** Đưa 2 bên về cùng protocol. Bật `spanning-tree etherchannel guard misconfig` |
+| 19 | `Gi0/3(u)` **unsuitable** | Tham số lệch giữa member: speed/duplex/mode/native VLAN/**allowed VLAN** | `show logging \| include EC-5` → log nói thẳng lý do · `default interface Gi0/3` rồi cấu hình lại đúng quy tắc (mọi thứ trên Port-channel) |
 | 20 | `Po1(SM)` | **min-links not met** | Đủ số link, hoặc giảm/bỏ `port-channel min-links` |
 | 21 | `Po1(SD)` — bundle down | Mọi member down, hoặc Po bị shutdown | `show interfaces status` · `no shutdown` trên Po và member |
 | 22 | Bundle up nhưng tải lệch nặng | Hash + số flow ít + số link không phải 2/4/8 | `port-channel load-balance src-dst-mixed-ip-port` · dùng 2/4/8 link |
-| 23 | Sau khi tạo EtherChannel, cấu hình trunk "mất" | Đã cấu hình trên member thay vì Port-channel | ⭐ Cấu hình lại trên `interface Port-channel1` |
+| 23 | Sau khi tạo EtherChannel, cấu hình trunk "mất" | Đã cấu hình trên member thay vì Port-channel | Cấu hình lại trên `interface Port-channel1` |
 | 24 | `show lacp neighbor` trống | LACP PDU không tới được | `show lacp counters` (có gửi không?) · kiểm tra port up · kiểm tra bên kia có LACP |
 | 25 | L3 EtherChannel không lên | Thiếu `no switchport` trên member trước khi `channel-group` | `default interface` rồi làm lại đúng thứ tự |
 
@@ -1324,7 +1324,7 @@ show logging | include SPANTREE|EC-|PM-|UDLD   ! đọc log
    show spanning-tree mst configuration digest  → GIỐNG NHAU trên mọi switch?
 ```
 
-> ⭐ **Bước 2 là bước người mới hay bỏ qua.** Rất nhiều lần "port không hoạt động" thực ra là
+> **Bước 2 là bước người mới hay bỏ qua.** Rất nhiều lần "port không hoạt động" thực ra là
 > port đã bị guard tắt, và cột `Reason` nói thẳng nguyên nhân. Đọc trước khi đoán.
 
 ---
@@ -1357,7 +1357,7 @@ Trên shared link (half-duplex, hoặc có hub), RSTP **rơi về hành vi 802.1
 **Nguyên nhân thường gặp:** duplex mismatch, hoặc port bị hardcode `duplex half`.
 **Sửa:** `duplex auto` (hoặc `duplex full` cả 2 đầu).
 
-⭐ Bài học: duplex mismatch không chỉ gây CRC error — nó phá luôn hội tụ nhanh của RSTP.
+ Bài học: duplex mismatch không chỉ gây CRC error — nó phá luôn hội tụ nhanh của RSTP.
 </details>
 
 ---
@@ -1369,7 +1369,7 @@ Trên shared link (half-duplex, hoặc có hub), RSTP **rơi về hành vi 802.1
 **3 thứ phải khớp:**
 1. **Configuration Name** (VD `CAMPUS-01`) — phân biệt chữ hoa/thường
 2. **Revision Number** (VD `1`)
-3. ⭐ **VLAN-to-Instance Mapping** — phải khớp **từng VLAN**
+3.  **VLAN-to-Instance Mapping** — phải khớp **từng VLAN**
 
 **Lệnh kiểm tra nhanh nhất:**
 ```
@@ -1394,7 +1394,7 @@ priority bao nhiêu? So sánh với PVST+ VLAN 10 priority 4096.
 | **MST1** priority 4096 | **4097** | 4096 + **Instance ID (1)** |
 | **PVST+ VLAN 10** priority 4096 | **4106** | 4096 + **VLAN ID (10)** |
 
-⭐ **Điểm khác biệt quan trọng:** trong MST, `sysid` là **Instance ID**.
+ **Điểm khác biệt quan trọng:** trong MST, `sysid` là **Instance ID**.
 Trong PVST+/Rapid PVST+, `sysid` là **VLAN ID**.
 
 Đề hay cho output MST rồi hỏi "priority thực tế là bao nhiêu" — phải trừ đúng Instance ID.
@@ -1456,7 +1456,7 @@ Cần ít nhất 1 bên `active`.
 **Phòng ngừa:** `spanning-tree etherchannel guard misconfig` (global) sẽ err-disable port khi
 phát hiện tình huống này.
 
-⭐ **Quy tắc:** `on` **chỉ** bắt tay với `on`. Và tốt nhất **đừng dùng `on`** — luôn dùng LACP `active`/`active`.
+ **Quy tắc:** `on` **chỉ** bắt tay với `on`. Và tốt nhất **đừng dùng `on`** — luôn dùng LACP `active`/`active`.
 </details>
 
 ---
@@ -1470,7 +1470,7 @@ phát hiện tình huống này.
 | Nghĩa | LACP cấu hình nhưng **partner không phản hồi gì** | LACP có hoạt động nhưng **không thỏa thuận được** |
 | Nguyên nhân | Bên kia chưa cấu hình gì · `passive+passive` | Bên kia dùng `on` (static) · tham số lệch |
 | Port có forward? | ❌ **Không** | ⚠️ **CÓ — forward độc lập** |
-| Nguy cơ loop | Không | ⭐ **CÓ** |
+| Nguy cơ loop | Không | **CÓ** |
 
 **`(I)` individual nguy hiểm hơn.** `(s)` là hệ thống tự bảo vệ (khóa cửa lại).
 `(I)` là hệ thống nói "tôi bỏ cuộc, port cứ hoạt động tự do" — và đó là lúc loop xuất hiện.
@@ -1503,7 +1503,7 @@ Băng thông tổng tăng, nhưng phân bố lệch → link "nặng" sẽ ngh�
 2. Nếu cần thêm → nhảy lên **8 link**
 3. Hoặc **nâng cấp lên 10G** — tốt hơn nhiều so với gộp thêm link 1G
 
-⭐ Và nhắc thêm: nếu vấn đề là **một flow lớn** (backup, storage) thì EtherChannel
+ Và nhắc thêm: nếu vấn đề là **một flow lớn** (backup, storage) thì EtherChannel
 **không giúp gì cả** — một flow chỉ đi được 1 link.
 </details>
 
@@ -1520,7 +1520,7 @@ Băng thông tổng tăng, nhưng phân bố lệch → link "nặng" sẽ ngh�
 2. Duplex
 3. Switchport mode (access / trunk)
 4. Native VLAN
-5. ⭐ **Allowed VLAN list** (lệch nhiều nhất)
+5.  **Allowed VLAN list** (lệch nhiều nhất)
 6. Access VLAN (nếu access)
 
 **Tìm chính xác nguyên nhân:**
@@ -1532,7 +1532,7 @@ show logging | include EC-5|CANNOT_BUNDLE
 %EC-5-CANNOT_BUNDLE2: Gi0/3 is not compatible with Gi0/4 and will be suspended
                       (trunk vlan mismatch)
 ```
-⭐ **Log nói thẳng lý do** trong dấu ngoặc.
+ **Log nói thẳng lý do** trong dấu ngoặc.
 
 Kèm theo: `show interfaces status` (speed/duplex) · `show interfaces trunk` (allowed/native VLAN)
 
@@ -1570,7 +1570,7 @@ Kết quả: mất **0–1 gói ping**, khôi phục dưới 1 giây.
 | Gói mất (Rapid PVST+) | **0–1** | 1–3 (vài giây) |
 | Gói mất (PVST+) | **0–1** | 15–30 (30 giây) |
 
-⭐ Đây là **lý do quan trọng nhất** để dùng EtherChannel — không chỉ để tăng băng thông,
+ Đây là **lý do quan trọng nhất** để dùng EtherChannel — không chỉ để tăng băng thông,
 mà để **loại bỏ hoàn toàn STP convergence** khỏi kịch bản mất 1 link.
 </details>
 
@@ -1587,11 +1587,11 @@ hỗ trợ không? Nên dùng cái nào?
 | Phạm vi | Per-VLAN / per-instance | Per-port (toàn bộ port) |
 | Phát hiện bằng | BPDU **ngừng đến** trên Root/Alternate port | **Echo** gửi ra không quay lại kèm thông tin của mình |
 | Bắt được lỗi software STP | ✅ | ⚠️ Không trực tiếp |
-| Bắt được đứt fiber một chiều | ✅ (gián tiếp, qua mất BPDU) | ⭐ ✅ (trực tiếp, nhanh hơn) |
-| Cần bên kia hỗ trợ? | ❌ Không | ⭐ **Có** — bên kia phải chạy UDLD |
+| Bắt được đứt fiber một chiều | ✅ (gián tiếp, qua mất BPDU) | ✅ (trực tiếp, nhanh hơn) |
+| Cần bên kia hỗ trợ? | ❌ Không | **Có** — bên kia phải chạy UDLD |
 | Hành động | Port → `LOOP_Inc` (block), tự hồi phục | err-disable (aggressive) hoặc log (normal) |
 
-⭐ **Cisco khuyến nghị dùng CẢ HAI** — chúng bắt 2 loại lỗi khác nhau và bổ trợ nhau:
+ **Cisco khuyến nghị dùng CẢ HAI** — chúng bắt 2 loại lỗi khác nhau và bổ trợ nhau:
 
 ```
 spanning-tree loopguard default        ! global
@@ -1630,7 +1630,7 @@ interface Gi0/1
 | Rapid PVST+ | PVST+ nhanh | RSTP + per-VLAN. Cisco khuyến nghị |
 | **MST / MSTP** | Multiple Spanning Tree | IEEE 802.1s. Nhóm VLAN vào ít instance |
 | **MST Region** | Vùng MST | Xác định bởi Name + Revision + Mapping |
-| **Digest** | Hash của mapping | ⭐ So sánh digest = cách nhanh nhất tìm lệch region |
+| **Digest** | Hash của mapping | So sánh digest = cách nhanh nhất tìm lệch region |
 | **IST (MST0)** | Cây nội bộ | Bắt buộc có, chứa VLAN chưa map, nói chuyện ra ngoài region |
 | MSTI | Instance MST | MST1, MST2… chỉ tồn tại trong region |
 | CST | Cây chung | Cây ở ngoài region |
@@ -1648,7 +1648,7 @@ interface Gi0/1
 | Errdisable recovery | Tự hồi phục | Tự bật lại port sau interval |
 | Inconsistent port | Cổng không nhất quán | `ROOT_Inc` / `LOOP_Inc` / `PVST_Peer_Inc` |
 | **EtherChannel / Port-channel** | Gộp cổng | Nhiều link vật lý → 1 link logic |
-| **LACP** (802.3ad / 802.1AX) | Giao thức kết tập link | ⭐ Chuẩn IEEE, đa vendor. `active`/`passive` |
+| **LACP** (802.3ad / 802.1AX) | Giao thức kết tập link | Chuẩn IEEE, đa vendor. `active`/`passive` |
 | **PAgP** | Giao thức gộp cổng | Cisco độc quyền. `desirable`/`auto` |
 | Static / `on` mode | Gộp tĩnh | Không đàm phán → dễ tạo loop |
 | Bundle | Bó / gộp | Tập hợp port đã gộp thành công |
@@ -1724,17 +1724,17 @@ duy nhất: **"làm sao dùng được mọi đường dây mà không tạo vò
 | 2 | Ép root: D1 root VLAN 10 + backup VLAN 20 · D2 ngược lại. **Chứng minh load-balance** (Root Port khác nhau giữa 2 VLAN) | ☐ |
 | 3 | Bật đủ 4 lớp bảo vệ: PortFast+BPDU Guard (access), Root Guard (downstream), Loop Guard (uplink), UDLD aggressive | ☐ |
 | 4 | Xác nhận bằng `show spanning-tree summary` — và BPDU Filter Default phải **tắt** | ☐ |
-| 5 | ⭐ **Test BPDU Guard**: cắm switch lạ vào port PC → port err-disable, đọc được `Reason` | ☐ |
-| 6 | ⭐ **Test Root Guard**: ép switch access priority 0 → thấy `ROOT_Inc`, rồi tự hồi phục | ☐ |
-| 7 | ⭐ **Đo hội tụ** PVST+ vs Rapid PVST+, điền bảng số gói mất | ☐ |
+| 5 | **Test BPDU Guard**: cắm switch lạ vào port PC → port err-disable, đọc được `Reason` | ☐ |
+| 6 | **Test Root Guard**: ép switch access priority 0 → thấy `ROOT_Inc`, rồi tự hồi phục | ☐ |
+| 7 | **Đo hội tụ** PVST+ vs Rapid PVST+, điền bảng số gói mất | ☐ |
 | 8 | Ép half-duplex → chứng minh link thành `Shr` và hội tụ chậm lại | ☐ |
 | 9 | Bắt gói BPDU bằng Wireshark, đọc được Root ID / Cost / Flags, thấy Version đổi 0→2 | ☐ |
 | 10 | Chuyển sang **MST**: region `CAMPUS-01` rev 1, instance 1 = VLAN 10,20,30 · instance 2 = VLAN 40,50,60 | ☐ |
 | 11 | Xác nhận **digest giống nhau** trên cả 4 switch | ☐ |
 | 12 | Load-balance MST: MST1 root D1, MST2 root D2, Root Port khác nhau | ☐ |
-| 13 | ⭐ **Tái hiện lỗi MST**: bỏ 1 VLAN khỏi mapping trên 1 switch → digest đổi → thành boundary → sửa lại | ☐ |
+| 13 | **Tái hiện lỗi MST**: bỏ 1 VLAN khỏi mapping trên 1 switch → digest đổi → thành boundary → sửa lại | ☐ |
 | 14 | Tạo **L2 EtherChannel LACP** 2 link, `Po1(SU)` + cả 2 port `(P)` | ☐ |
-| 15 | ⭐ **Test failover EtherChannel**: cắt 1 member → 0–1 gói mất, **không có TC** | ☐ |
+| 15 | **Test failover EtherChannel**: cắt 1 member → 0–1 gói mất, **không có TC** | ☐ |
 | 16 | Tái hiện đủ 3 lỗi: `passive+passive` → `(s)` · trộn `on`+LACP → `(I)` · lệch allowed VLAN → `(u)` | ☐ |
 | 17 | Đọc được log `%EC-5-CANNOT_BUNDLE2` và tìm ra nguyên nhân từ log | ☐ |
 | 18 | Bật `lacp rate fast` (thấy flag đổi `SA`→`FA`) và `min-links` (thấy `Po1(SM)`) | ☐ |
@@ -1751,14 +1751,14 @@ duy nhất: **"làm sao dùng được mọi đường dây mà không tạo vò
 
 | Nguồn | Cụ thể |
 |---|---|
-| **Sách OCG 350-401** | Chương *Spanning Tree Protocol* (thường 2 chương: STP/RSTP và MST) + chương *EtherChannel*. ⭐ Đọc kỹ bảng so sánh mode |
-| **Cisco doc** ⭐ | *Layer 2 Configuration Guide* → chương **Configuring Spanning Tree Protocol**, **Configuring MSTP**, **Configuring Optional STP Features**, **Configuring EtherChannels**. Search: `Catalyst 9300 spanning tree configuration guide` |
-| **Cisco doc** ⭐ | *Understanding Rapid Spanning Tree Protocol (802.1w)* — tài liệu kinh điển giải thích Proposal/Agreement rõ nhất |
+| **Sách OCG 350-401** | Chương *Spanning Tree Protocol* (thường 2 chương: STP/RSTP và MST) + chương *EtherChannel*.  Đọc kỹ bảng so sánh mode |
+| **Cisco doc**  | *Layer 2 Configuration Guide* → chương **Configuring Spanning Tree Protocol**, **Configuring MSTP**, **Configuring Optional STP Features**, **Configuring EtherChannels**. Search: `Catalyst 9300 spanning tree configuration guide` |
+| **Cisco doc**  | *Understanding Rapid Spanning Tree Protocol (802.1w)* — tài liệu kinh điển giải thích Proposal/Agreement rõ nhất |
 | **Cisco doc** | *Understanding Multiple Spanning Tree Protocol (802.1s)* |
 | **Cisco doc** | *Spanning Tree Protocol Root Guard Enhancement* · *Spanning Tree PortFast BPDU Guard Enhancement* · *Understanding UDLD* |
 | **Cisco doc** | *Understanding EtherChannel Load Balancing and Redundancy* |
-| **Cisco Live** ⭐ | Search `Cisco Live spanning tree deep dive` và `Cisco Live campus LAN design best practices` — slide PDF chất lượng như sách |
-| **NetworkLessons** ⭐ | Loạt bài STP/RSTP/MST — giải thích rõ nhất trên internet, nhiều bài free |
+| **Cisco Live**  | Search `Cisco Live spanning tree deep dive` và `Cisco Live campus LAN design best practices` — slide PDF chất lượng như sách |
+| **NetworkLessons**  | Loạt bài STP/RSTP/MST — giải thích rõ nhất trên internet, nhiều bài free |
 | **Video** | CBT Nuggets ENCOR — module Layer 2 · Keith Barker: search `Keith Barker RSTP`, `Keith Barker MST` |
 | **Wireshark** | Filter `stp` (BPDU) · `slow` hoặc `lacp` (LACP PDU) · `vlan` (802.1Q tag) |
 | **Forum** | https://community.cisco.com — search `MST region mismatch`, `etherchannel individual`, `loop guard vs udld` để đọc case thật |

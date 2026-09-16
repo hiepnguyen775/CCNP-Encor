@@ -14,8 +14,8 @@ nó cho tình huống và bắt bạn **chỉ ra nguyên nhân**. Lab này luy�
 
 | LAB | Nội dung | Cần gì | Bắt buộc? |
 |---|---|---|:---:|
-| **A** | ⭐⭐ **AP sẽ join WLC nào?** — 6 tình huống | Giấy bút | ⭐⭐ **Có** |
-| **B** | ⭐⭐ **12 tình huống chẩn đoán** | Giấy bút | ⭐⭐ **Có** |
+| **A** | ⭐ **AP sẽ join WLC nào?** — 6 tình huống | Giấy bút | **Có** |
+| **B** | ⭐ **12 tình huống chẩn đoán** | Giấy bút | **Có** |
 | **C** | Nhìn WLC thật | DevNet Sandbox | Nên |
 | **D** | Quan sát roaming thật | Laptop Windows | Nên |
 
@@ -39,14 +39,14 @@ nó cho tình huống và bắt bạn **chỉ ra nguyên nhân**. Lab này luy�
 
 | LAB | Cần gì | Thời gian | Bắt buộc? |
 |---|---|:---:|:---:|
-| **A** — Lab trên giấy: AP sẽ join WLC nào | Bút + giấy | 30 phút | ⭐⭐ **Bắt buộc** |
-| **B** — Lab chẩn đoán: 12 tình huống | Bút + giấy | 40 phút | ⭐⭐ **Bắt buộc** |
+| **A** — Lab trên giấy: AP sẽ join WLC nào | Bút + giấy | 30 phút | ⭐ **Bắt buộc** |
+| **B** — Lab chẩn đoán: 12 tình huống | Bút + giấy | 40 phút | ⭐ **Bắt buộc** |
 | **C** — DevNet Sandbox C9800 | Trình duyệt + tài khoản Cisco | 60 phút | ⭐ Rất nên |
 | **D** — Quan sát roaming thật | Laptop Windows | 20 phút | ⭐ Nên |
 
 ---
 
-### LAB A — ⭐⭐ AP sẽ join WLC nào? (30 phút, trên giấy)
+### LAB A — ⭐ AP sẽ join WLC nào? (30 phút, trên giấy)
 
 > ⭐ **Đây chính xác là dạng câu hỏi của blueprint 3.3.c.** Làm hết 6 tình huống.
 
@@ -54,7 +54,7 @@ nó cho tình huống và bắt bạn **chỉ ra nguyên nhân**. Lab này luy�
 
 <details><summary>⭐ Đáp án</summary>
 
-⭐ **AP join được WLC-A** — nhờ ⭐ **broadcast discovery trên subnet local** (§3.5, cách 5).
+⭐ **AP join được WLC-A** — nhờ  **broadcast discovery trên subnet local** (§3.5, cách 5).
 ⭐ Đây là lý do "cắm AP cùng VLAN với WLC thì tự chạy".
 </details>
 
@@ -62,9 +62,9 @@ nó cho tình huống và bắt bạn **chỉ ra nguyên nhân**. Lab này luy�
 
 <details><summary>⭐ Đáp án</summary>
 
-🔴 ⭐ **AP KHÔNG join được**, dù **ping được WLC**.
+🔴  **AP KHÔNG join được**, dù **ping được WLC**.
 ⭐ Vì broadcast discovery **không đi qua router**, và AP không có nguồn thông tin nào khác.
-⭐ **Cách sửa:** ⭐ **DHCP option 43**, hoặc **DNS `CISCO-CAPWAP-CONTROLLER.<domain>`**, hoặc cấu hình tĩnh qua console.
+⭐ **Cách sửa:**  **DHCP option 43**, hoặc **DNS `CISCO-CAPWAP-CONTROLLER.<domain>`**, hoặc cấu hình tĩnh qua console.
 
 ⭐ **Bài học:** *"Ping được ≠ join được."* Đây là câu đề rất hay hỏi.
 </details>
@@ -93,7 +93,7 @@ AP join ai?
 
 ⭐ **Đáp án: WLC-C** (dư 100).
 
-🔴 ⭐ **Bẫy kép ở câu này:** (a) không phải "WLC ít AP nhất" (đó là WLC-B với 60 AP);
+🔴  **Bẫy kép ở câu này:** (a) không phải "WLC ít AP nhất" (đó là WLC-B với 60 AP);
 (b) không phải "WLC ít tải nhất theo %" (WLC-B đang 40%, WLC-C đang 98%).
 ⭐ **Là WLC có SỐ CHỖ TRỐNG TUYỆT ĐỐI lớn nhất.**
 </details>
@@ -102,7 +102,7 @@ AP join ai?
 
 <details><summary>⭐ Đáp án</summary>
 
-⭐ AP nhớ trong **NVRAM** không chỉ WLC-A mà cả ⭐ **danh sách thành viên mobility group** mà WLC-A đã cung cấp.
+⭐ AP nhớ trong **NVRAM** không chỉ WLC-A mà cả  **danh sách thành viên mobility group** mà WLC-A đã cung cấp.
 → ⭐ AP gửi discovery tới **WLC-B và WLC-C** → join một trong hai (theo thứ tự selection §3.6).
 
 ⭐ **Đây là lý do mobility group giúp cả roaming lẫn khả năng phục hồi khi join.**
@@ -112,20 +112,20 @@ AP join ai?
 
 <details><summary>⭐ Đáp án</summary>
 
-⭐⭐ **Sai thời gian hệ thống** trên WLC (hoặc AP).
+⭐ **Sai thời gian hệ thống** trên WLC (hoặc AP).
 ⭐ DTLS xác thực bằng **chứng thư số**; chứng thư có ngày hiệu lực và ngày hết hạn.
 ⭐ Đồng hồ sai → chứng thư bị coi là **"chưa có hiệu lực"** hoặc **"đã hết hạn"** → bắt tay thất bại.
 
-⭐ **Sửa:** cấu hình **NTP** cho WLC (⭐ **Module-06B §3** — bạn đã học rồi!) và kiểm tra `show clock`.
+⭐ **Sửa:** cấu hình **NTP** cho WLC ( **Module-06B §3** — bạn đã học rồi!) và kiểm tra `show clock`.
 
 ⭐ *(Nguyên nhân khả dĩ khác: chứng thư MIC của AP hết hạn — gặp với AP rất cũ; hoặc AP nằm trong danh sách chặn.)*
 </details>
 
 ---
 
-### LAB B — ⭐⭐ 12 tình huống chẩn đoán (40 phút, trên giấy)
+### LAB B — ⭐ 12 tình huống chẩn đoán (40 phút, trên giấy)
 
-> ⭐ **Cách làm:** với mỗi tình huống, ⭐ **viết ra (a) tầng nào trong 6 tầng §9.1, (b) lệnh bạn gõ đầu tiên, (c) nguyên nhân khả dĩ nhất.**
+> ⭐ **Cách làm:** với mỗi tình huống,  **viết ra (a) tầng nào trong 6 tầng §9.1, (b) lệnh bạn gõ đầu tiên, (c) nguyên nhân khả dĩ nhất.**
 > ⭐ Viết trước khi mở đáp án — đây mới là luyện tập.
 
 | # | Tình huống |
@@ -145,22 +145,22 @@ AP join ai?
 
 <details><summary>⭐ Đáp án LAB B</summary>
 
-| # | Tầng | ⭐ Lệnh đầu tiên | ⭐ Nguyên nhân khả dĩ nhất |
+| # | Tầng | ⭐ Lệnh đầu tiên | Nguyên nhân khả dĩ nhất |
 |:---:|:---:|---|---|
-| 1 | ③ | ⭐ `show ap tag summary` | ⭐⭐ **Chưa gán Policy Tag cho AP**, hoặc tag không chứa WLAN nào. *(Xem §10.3 — hai chuỗi độc lập)* |
-| 2 | ④ | `show wireless client mac-address <mac> detail` | ⭐ Sai PSK · hoặc ⭐ **PMF Required** mà client không hỗ trợ 802.11w |
-| 3 | ⑤ | ⭐ `show interface trunk` (trên **switch**) + `show ip dhcp binding` | ⭐⭐ **VLAN sai trong Policy Profile**, hoặc **VLAN chưa được phép qua trunk**, hoặc DHCP scope cạn/thiếu `ip helper-address` |
-| 4 | ⑤ | `show wireless profile flex …` + `show interface trunk` | ⭐⭐ **VLAN mapping trong Flex Profile sai** hoặc **native VLAN của trunk sai** |
+| 1 | ③ | ⭐ `show ap tag summary` | **Chưa gán Policy Tag cho AP**, hoặc tag không chứa WLAN nào. *(Xem §10.3 — hai chuỗi độc lập)* |
+| 2 | ④ | `show wireless client mac-address <mac> detail` | ⭐ Sai PSK · hoặc  **PMF Required** mà client không hỗ trợ 802.11w |
+| 3 | ⑤ | ⭐ `show interface trunk` (trên **switch**) + `show ip dhcp binding` | **VLAN sai trong Policy Profile**, hoặc **VLAN chưa được phép qua trunk**, hoặc DHCP scope cạn/thiếu `ip helper-address` |
+| 4 | ⑤ | `show wireless profile flex …` + `show interface trunk` | ⭐ **VLAN mapping trong Flex Profile sai** hoặc **native VLAN của trunk sai** |
 | 5 | ④/⑤ | Kiểm tra ACL pre-auth | ⭐ **ACL pre-auth chặn DNS (UDP 53)** → trình duyệt không mở được trang nào → không có redirect |
 | 6 | ④ | `show wireless client … mobility history` · `show wireless mobility summary` | ⭐ **Roam quá chậm** (chưa bật 11r/OKC) · hoặc **roam L3 giữa 2 WLC mà mobility peer Down** → đổi IP |
 | 7 | ①/③ | `netsh wlan show networks` từ laptop cạnh đó | ⭐ **Client capabilities**: chỉ hỗ trợ **2.4 GHz** · hoặc AP đang ở **channel DFS** · hoặc **data rate thấp đã bị tắt** |
-| 8 | ② | ⭐ `show ap join stats detailed <mac>` | ⭐ Firewall chặn **UDP 5246/5247** · hoặc ⭐ **sai giờ → DTLS hỏng** · hoặc ⭐ **MTU** *(ping được vì gói ping nhỏ)* |
+| 8 | ② | ⭐ `show ap join stats detailed <mac>` | Firewall chặn **UDP 5246/5247** · hoặc  **sai giờ → DTLS hỏng** · hoặc  **MTU** *(ping được vì gói ping nhỏ)* |
 | 9 | ② | `show ap uptime` + log WAN | ⭐ **Đứt WAN → AP vào Standalone mode.** Nếu là **central switching** → client rớt hết (§5.3). Xem thêm: cửa sổ bảo trì / backup job làm nghẽn WAN |
-| 10 | ② | ⭐ `ping <WLC> df-bit size 1500` | ⭐⭐ **MTU** trên đường AP↔WLC (§3.3) — gói nhỏ qua, gói lớn drop. ⭐ **Dấu hiệu kinh điển** |
-| 11 | ③/④ | `show wlan id <n>` | ⭐ Client cũ **không hỗ trợ FT** → dùng **FT adaptive** hoặc ⭐ **tách WLAN riêng cho voice** |
-| 12 | ① | ⭐ `show ap auto-rf dot11 5ghz` (channel utilization) | ⭐ **Không phải vấn đề tín hiệu** — là **CAPACITY**: quá nhiều client/CCI trên cùng cell. ⭐ Xem Module-07A §4.2 (thêm AP, giảm công suất, 20/40 MHz, bớt SSID) |
+| 10 | ② | ⭐ `ping <WLC> df-bit size 1500` | **MTU** trên đường AP↔WLC (§3.3) — gói nhỏ qua, gói lớn drop.  **Dấu hiệu kinh điển** |
+| 11 | ③/④ | `show wlan id <n>` | ⭐ Client cũ **không hỗ trợ FT** → dùng **FT adaptive** hoặc  **tách WLAN riêng cho voice** |
+| 12 | ① | ⭐ `show ap auto-rf dot11 5ghz` (channel utilization) | **Không phải vấn đề tín hiệu** — là **CAPACITY**: quá nhiều client/CCI trên cùng cell.  Xem Module-07A §4.2 (thêm AP, giảm công suất, 20/40 MHz, bớt SSID) |
 
-⭐ **Điểm chung của 12 câu:** ⭐ **chỉ có câu 12 là vấn đề RF thuần túy.** Đa số ca "Wi-Fi hỏng"
+⭐ **Điểm chung của 12 câu:**  **chỉ có câu 12 là vấn đề RF thuần túy.** Đa số ca "Wi-Fi hỏng"
 thực ra là **cấu hình, VLAN, hoặc mạng có dây** — ⭐ **đây là bài học lớn nhất của mục 3.3.e.**
 </details>
 
@@ -180,13 +180,13 @@ thực ra là **cấu hình, VLAN, hoặc mạng có dây** — ⭐ **đây là 
 | # | Tìm cái gì | Ở đâu (GUI) | Lệnh CLI tương đương | Liên hệ mục |
 |:---:|---|---|---|:---:|
 | 1 | ⭐ Danh sách AP, mode, channel, Tx power | Monitoring → Wireless → AP Statistics | `show ap summary` | 07A §5 |
-| 2 | ⭐⭐ **AP đang dùng tag nào** | Configuration → Wireless → Access Points → *(chọn AP)* | ⭐ `show ap tag summary` | §7.1 |
+| 2 | ⭐ **AP đang dùng tag nào** | Configuration → Wireless → Access Points → *(chọn AP)* | `show ap tag summary` | §7.1 |
 | 3 | ⭐ Danh sách WLAN + trạng thái enable | Configuration → Tags & Profiles → WLANs | `show wlan summary` | §7 |
 | 4 | ⭐ Policy Profile: **VLAN** và central/local switching | Configuration → Tags & Profiles → Policy | `show wireless profile policy summary` | §7.1 |
-| 5 | ⭐⭐ **Policy Tag map WLAN nào với Policy nào** | Configuration → Tags & Profiles → Tags → Policy | `show wireless tag policy detailed <tag>` | §7.1 |
+| 5 | ⭐ **Policy Tag map WLAN nào với Policy nào** | Configuration → Tags & Profiles → Tags → Policy | `show wireless tag policy detailed <tag>` | §7.1 |
 | 6 | ⭐ Site Tag — có bật FlexConnect (`no local-site`) không | Tags → Site | `show wireless tag site detailed <tag>` | §5.4 |
-| 7 | ⭐ Client đang kết nối: **RSSI, SNR, State, VLAN** | Monitoring → Wireless → Clients | ⭐ `show wireless client mac-address <mac> detail` | §9.2 |
-| 8 | ⭐ Mobility peer Up/Down | Configuration → Wireless → Mobility | ⭐ `show wireless mobility summary` | §6.3 |
+| 7 | ⭐ Client đang kết nối: **RSSI, SNR, State, VLAN** | Monitoring → Wireless → Clients | `show wireless client mac-address <mac> detail` | §9.2 |
+| 8 | ⭐ Mobility peer Up/Down | Configuration → Wireless → Mobility | `show wireless mobility summary` | §6.3 |
 | 9 | ⭐ Thiết lập RRM: DCA, TPC, channel list | Configuration → Radio Configurations → RRM | `show ap auto-rf dot11 5ghz` | 07A §2.7 |
 | 10 | ⭐ Cấu hình bảo mật của một WLAN (WPA2/3, PSK/802.1X, PMF, FT) | WLANs → *(chọn)* → Security | `show wlan id <n>` | §8 |
 
@@ -216,8 +216,8 @@ thực ra là **cấu hình, VLAN, hoặc mạng có dây** — ⭐ **đây là 
 
 | # | Cần quan sát được | Ý nghĩa |
 |:---:|---|---|
-| 1 | ⭐ **BSSID thay đổi nhưng SSID giữ nguyên** | ⭐ Đó là **roaming trong một ESS** |
-| 2 | ⭐ **IP có đổi không?** (`ipconfig`) | ⭐ Không đổi → **roam L2** (hoặc L3 có mobility tunnel hoạt động đúng) |
-| 3 | ⭐ Trong `wlanreport`, có lần nào **rớt hẳn rồi kết nối lại** không? | ⭐ Rớt hẳn = **roam thất bại** — thiếu overlap hoặc client sticky |
-| 4 | ⭐ Thử **đứng yên giữa 2 AP** rồi xem BSSID có nhảy qua lại không | ⭐ Nhảy liên tục = **"ping-pong roaming"** — cell overlap quá nhiều |
-| 5 | ⭐ Đi thật xa AP cũ rồi mới quay lại xem BSSID — nó có đổi **muộn** không? | ⭐ Đổi muộn = **sticky client** (§6.6) |
+| 1 | ⭐ **BSSID thay đổi nhưng SSID giữ nguyên** | Đó là **roaming trong một ESS** |
+| 2 | ⭐ **IP có đổi không?** (`ipconfig`) | Không đổi → **roam L2** (hoặc L3 có mobility tunnel hoạt động đúng) |
+| 3 | ⭐ Trong `wlanreport`, có lần nào **rớt hẳn rồi kết nối lại** không? | Rớt hẳn = **roam thất bại** — thiếu overlap hoặc client sticky |
+| 4 | ⭐ Thử **đứng yên giữa 2 AP** rồi xem BSSID có nhảy qua lại không | Nhảy liên tục = **"ping-pong roaming"** — cell overlap quá nhiều |
+| 5 | ⭐ Đi thật xa AP cũ rồi mới quay lại xem BSSID — nó có đổi **muộn** không? | Đổi muộn = **sticky client** (§6.6) |

@@ -12,7 +12,7 @@
 | Nội dung | Cần server? | Cách lab |
 |---|:---:|---|
 | Password type, SSH, hardening | ❌ | Lab đầy đủ |
-| ⭐⭐ **AAA + fallback** | ❌ | ⭐ **Trỏ vào IP không tồn tại** → server "chết" → quan sát fallback sang `local`.<br>⭐ **Đây chính là điểm đề hỏi!** |
+| ⭐ **AAA + fallback** | ❌ | **Trỏ vào IP không tồn tại** → server "chết" → quan sát fallback sang `local`.<br> **Đây chính là điểm đề hỏi!** |
 | ACL nâng cao, uRPF, VACL | ❌ | Lab đầy đủ |
 | CoPP | ❌ | Lab đầy đủ |
 | ⭐ 802.1X | ⚠️ | Quan sát `Unauthorized` + tái hiện **Critical VLAN** khi RADIUS chết |
@@ -26,8 +26,8 @@
 
 | Việc | Vì sao nguy hiểm |
 |---|---|
-| 🔴 ⭐⭐ **TẠO USER LOCAL TRƯỚC khi gõ `aaa new-model`** | Thiếu bước này là **tự khóa mình ra khỏi router** |
-| 🔴 ⭐⭐ **GIỮ MỘT PHIÊN SSH THỨ HAI đang mở** | Nếu hỏng thì còn đường sửa. LAB B **cố ý** cho bạn tự khóa mình một lần |
+| 🔴  **TẠO USER LOCAL TRƯỚC khi gõ `aaa new-model`** | Thiếu bước này là **tự khóa mình ra khỏi router** |
+| 🔴  **GIỮ MỘT PHIÊN SSH THỨ HAI đang mở** | Nếu hỏng thì còn đường sửa. LAB B **cố ý** cho bạn tự khóa mình một lần |
 | ⭐ **`test aaa` TRƯỚC khi logout** | Đừng logout rồi mới biết |
 | 🔴 **CoPP: bắt đầu `exceed-action transmit`** | Siết ngay là **tự đánh sập OSPF/SSH của chính mình** |
 
@@ -51,7 +51,7 @@
 |---|---|:---:|
 | R1, R2 | vIOS | 512 MB × 2 |
 | SW1 | vIOS-L2 | 768 MB |
-| ⭐ **Tổng** | | ⭐ **~1.8 GB** ✅ |
+| ⭐ **Tổng** | | **~1.8 GB** ✅ |
 
 ⭐ **Cấu hình nền (làm trước):**
 ```
@@ -76,7 +76,7 @@ ip route 1.1.1.1 255.255.255.255 10.0.0.1
 
 ---
 
-### LAB A — ⭐⭐ Password types & Hardening (25 phút)
+### LAB A — ⭐ Password types & Hardening (25 phút)
 
 **Bước A1 — Thấy tận mắt sự khác nhau giữa các loại mật khẩu:**
 ```
@@ -92,8 +92,8 @@ R1(config)# do show run | include enable password|username u5
 enable password 7 0822455D0A16         ← đã thành type 7
 username u5 password 7 06120A2D4A1A
 ```
-> 💡 🔴 ⭐⭐ **Chép chuỗi type 7 đó và tìm bất kỳ trang "cisco type 7 decrypt" nào.**
-> ⭐ **Nó ra lại mật khẩu gốc trong 1 giây.** ⭐ **Đó là lý do type 7 KHÔNG PHẢI bảo mật.**
+> 💡 🔴  **Chép chuỗi type 7 đó và tìm bất kỳ trang "cisco type 7 decrypt" nào.**
+> ⭐ **Nó ra lại mật khẩu gốc trong 1 giây.**  **Đó là lý do type 7 KHÔNG PHẢI bảo mật.**
 
 **Bước A2 — Dùng loại đúng:**
 ```
@@ -104,7 +104,7 @@ R1(config)# do show run | include enable secret|username admin
 enable secret 9 $9$Ab3...               ← số 9 = scrypt ✅
 username admin privilege 15 secret 9 $9$Xy7...
 ```
-✅ **Checkpoint A2:** ⭐ **con số ngay sau `secret` phải là `9`.** ⭐ Nếu là `5` → bạn quên `algorithm-type scrypt`.
+✅ **Checkpoint A2:** ⭐ **con số ngay sau `secret` phải là `9`.**  Nếu là `5` → bạn quên `algorithm-type scrypt`.
 
 **Bước A3 — SSH + khóa VTY:**
 ```
@@ -142,7 +142,7 @@ R1(config)# login block-for 60 attempts 3 within 30
 R1(config)# login on-failure log
 R1(config)# login quiet-mode access-class ACL-MGMT
 ```
-⭐ Từ R2, ⭐ **SSH sai mật khẩu 3 lần liên tiếp**, rồi xem trên R1:
+⭐ Từ R2,  **SSH sai mật khẩu 3 lần liên tiếp**, rồi xem trên R1:
 ```
 R1# show login
    Router enabled to watch for login Attacks.
@@ -151,12 +151,12 @@ R1# show login
 %SEC_LOGIN-1-QUIET_MODE_ON: Still timeleft for watching failures is 47 seconds,
    [user: admin] [Source: 10.0.0.2] [localport: 22] ...
 ```
-> 💡 ⭐ **Bạn vừa chặn được brute-force bằng 1 dòng lệnh.** ⭐ Và `quiet-mode access-class` đảm bảo
+> 💡 ⭐ **Bạn vừa chặn được brute-force bằng 1 dòng lệnh.**  Và `quiet-mode access-class` đảm bảo
 > ⭐ **admin thật vẫn vào được** trong lúc đang khóa.
 
 ---
 
-### LAB B — 🔴 ⭐⭐ AAA và bài học FALLBACK (35 phút) — **LAB quan trọng nhất module**
+### LAB B — 🔴  AAA và bài học FALLBACK (35 phút) — **LAB quan trọng nhất module**
 
 **Bước B1 — ⭐ Chuẩn bị AN TOÀN trước (đọc kỹ):**
 ```
@@ -181,7 +181,7 @@ R1(config)# aaa authentication login default group GRP-TAC local
 R1(config)# aaa authorization exec default group GRP-TAC local if-authenticated
 ```
 
-**Bước B3 — ⭐⭐ Test TRƯỚC KHI logout:**
+**Bước B3 — ⭐ Test TRƯỚC KHI logout:**
 ```
 R1# test aaa group GRP-TAC admin MatKhauCuuHo legacy
    Attempting authentication test to server-group GRP-TAC using tacacs+
@@ -194,20 +194,20 @@ R1# show aaa servers | include host|State|Dead
         Dead: total time 35s, count 1
 ```
 
-✅ **Checkpoint B3 — ⭐⭐ bài test quyết định:**
+✅ **Checkpoint B3 — ⭐ bài test quyết định:**
 Từ R2, ⭐ **SSH vào R1 bằng `admin` / `MatKhauCuuHo`**:
 ```
 R2# ssh -l admin 1.1.1.1
 Password: ********
 R1>                                            ← VÀO ĐƯỢC!
 ```
-> 💡 ⭐⭐ **Bạn vừa chứng kiến FALLBACK hoạt động.** ⭐ TACACS+ **im lặng** → router chờ hết timeout →
+> 💡 ⭐ **Bạn vừa chứng kiến FALLBACK hoạt động.**  TACACS+ **im lặng** → router chờ hết timeout →
 > ⭐ **chuyển sang phương pháp thứ hai (`local`)** → dùng `username admin` trong config.
 >
-> 🔴 ⭐⭐ **Nếu bạn viết `aaa authentication login default group GRP-TAC` (KHÔNG có `local`) →
+> 🔴  **Nếu bạn viết `aaa authentication login default group GRP-TAC` (KHÔNG có `local`) →
 > bạn vừa TỰ KHÓA MÌNH RA KHỎI ROUTER.** ⭐ Đây là tai nạn số 1 khi triển khai AAA.
 
-**Bước B4 — 🔴 ⭐⭐ Tái hiện tai nạn (an toàn, vì có phiên SSH thứ hai đang mở):**
+**Bước B4 — 🔴  Tái hiện tai nạn (an toàn, vì có phiên SSH thứ hai đang mở):**
 ```
 ! Trên phiên SSH THỨ NHẤT:
 R1(config)# aaa authentication login default group GRP-TAC       ! BỎ "local"
@@ -222,7 +222,7 @@ Password: ********
 ```
 R1(config)# aaa authentication login default group GRP-TAC local
 ```
-> 💡 🔴 ⭐⭐ **Ghi ngay vào `SO-TAY-LOI.md`.** ⭐ Trên thiết bị thật, nếu bạn không giữ phiên thứ hai,
+> 💡 🔴  **Ghi ngay vào `SO-TAY-LOI.md`.**  Trên thiết bị thật, nếu bạn không giữ phiên thứ hai,
 > ⭐ **bạn phải đi tới tận nơi cắm cáp console và làm password recovery.**
 
 **Bước B5 — ⭐ Phân biệt `reject` với `timeout`:**
@@ -236,15 +236,15 @@ R1(config-line)#  login authentication CONSOLE-LOCAL
 R1# show aaa servers | include Authen|accept|reject|timeout
    Authen: request 6, timeouts 6            ← TẤT CẢ là timeout, không có reject
 ```
-> 💡 ⭐⭐ **Ghi nhớ bảng phân biệt:**
-> ⭐ **`timeouts` tăng / `State: DEAD`** → server **im lặng** → ⭐ **CÓ fallback**
-> ⭐ **`reject` tăng** → server **trả lời "sai mật khẩu"** → 🔴 ⭐ **KHÔNG fallback**
+> 💡 ⭐ **Ghi nhớ bảng phân biệt:**
+> ⭐ **`timeouts` tăng / `State: DEAD`** → server **im lặng** →  **CÓ fallback**
+>  **`reject` tăng** → server **trả lời "sai mật khẩu"** → 🔴  **KHÔNG fallback**
 >
 > ⭐ **Và: sai shared key cho ra biểu hiện GIỐNG HỆT "server chết"** — vì router không giải mã được câu trả lời.
 
 ---
 
-### LAB C — ⭐⭐ ACL nâng cao (35 phút)
+### LAB C — ⭐ ACL nâng cao (35 phút)
 
 **Bước C1 — Named ACL + chèn dòng vào giữa:**
 ```
@@ -268,10 +268,10 @@ Extended IP access list ACL-TEST
     20 permit tcp any any eq 22
     30 deny ip any any log
 ```
-✅ **Checkpoint C1:** ⭐ **thử làm điều tương tự với numbered ACL (`access-list 100 ...`)** → ⭐ **dòng mới
-luôn nhảy xuống cuối, SAU dòng `deny`** → ⭐ **vô dụng.** ⭐ **Đây là lý do luôn dùng named ACL.**
+✅ **Checkpoint C1:** ⭐ **thử làm điều tương tự với numbered ACL (`access-list 100 ...`)** →  **dòng mới
+luôn nhảy xuống cuối, SAU dòng `deny`** → ⭐ **vô dụng.**  **Đây là lý do luôn dùng named ACL.**
 
-**Bước C2 — ⭐⭐ Kỹ thuật troubleshoot ACL bằng bộ đếm:**
+**Bước C2 — ⭐ Kỹ thuật troubleshoot ACL bằng bộ đếm:**
 ```
 R1# clear ip access-list counters ACL-TEST
 R2# ping 1.1.1.1 repeat 10
@@ -282,7 +282,7 @@ R1# show access-lists ACL-TEST
     20 permit tcp any any eq 22
     30 deny ip any any log
 ```
-> 💡 ⭐⭐ **Đây là kỹ năng troubleshoot ACL quan trọng nhất:**
+> 💡 ⭐ **Đây là kỹ năng troubleshoot ACL quan trọng nhất:**
 > ⭐ **clear counter → tạo traffic → xem dòng nào tăng.**
 > ⭐ **Không dòng nào tăng = gói không tới interface đó, hoặc bạn áp sai chiều (in/out).**
 
@@ -296,9 +296,9 @@ R1# show logging | include ACL-TEST
 %SEC-6-IPACCESSLOGP: list ACL-TEST denied tcp 10.0.0.2(...) -> 1.1.1.1(8080), 1 packet
 ```
 > 💡 ⭐ **Nếu bạn không viết dòng `deny ip any any log`, gói vẫn bị chặn bởi deny NGẦM —
-> nhưng ⭐ KHÔNG có bộ đếm và KHÔNG có log** → ⭐ **bạn mù hoàn toàn khi điều tra sự cố.**
+> nhưng ⭐ KHÔNG có bộ đếm và KHÔNG có log** →  **bạn mù hoàn toàn khi điều tra sự cố.**
 
-**Bước C4 — 🔴 ⭐⭐ Tái hiện BẪY IPv6 ACL (bước giá trị nhất của LAB C):**
+**Bước C4 — 🔴  Tái hiện BẪY IPv6 ACL (bước giá trị nhất của LAB C):**
 ```
 !═══ Bật IPv6 trên link R1–R2 ═══
 !─── R1 ───
@@ -345,7 +345,7 @@ R1(config-if)#  ipv6 traffic-filter ACL-V6-DUNG in
 R1# ping 2001:DB8::2
 !!!!!                                          ← ✅ SỐNG LẠI
 ```
-> 💡 🔴 ⭐⭐ **Bài học một câu — ghi vào `SO-TAY-LOI.md`:**
+> 💡 🔴  **Bài học một câu — ghi vào `SO-TAY-LOI.md`:**
 > ⭐ ***"Viết `deny ipv6 any any` tường minh thì PHẢI tự thêm `permit icmp any any nd-na` và
 > `nd-ns` lên TRƯỚC — nếu không bạn giết NDP và IPv6 chết sạch."***
 
@@ -356,13 +356,13 @@ R1(config-ext-nacl)#  permit tcp any any established
 R1(config-ext-nacl)#  permit icmp any any
 R1(config-ext-nacl)#  deny ip any any log
 ```
-✅ ⭐ Từ R2 thử `telnet 1.1.1.1 22` → 🔴 **bị chặn** (gói SYN đầu tiên **không có cờ ACK**).
-⭐ Từ R1 thử `telnet 2.2.2.2 22` → ⭐ **gói trả về được phép** (có ACK).
+✅  Từ R2 thử `telnet 1.1.1.1 22` → 🔴 **bị chặn** (gói SYN đầu tiên **không có cờ ACK**).
+⭐ Từ R1 thử `telnet 2.2.2.2 22` →  **gói trả về được phép** (có ACK).
 > 💡 ⭐ **Bạn vừa thấy `established` chỉ cho phép traffic TRẢ LỜI.**
 
 ---
 
-### LAB D — ⭐⭐ CoPP (30 phút)
+### LAB D — ⭐ CoPP (30 phút)
 
 **Bước D1 — Phân loại và áp policy ở chế độ "CHỈ ĐẾM":**
 ```
@@ -405,10 +405,10 @@ Control Plane
         conformed 63 packets;  actions: transmit
         exceeded  337 packets; actions: transmit    ← VƯỢT nhưng VẪN CHO QUA
 ```
-> 💡 ⭐⭐ **`exceeded` cao nhưng `actions: transmit` = CoPP đang ĐO chứ chưa CHẶN.**
+> 💡 ⭐ **`exceeded` cao nhưng `actions: transmit` = CoPP đang ĐO chứ chưa CHẶN.**
 > ⭐ **Đây chính xác là chế độ bạn phải chạy vài ngày trước khi siết.**
 
-**Bước D3 — 🔴 ⭐ Siết lại và thấy hậu quả:**
+**Bước D3 — 🔴  Siết lại và thấy hậu quả:**
 ```
 R1(config)# policy-map PM-COPP
 R1(config-pmap)#  class CM-CP-ICMP
@@ -423,9 +423,9 @@ Success rate is 22 percent (22/100)
 R1# show policy-map control-plane input class CM-CP-ICMP | include exceeded
         exceeded 78 packets; actions: drop     ← GIỜ THÌ VỨT THẬT
 ```
-> 💡 🔴 ⭐⭐ **Bạn vừa tự tay chứng minh vì sao CoPP nguy hiểm.**
-> ⭐ Nếu class này là **OSPF** thay vì ICMP, ⭐ **bạn vừa đánh sập adjacency của chính mình.**
-> ⭐⭐ **Luôn: đo trước, siết sau. Và để `class-default` rộng rãi.**
+> 💡 🔴  **Bạn vừa tự tay chứng minh vì sao CoPP nguy hiểm.**
+> ⭐ Nếu class này là **OSPF** thay vì ICMP,  **bạn vừa đánh sập adjacency của chính mình.**
+> ⭐ **Luôn: đo trước, siết sau. Và để `class-default` rộng rãi.**
 
 **Bước D4 — ⭐ Xem CPU (nối với lý thuyết §5.1):**
 ```
@@ -439,9 +439,9 @@ R1# show processes cpu history
 
 ## 🚀 14. LAB NÂNG CAO
 
-### 14.1 🚀 ⭐⭐ LAB E — 802.1X: máy trạng thái và Critical VLAN (30 phút)
+### 14.1 🚀 ⭐ LAB E — 802.1X: máy trạng thái và Critical VLAN (30 phút)
 
-> ⭐ **Không cần RADIUS thật.** ⭐ Ta trỏ vào server chết để ⭐ **quan sát đúng cái đề hỏi**:
+> ⭐ **Không cần RADIUS thật.**  Ta trỏ vào server chết để  **quan sát đúng cái đề hỏi**:
 > trạng thái `Unauthorized` và cơ chế **Critical VLAN**.
 
 ```
@@ -498,10 +498,10 @@ SW1# show dot1x interface Gi0/2 details | include PortControl|Status
    PortControl = AUTO
    Port Status  = UNAUTHORIZED
 ```
-> 💡 ⭐ **Bạn vừa thấy điều quan trọng nhất:** ⭐ **cổng ở trạng thái `AUTO` sẽ ĐÓNG cho tới khi
+> 💡 ⭐ **Bạn vừa thấy điều quan trọng nhất:**  **cổng ở trạng thái `AUTO` sẽ ĐÓNG cho tới khi
 > có `Access-Accept`.** ⭐ Server chết → **không ai vào được.**
 
-✅ **Checkpoint E2 — ⭐⭐ thêm Critical VLAN và thấy nó cứu tình hình:**
+✅ **Checkpoint E2 — ⭐ thêm Critical VLAN và thấy nó cứu tình hình:**
 ```
 interface GigabitEthernet0/2
  authentication event server dead action authorize vlan 10
@@ -516,12 +516,12 @@ SW1# show access-session interface Gi0/2 details
          dot1x   Authc Failed / Not run
    Current Policy: Critical_Auth                ← Critical VLAN đã cứu
 ```
-> 💡 🔴 ⭐⭐ **Đây là bài học đắt giá nhất của 802.1X ngoài đời:**
+> 💡 🔴  **Đây là bài học đắt giá nhất của 802.1X ngoài đời:**
 > ⭐ **Không có Critical VLAN → ISE bảo trì 10 phút = cả công ty mất mạng.**
 > ⭐ **Và bạn cũng không SSH vào switch được** (nếu switch cũng dùng ISE cho AAA) →
 > ⭐ **đó là lý do method list PHẢI có `local` ở cuối** *(LAB B)*.
 
-✅ **Checkpoint E3 — 🔴 ⭐ tái hiện lỗi "quên dòng global":**
+✅ **Checkpoint E3 — 🔴  tái hiện lỗi "quên dòng global":**
 ```
 SW1(config)# no dot1x system-auth-control
 SW1# show access-session interface Gi0/2 details
@@ -529,7 +529,7 @@ SW1# show access-session interface Gi0/2 details
 SW1# show dot1x
    Sysauthcontrol         = Disabled            ← THỦ PHẠM
 ```
-> 💡 🔴 ⭐⭐ **Cấu hình trên port vẫn còn nguyên, nhưng 802.1X hoàn toàn không chạy — và
+> 💡 🔴  **Cấu hình trên port vẫn còn nguyên, nhưng 802.1X hoàn toàn không chạy — và
 > KHÔNG có thông báo lỗi nào.** ⭐ **Luôn kiểm tra `show dot1x | include Sysauthcontrol` đầu tiên.**
 
 ### 14.2 🚀 ⭐ LAB F — uRPF chống giả mạo (10 phút)
@@ -584,8 +584,8 @@ SW1# show vlan filter
 ```
 SW1(config)# no vlan access-map VMAP-10 20
 ```
-→ ⭐ **Toàn bộ VLAN 10 mất kết nối.** ⭐ **VACL kết thúc bằng `drop` ngầm.**
-> 💡 🔴 ⭐⭐ **Ghi vào sổ lỗi: "VACL luôn phải có một map cuối `action forward`."**
+→ ⭐ **Toàn bộ VLAN 10 mất kết nối.**  **VACL kết thúc bằng `drop` ngầm.**
+> 💡 🔴  **Ghi vào sổ lỗi: "VACL luôn phải có một map cuối `action forward`."**
 
 ### 14.4 🚀 ⭐ LAB H — DHCP Snooping + DAI (20 phút, bổ trợ)
 
@@ -612,9 +612,9 @@ show ip dhcp snooping
 show ip dhcp snooping binding                  ! bảng MAC↔IP↔port↔VLAN
 show ip arp inspection statistics
 ```
-> 💡 🔴 ⭐⭐ **Thử bật DAI mà CHƯA bật DHCP Snooping** → ⭐ **mọi ARP bị drop, VLAN chết.**
+> 💡 🔴  **Thử bật DAI mà CHƯA bật DHCP Snooping** →  **mọi ARP bị drop, VLAN chết.**
 > ⭐ **Thứ tự: DHCP Snooping TRƯỚC → nó xây bảng binding → DAI mới có cái để so.**
-> ⭐ Và với thiết bị IP tĩnh: ⭐ **phải khai `ip source binding` thủ công.**
+> ⭐ Và với thiết bị IP tĩnh:  **phải khai `ip source binding` thủ công.**
 
 ### 14.5 🚀 ⭐ LAB I — Wireless security trên DevNet Sandbox (30 phút)
 
@@ -629,7 +629,7 @@ show ip arp inspection statistics
 |:---:|---|:---:|
 | 1 | ⭐ Một WLAN dùng **PSK** — xem `security wpa akm psk` | §7.2 |
 | 2 | ⭐ Một WLAN dùng **802.1X** — xem `security dot1x authentication-list` | §7.3 |
-| 3 | ⭐⭐ **Policy Profile có bật `aaa-override` không** | §7.3 |
+| 3 | ⭐ **Policy Profile có bật `aaa-override` không** | §7.3 |
 | 4 | ⭐ Cấu hình **PMF**: `optional` hay `mandatory` | §7.1 |
 | 5 | ⭐ RADIUS server đang trỏ đi đâu (`show aaa servers`) | §3 |
 | 6 | ⭐ Nếu có client: `show wireless client mac-address <MAC> detail` → **VLAN, ACL, SGT** | §6.7 |

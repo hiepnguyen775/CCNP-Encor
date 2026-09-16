@@ -40,7 +40,7 @@ làm được ở quán cà phê.
 
 ## 🧪 8. LAB 07A — RF thật, bằng đúng thiết bị bạn đang có
 
-> ⭐ **Module này không cần EVE-NG.** Nhưng ⭐ **bắt buộc phải làm LAB A và LAB B** —
+> ⭐ **Module này không cần EVE-NG.** Nhưng  **bắt buộc phải làm LAB A và LAB B** —
 > chúng biến lý thuyết RF thành thứ **nhìn thấy được**, mất tổng cộng ~45 phút.
 
 ### 8.1 Bảng tổng LAB
@@ -80,8 +80,8 @@ làm được ở quán cà phê.
 | 2 | 0→10 dBm=10 mW→20 dBm=100 mW→+3=23 dBm=200 mW | **200 mW** |
 | 3 | 20 − 4 + 8 = 24 dBm. 24 = 20(100mW) +3(200) +1… ⭐ dễ hơn: 21 dBm=125 mW, 24=21+3 → **250 mW** | **24 dBm ≈ 250 mW** |
 | 4 | 36 = Tx − 3 + 21 → Tx = 36 + 3 − 21 = **18 dBm** | **18 dBm (≈63 mW)** |
-| 5 | −72 − (−94) = **22 dB** → ⭐ đạt tối thiểu cho Voice (≥20) nhưng **RSSI −72 đã dưới ngưỡng −67** → 🔴 **chưa đạt chuẩn Voice** | **22 dB — không đạt vì RSSI yếu** |
-| 6 | −52 − (−68) = **16 dB**. ⭐ RSSI rất mạnh nhưng **noise floor cao bất thường (−68)** → SNR chỉ 16 → 🔴 **có nguồn nhiễu mạnh, phải đi tìm** | **16 dB — vạch đầy nhưng mạng tệ** |
+| 5 | −72 − (−94) = **22 dB** →  đạt tối thiểu cho Voice (≥20) nhưng **RSSI −72 đã dưới ngưỡng −67** → 🔴 **chưa đạt chuẩn Voice** | **22 dB — không đạt vì RSSI yếu** |
+| 6 | −52 − (−68) = **16 dB**.  RSSI rất mạnh nhưng **noise floor cao bất thường (−68)** → SNR chỉ 16 → 🔴 **có nguồn nhiễu mạnh, phải đi tìm** | **16 dB — vạch đầy nhưng mạng tệ** |
 | 7 | 20→40 = −3 dB, 40→80 = −3 dB nữa → ⭐ **SNR giảm 6 dB** | **−6 dB** |
 | 8 | +9 dB. +3=×2, +3=×4, +3=×8 → ⭐ **gấp 8 lần** | **+9 dB, ×8** |
 
@@ -90,7 +90,7 @@ làm được ở quán cà phê.
 
 ---
 
-### LAB B — ⭐⭐ Soi Wi-Fi thật bằng Windows CLI (30 phút)
+### LAB B — ⭐ Soi Wi-Fi thật bằng Windows CLI (30 phút)
 
 > ⭐ Không cần cài gì. Mở **PowerShell** hoặc **CMD** trên laptop đang bật Wi-Fi.
 
@@ -122,7 +122,7 @@ netsh wlan show interfaces
 | 1 | Bạn đang ở band nào? | ⭐ Channel ≤ 14 → 2.4 GHz · 36–165 → 5 GHz |
 | 2 | Channel của bạn có phải DFS không? | ⭐ 52–64 và 100–144 → **có DFS** |
 | 3 | Chuẩn 802.11 nào? | dòng `Radio type` |
-| 4 | ⭐ **Signal % ≈ bao nhiêu dBm?** | ⭐ **dBm ≈ (% ÷ 2) − 100** → 82% ≈ **−59 dBm** |
+| 4 | ⭐ **Signal % ≈ bao nhiêu dBm?** | **dBm ≈ (% ÷ 2) − 100** → 82% ≈ **−59 dBm** |
 | 5 | Data rate hiện tại có gần tốc độ tối đa của chuẩn đó không? | So với bảng §3.1 |
 
 > ⭐ **Công thức đổi % → dBm của Windows:** `dBm ≈ (quality/2) − 100`
@@ -157,7 +157,7 @@ SSID 3 : NHA-HANG-XOM
 |---|---|
 | ⭐ Đếm tổng số **BSSID** thấy được | ____ |
 | ⭐ Đếm số BSSID ở **2.4 GHz** vs **5 GHz** | 2.4: ____ / 5: ____ |
-| 🔴 ⭐ Liệt kê các AP 2.4 GHz **KHÔNG ở channel 1/6/11** | ____ |
+| 🔴  Liệt kê các AP 2.4 GHz **KHÔNG ở channel 1/6/11** | ____ |
 | ⭐ Channel 2.4 GHz nào **đông nhất**? | ____ |
 | ⭐ Có AP nào ở channel **DFS (52–64, 100–144)** không? | ____ |
 | ⭐ Có SSID nào xuất hiện với **nhiều BSSID** không? (→ đó là **ESS**, nhiều AP hoặc nhiều band) | ____ |
@@ -199,7 +199,7 @@ netsh wlan show interfaces | findstr /C:"Signal" /C:"Receive rate" /C:"Channel"
 ✅ **Checkpoint 4 — ⭐ Ba điều phải quan sát được:**
 1. ⭐ **RSSI giảm → data rate TỰ ĐỘNG giảm theo** → đó chính là **Dynamic Rate Shifting** (§3.4)
 2. ⭐ **Chỉ một bức tường** đã làm tụt vài chục % — đúng bảng suy hao §2.5
-3. 🔴 ⭐ **Bước 4: cơ thể người (túi nước) làm tín hiệu tụt rõ rệt** → đây là **absorption**,
+3. 🔴  **Bước 4: cơ thể người (túi nước) làm tín hiệu tụt rõ rệt** → đây là **absorption**,
    và là lý do phòng họp đông người phải thiết kế theo **capacity** (§4.2)
 
 💡 **Vì sao quan trọng:** bạn vừa **tự tay chứng minh** 3 khái niệm mà đề sẽ hỏi bằng chữ.
@@ -225,7 +225,7 @@ netsh wlan show interfaces | findstr /C:"Signal" /C:"Receive rate" /C:"Channel"
 | 1 | Band nào **chật hơn** rõ rệt? | ⭐ Chắc chắn là 2.4 GHz |
 | 2 | Có AP nào nằm **giữa** 1-6-11 không? | ⭐ Nếu có → nó đang gây **ACI** cho cả hai bên |
 | 3 | Ở 5 GHz, có AP nào chiếm **80 MHz** (quả đồi rất rộng) không? | ⭐ Một AP 80 MHz "ăn" 4 channel |
-| 4 | ⭐ Nếu bạn là admin ở đây, bạn chọn channel nào cho AP của mình? Vì sao? | ⭐ Câu trả lời phải là **1, 6, hoặc 11** — chọn cái ít chồng lấn nhất, **KHÔNG chọn channel lẻ** |
+| 4 | ⭐ Nếu bạn là admin ở đây, bạn chọn channel nào cho AP của mình? Vì sao? | Câu trả lời phải là **1, 6, hoặc 11** — chọn cái ít chồng lấn nhất, **KHÔNG chọn channel lẻ** |
 
 ---
 
@@ -241,8 +241,8 @@ Mở bằng trình duyệt. ⭐ **Ba thứ đáng xem:**
 
 | Mục trong report | Ý nghĩa |
 |---|---|
-| ⭐ **Biểu đồ session** (đường thời gian trên cùng) | Mỗi lần kết nối/rớt. ⭐ **Đường đứt nhiều = mạng không ổn định** |
-| ⭐ **Bảng "Wireless Sessions"** → cột **BSSID** | ⭐ **BSSID đổi = bạn đã ROAM sang AP khác.** Đây là roaming thật, nhìn thấy được |
+| ⭐ **Biểu đồ session** (đường thời gian trên cùng) | Mỗi lần kết nối/rớt.  **Đường đứt nhiều = mạng không ổn định** |
+| ⭐ **Bảng "Wireless Sessions"** → cột **BSSID** | **BSSID đổi = bạn đã ROAM sang AP khác.** Đây là roaming thật, nhìn thấy được |
 | **Disconnect Reason** | Lý do rớt: do người dùng, do AP deauth, do mất tín hiệu |
 
 ✅ **Checkpoint:** tìm được ít nhất **một lần BSSID thay đổi trong khi SSID giữ nguyên** →
